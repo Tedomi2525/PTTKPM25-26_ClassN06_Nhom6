@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from app.routers import test
 # Tạo app
 app = FastAPI(
     title="QLDT API",
@@ -7,9 +7,4 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Đăng ký router
-
-# Root test
-@app.get("/")
-def root():
-    return {"message": "QLDT Backend is running 🚀"}
+app.include_router(test.router, prefix="/api")
