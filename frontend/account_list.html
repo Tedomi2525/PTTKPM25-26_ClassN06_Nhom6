@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Danh sách Tài khoản</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <h3 class="mb-4">Danh sách Tài khoản 🔑</h3>
+
+      <!-- Nút chọn -->
+      <div class="mb-3">
+        <button id="btnStudent" class="btn btn-primary me-2">
+          Tài khoản Sinh viên
+        </button>
+        <button id="btnTeacher" class="btn btn-success">
+          Tài khoản Giảng viên
+        </button>
+      </div>
+
+      <!-- Bảng tài khoản Sinh viên -->
+      <div id="studentTable" class="card shadow">
+        <div class="card-header bg-primary text-white">
+          Tài khoản Sinh viên
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Mã SV</th>
+                <th>Tên Sinh viên</th>
+                <th>Email</th>
+                <th>Tài khoản</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SV001</td>
+                <td>Nguyễn Văn A</td>
+                <td>a.nguyen@example.com</td>
+                <td>a.nguyen</td>
+              </tr>
+              <tr>
+                <td>SV002</td>
+                <td>Trần Thị B</td>
+                <td>b.tran@example.com</td>
+                <td>b.tran</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bảng tài khoản Giảng viên -->
+      <div id="teacherTable" class="card shadow hidden">
+        <div class="card-header bg-success text-white">
+          Tài khoản Giảng viên
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Mã GV</th>
+                <th>Tên Giảng viên</th>
+                <th>Email</th>
+                <th>Tài khoản</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>GV001</td>
+                <td>Phạm Văn C</td>
+                <td>c.pham@example.com</td>
+                <td>c.pham</td>
+              </tr>
+              <tr>
+                <td>GV002</td>
+                <td>Lê Thị D</td>
+                <td>d.le@example.com</td>
+                <td>d.le</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const btnStudent = document.getElementById("btnStudent");
+      const btnTeacher = document.getElementById("btnTeacher");
+      const studentTable = document.getElementById("studentTable");
+      const teacherTable = document.getElementById("teacherTable");
+
+      btnStudent.addEventListener("click", () => {
+        studentTable.classList.remove("hidden");
+        teacherTable.classList.add("hidden");
+      });
+
+      btnTeacher.addEventListener("click", () => {
+        teacherTable.classList.remove("hidden");
+        studentTable.classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>
