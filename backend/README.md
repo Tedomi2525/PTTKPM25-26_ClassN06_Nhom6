@@ -65,4 +65,3 @@ qldt_backend/
 │
 │── requirements.txt
 │── alembic.ini
-│── README.md
