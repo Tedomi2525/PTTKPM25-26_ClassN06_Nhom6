@@ -1,0 +1,1 @@
+DATABASE_URL = "postgresql://postgres:123321@localhost:5432/qldt"
