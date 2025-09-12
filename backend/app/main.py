@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import test
+from app.routers import test, rooms
 # Tạo app
 app = FastAPI(
     title="QLDT API",
@@ -8,3 +8,4 @@ app = FastAPI(
 )
 
 app.include_router(test.router, prefix="/api")
+app.include_router(rooms.router, prefix="/api")

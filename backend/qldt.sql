@@ -1,4 +1,4 @@
--- 2. Xóa bảng theo thứ tự phụ thuộc
+-- Xóa bảng theo thứ tự phụ thuộc
 DROP TABLE IF EXISTS attendances CASCADE;
 DROP TABLE IF EXISTS attendance_logs CASCADE;
 DROP TABLE IF EXISTS student_faces CASCADE;
@@ -14,27 +14,27 @@ DROP TABLE IF EXISTS students CASCADE;
 DROP TABLE IF EXISTS teachers CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- 3. USERS
+-- 1. USERS
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(150),
-    password VARCHAR(255) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(150) UNIQUE,
+    password VARCHAR(512) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin','teacher','student')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- Thêm 6 admin
+
 INSERT INTO users (username, email, password, role)
 VALUES
-('admin1', 'admin1@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin'),
-('admin2', 'admin2@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin'),
-('admin3', 'admin3@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin'),
-('admin4', 'admin4@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin'),
-('admin5', 'admin5@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin'),
-('admin6', 'admin6@example.com', '$2b$12$yWdfpKo10oIUlOeX9b4cDOKdD4iEtX8N7Tjc3fB.uxBGjS8dxm7im', 'admin');
+('admin1', 'admin1@example.com', '$2b$12$yWdfpKo...', 'admin'),
+('admin2', 'admin2@example.com', '$2b$12$yWdfpKo...', 'admin'),
+('admin3', 'admin3@example.com', '$2b$12$yWdfpKo...', 'admin'),
+('admin4', 'admin4@example.com', '$2b$12$yWdfpKo...', 'admin'),
+('admin5', 'admin5@example.com', '$2b$12$yWdfpKo...', 'admin'),
+('admin6', 'admin6@example.com', '$2b$12$yWdfpKo...', 'admin');
 
--- 4. TEACHERS
+-- 2. TEACHERS
 CREATE TABLE teachers (
     teacher_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -46,12 +46,11 @@ CREATE TABLE teachers (
 
 INSERT INTO teachers (user_id, teacher_code, department)
 VALUES
-  (1, 'GV001', 'Công nghệ thông tin'),
-	(2, 'GV002', 'Kinh te'),
+  (1, 'GV001', 'CNTT'),
+  (2, 'GV002', 'Kinh te'),
   (3, 'GV003', 'Toán ứng dụng');
 
-
--- 5. STUDENTS
+-- 3. STUDENTS
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -67,13 +66,12 @@ VALUES
   (5, 'SV002', 'CNTT1'),
   (6, 'SV003', 'CNTT2');
 
-
--- 6. COURSES
+-- 4. COURSES
 CREATE TABLE courses (
     course_id SERIAL PRIMARY KEY,
     course_code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(150) NOT NULL,
-    credits INT NOT NULL,
+    credits INT NOT NULL CHECK (credits > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -81,17 +79,16 @@ CREATE TABLE courses (
 INSERT INTO courses (course_code, name, credits)
 VALUES
   ('CS101', 'Nhập môn Lập trình', 3),
-  ('CS102', 'Cấu trúc dữ liệu và Giải thuật', 4),
+  ('CS102', 'Cấu trúc dữ liệu', 4),
   ('CS103', 'Cơ sở dữ liệu', 3),
   ('CS104', 'Mạng máy tính', 3),
   ('CS105', 'Trí tuệ nhân tạo', 3);
 
-
--- 7. COURSE_CLASSES
+-- 5. COURSE_CLASSES
 CREATE TABLE course_classes (
     course_class_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
-    teacher_id INT NOT NULL REFERENCES teachers(teacher_id) ON DELETE CASCADE,
+    teacher_id INT NOT NULL REFERENCES teachers(teacher_id) ON DELETE SET NULL,
     semester VARCHAR(20) NOT NULL,
     year VARCHAR(20) NOT NULL,
     section VARCHAR(20),
@@ -104,10 +101,10 @@ VALUES
   (1, 1, 'Fall', '2025', 'A'),
   (2, 1, 'Fall', '2025', 'B'),
   (3, 2, 'Fall', '2025', 'A'),
-	(4, 2, 'Fall', '2025', 'A'),
-	(5, 3, 'Fall', '2025', 'A');
+  (4, 2, 'Fall', '2025', 'A'),
+  (5, 3, 'Fall', '2025', 'A');
 
--- 8. ENROLLMENTS
+-- 6. ENROLLMENTS
 CREATE TABLE enrollments (
     enrollment_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -119,20 +116,13 @@ CREATE TABLE enrollments (
 
 INSERT INTO enrollments (student_id, course_class_id)
 VALUES
-  (1, 1),
-  (1, 2),
-	(3, 3),
-	(3, 5),
-	(1, 5),
-	(1, 4),
-  (2, 3);
+  (1, 1), (1, 2), (3, 3), (3, 5), (1, 5), (1, 4), (2, 3);
 
-
--- 9. ROOMS
+-- 7. ROOMS
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
-    capacity INT NOT NULL,
+    capacity INT NOT NULL CHECK(capacity > 0),
     camera_stream_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -146,8 +136,7 @@ VALUES
   ('Lab2', 35, 'rtsp://camera4'),
   ('Hall', 120, 'rtsp://camera5');
 
-
--- 10. PERIODS
+-- 8. PERIODS
 CREATE TABLE periods (
     period_id SERIAL PRIMARY KEY,
     period_number INT UNIQUE NOT NULL,
@@ -157,7 +146,6 @@ CREATE TABLE periods (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
 INSERT INTO periods (period_number, start_time, end_time)
 VALUES
   (1, '06:45', '09:25'),
@@ -165,21 +153,20 @@ VALUES
   (3, '13:00', '15:40'),
   (4, '15:45', '18:25');
 
-
--- 11. SCHEDULES
+-- 9. SCHEDULES
 CREATE TABLE schedules (
     schedule_id SERIAL PRIMARY KEY,
     course_class_id INT NOT NULL REFERENCES course_classes(course_class_id) ON DELETE CASCADE,
-    room_id INT NOT NULL REFERENCES rooms(room_id) ON DELETE CASCADE,
+    room_id INT NOT NULL REFERENCES rooms(room_id) ON DELETE SET NULL,
     day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
-    period_start INT NOT NULL,
-    period_end INT NOT NULL,
+    period_start INT NOT NULL REFERENCES periods(period_number),
+    period_end INT NOT NULL REFERENCES periods(period_number),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(course_class_id, day_of_week, period_start, period_end)
 );
 
--- 12. TIMETABLE_TEMPLATES
+-- 10. TIMETABLE_TEMPLATES
 CREATE TABLE timetable_templates (
     template_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -190,13 +177,13 @@ CREATE TABLE timetable_templates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 13. TIMETABLE_ITEMS
+-- 11. TIMETABLE_ITEMS
 CREATE TABLE timetable_items (
     item_id SERIAL PRIMARY KEY,
     template_id INT NOT NULL REFERENCES timetable_templates(template_id) ON DELETE CASCADE,
     day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
-    period_start INT NOT NULL,
-    period_end INT NOT NULL,
+    period_start INT NOT NULL REFERENCES periods(period_number),
+    period_end INT NOT NULL REFERENCES periods(period_number),
     course_class_id INT REFERENCES course_classes(course_class_id) ON DELETE SET NULL,
     room_id INT REFERENCES rooms(room_id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -204,7 +191,7 @@ CREATE TABLE timetable_items (
     UNIQUE(template_id, day_of_week, period_start, period_end)
 );
 
--- 14. STUDENT_FACES
+-- 12. STUDENT_FACES
 CREATE TABLE student_faces (
     face_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -215,8 +202,9 @@ CREATE TABLE student_faces (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_student_faces_student_id ON student_faces(student_id);
+CREATE INDEX idx_student_faces_vector ON student_faces USING GIN (embedding_vector);
 
--- 15. ATTENDANCE_LOGS
+-- 13. ATTENDANCE_LOGS
 CREATE TABLE attendance_logs (
     log_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -230,7 +218,7 @@ CREATE TABLE attendance_logs (
 );
 CREATE INDEX idx_attendance_logs ON attendance_logs(student_id, schedule_id, date);
 
--- 16. ATTENDANCES
+-- 14. ATTENDANCES
 CREATE TABLE attendances (
     attendance_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
