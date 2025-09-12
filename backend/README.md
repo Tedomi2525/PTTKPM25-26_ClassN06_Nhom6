@@ -65,3 +65,37 @@ qldt_backend/
 │
 │── requirements.txt
 │── alembic.ini
+│── README.md
+
+
+QLDT Backend - FastAPI
+
+Yêu cầu
+- Python 3.10+
+- Git
+
+Cài đặt
+1. Clone repo
+
+    ```git clone https://github.com/<your-username>/PTTKPM25-26_ClassN06_Nhom6.git```
+
+    ```cd PTTKPM25-26_ClassN06_Nhom6/backend```
+
+2. Tạo virtual environment
+
+    ```python -m venv venv```
+
+    ```venv\Scripts\activate```
+
+
+3. Cài dependencies:
+
+    ```pip install -r requirements.txt```
+
+4. Chạy server
+
+    ```uvicorn app.main:app --reload```
+
+Kiểm tra
+- http://127.0.0.1:8000
+- http://127.0.0.1:8000/docs
