@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.models.room import Room as RoomModel
 from app.schemas.room import RoomCreate, RoomUpdate
+from sqlalchemy import func
 
 def get_rooms(db: Session):
     return db.query(RoomModel).all()
@@ -9,8 +10,8 @@ def get_rooms(db: Session):
 def search_rooms(db: Session, q: str):
     return db.query(RoomModel).filter(
         or_(
-            RoomModel.name.ilike(f"%{q}%"),
-            RoomModel.camera_stream_url.ilike(f"%{q}%")
+            func.lower(RoomModel.name).like(func.lower(f"%{q}%")),
+            func.lower(RoomModel.camera_stream_url).like(func.lower(f"%{q}%"))
         )
     ).all()
 
