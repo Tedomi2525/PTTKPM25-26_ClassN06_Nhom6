@@ -1,25 +1,26 @@
-qldt_backend/
-│── app/
-│   │── main.py                  # Entry FastAPI
-│   │── database.py              # Kết nối PostgreSQL
-│   │── __init__.py
+```
+qldt_backend/ 
+│── app/ 
+│   │── main.py                  # Điểm vào chính của FastAPI, khởi tạo app và include tất cả router
+│   │── database.py              # Kết nối PostgreSQL, định nghĩa SessionLocal và Base cho SQLAlchemy
+│   │── __init__.py              # Đánh dấu app là package Python
 │
-│   │── core/                    # Cấu hình hệ thống
-│   │   │── config.py            # Biến môi trường
-│   │   │── security.py          # JWT, password hash
+│   │── core/                    # Cấu hình hệ thống và các helper chung
+│   │   │── config.py            # Biến môi trường, cấu hình database, JWT, các setting chung
+│   │   │── security.py          # Xử lý JWT token, hash password, kiểm tra quyền hạn (role/permission)
+│   │   │── __init__.py          # Package init
+│
+│   │── models/                  # Các ORM models, mapping với bảng trong database
+│   │   │── user.py              # Bảng người dùng: sinh viên, giảng viên, admin
+│   │   │── course.py            # Bảng môn học và lớp học
+│   │   │── program.py           # Bảng chương trình đào tạo và môn học thuộc chương trình
+│   │   │── semester.py          # Bảng học kỳ
+│   │   │── timetable.py         # Bảng thời khóa biểu, mẫu thời khóa biểu, các tiết học
+│   │   │── room.py              # Bảng phòng học và tiết học
+│   │   │── attendance.py        # Bảng điểm danh, logs, khuôn mặt học sinh
 │   │   │── __init__.py
 │
-│   │── models/                  # ORM models (SQLAlchemy)
-│   │   │── user.py              # users, teachers, students
-│   │   │── course.py            # courses, course_classes
-│   │   │── program.py           # programs, program_courses
-│   │   │── semester.py          # semesters
-│   │   │── timetable.py         # schedules, timetable_templates, timetable_items
-│   │   │── room.py              # rooms, periods
-│   │   │── attendance.py        # attendances, attendance_logs, student_faces
-│   │   │── __init__.py
-│
-│   │── schemas/                 # Pydantic schema
+│   │── schemas/                 # Các schema Pydantic dùng để validate request và response
 │   │   │── user.py
 │   │   │── course.py
 │   │   │── program.py
@@ -27,75 +28,104 @@ qldt_backend/
 │   │   │── timetable.py
 │   │   │── room.py
 │   │   │── attendance.py
-│   │   │── auth.py
+│   │   │── auth.py              # Schema cho đăng nhập và JWT token
 │   │   │── __init__.py
 │
-│   │── services/                # Logic nghiệp vụ
-│   │   │── auth_service.py
-│   │   │── user_service.py
-│   │   │── course_service.py
-│   │   │── program_service.py
-│   │   │── semester_service.py
-│   │   │── timetable_service.py
-│   │   │── room_service.py
-│   │   │── attendance_service.py
+│   │── services/                # Xử lý nghiệp vụ, logic giữa routers và database
+│   │   │── auth_service.py      # Xử lý đăng nhập, JWT, đăng ký user
+│   │   │── user_service.py      # CRUD người dùng, sinh viên, giảng viên
+│   │   │── course_service.py    # CRUD môn học, lớp học
+│   │   │── program_service.py   # CRUD chương trình đào tạo và môn học thuộc chương trình
+│   │   │── semester_service.py  # CRUD học kỳ
+│   │   │── timetable_service.py # Tạo và sinh thời khóa biểu tự động
+│   │   │── room_service.py      # CRUD phòng học và tiết học
+│   │   │── attendance_service.py# Quản lý điểm danh, logs
 │   │   │── __init__.py
 │
-│   │── routers/                 # API endpoints
-│   │   │── auth.py              # Đăng nhập
-│   │   │── users.py             # Quản lý user, sinh viên, giảng viên
+│   │── routers/                 # Các endpoint API
+│   │   │── auth.py              # Routes đăng nhập, lấy token
+│   │   │── users.py             # Quản lý người dùng, sinh viên, giảng viên
 │   │   │── courses.py           # Quản lý môn học
-│   │   │── programs.py          # Chương trình đào tạo
-│   │   │── semesters.py         # Kỳ học
-│   │   │── timetables.py        # Thời khóa biểu
-│   │   │── rooms.py             # Phòng học, tiết học
-│   │   │── attendances.py       # Điểm danh
+│   │   │── programs.py          # Quản lý chương trình đào tạo
+│   │   │── semesters.py         # Quản lý học kỳ
+│   │   │── timetables.py        # Quản lý thời khóa biểu
+│   │   │── rooms.py             # Quản lý phòng học và tiết học
+│   │   │── attendances.py       # Điểm danh học sinh
 │   │   │── __init__.py
 │
-│   │── utils/                   # Hàm tiện ích chung
-│   │   │── helpers.py
-│   │   │── validators.py
+│   │── utils/                   # Các hàm tiện ích dùng chung
+│   │   │── helpers.py           # Các hàm hỗ trợ xử lý logic chung
+│   │   │── validators.py        # Hàm validate dữ liệu, kiểm tra định dạng
 │   │   │── __init__.py
 │
-│── migrations/                  # Alembic
-│── tests/                       # Unit test
-│   │── test_auth.py
-│   │── test_users.py
-│   │── test_courses.py
+│── migrations/                  # Thư mục Alembic quản lý version của database
+│── tests/                       # Unit test cho các module
+│   │── test_auth.py             # Test các chức năng đăng nhập
+│   │── test_users.py            # Test CRUD người dùng
+│   │── test_courses.py          # Test CRUD môn học
 │
-│── requirements.txt
-│── alembic.ini
-│── README.md
+│── requirements.txt             # Liệt kê các package Python cần cài
+│── alembic.ini                  # Cấu hình Alembic
+│── README.md                    # Hướng dẫn cài đặt, cấu hình, chạy project, mô tả cấu trúc
+```
 
+# QLDT Backend - FastAPI
 
-QLDT Backend - FastAPI
-
-Yêu cầu
+## Yêu cầu
 - Python 3.10+
 - Git
 
-Cài đặt
-1. Clone repo
+## Cài đặt
+### 1. Clone repo
 
-    ```git clone https://github.com/<your-username>/PTTKPM25-26_ClassN06_Nhom6.git```
+```bash
+git clone https://github.com/<your-username>/PTTKPM25-26_ClassN06_Nhom6.git
+```
+```bash
+cd PTTKPM25-26_ClassN06_Nhom6/backend
+```
 
-    ```cd PTTKPM25-26_ClassN06_Nhom6/backend```
+### 2. Tạo virtual environment
 
-2. Tạo virtual environment
+```bash 
+python -m venv venv
+```
 
-    ```python -m venv venv```
+```bash 
+venv\Scripts\activate
+```
 
-    ```venv\Scripts\activate```
+### 3. Tạo database dùng PostgreSQL
+- Tạo database mới tên `qldt` trong PostgreSQL
+- Cấu hình connection string trong project:
 
+    `DATABASE_URL = "postgresql://<username>:<password>@<host>:<port>/qldt"`
 
-3. Cài dependencies:
+    Mẫu `DATABASE_URL = "postgresql://postgres:123321@localhost:5432/qldt"`
 
-    ```pip install -r requirements.txt```
+### 4. Tạo bảng và đổ dữ liệu test
+- Cách 1: Dùng SQL raw
+    - Chạy file sau trong hệ quản trị cơ sở dữ liệu
+        [qldt.sql](backend/qldt.sql)
 
-4. Chạy server
+- Cách 2 (Chưa dùng được): Sử dụng Alembic để tạo các bảng từ models đã định nghĩa:
 
-    ```uvicorn app.main:app --reload```
+```bash
+alembic revision --autogenerate -m "create initial tables"
+```
+```bash
+alembic upgrade head
+```
+### 5. Cài dependencies:
 
-Kiểm tra
+```bash 
+pip install -r requirements.txt
+```
+### 6. Chạy server
+
+```bash 
+uvicorn app.main:app --reload
+```
+## Kiểm tra
 - http://127.0.0.1:8000
 - http://127.0.0.1:8000/docs
