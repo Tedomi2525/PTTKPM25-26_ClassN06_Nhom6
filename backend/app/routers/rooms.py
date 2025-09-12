@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
-
 from app.schemas.room import RoomCreate, RoomUpdate, Room as RoomSchema
-from app.models.room import Room as RoomModel
 from app.database import SessionLocal
+from app.services import room_service
 
 router = APIRouter()
 
@@ -17,43 +15,26 @@ def get_db():
 
 @router.get("/rooms", response_model=list[RoomSchema])
 def get_rooms(db: Session = Depends(get_db)):
-    results = db.query(RoomModel).all()
-    return results
+    return room_service.get_rooms(db)
 
 @router.get("/rooms/search", response_model=list[RoomSchema])
-def get_room(q: str, db: Session = Depends(get_db)):
-    results = db.query(RoomModel).filter(
-        or_(
-            RoomModel.name.ilike(f"%{q}%"),
-            RoomModel.camera_stream_url.ilike(f"%{q}%")
-        )
-    ).all()
-    return results
+def search_rooms(q: str, db: Session = Depends(get_db)):
+    return room_service.search_rooms(db, q)
 
 @router.post("/rooms", response_model=RoomSchema)
 def create_room(payload: RoomCreate, db: Session = Depends(get_db)):
-    new_room = RoomModel(**payload.dict())
-    db.add(new_room)
-    db.commit()
-    db.refresh(new_room)
-    return new_room
+    return room_service.create_room(db, payload)
 
 @router.put("/rooms/{room_id}", response_model=RoomSchema)
 def update_room(room_id: int, payload: RoomUpdate, db: Session = Depends(get_db)):
-    room = db.query(RoomModel).filter(RoomModel.room_id == room_id).first()
+    room = room_service.update_room(db, room_id, payload)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    for key, value in payload.dict(exclude_unset=True).items():
-        setattr(room, key, value)
-    db.commit()
-    db.refresh(room)
     return room
 
 @router.delete("/rooms/{room_id}")
 def delete_room(room_id: int, db: Session = Depends(get_db)):
-    room = db.query(RoomModel).filter(RoomModel.room_id == room_id).first()
-    if not room:
+    success = room_service.delete_room(db, room_id)
+    if not success:
         raise HTTPException(status_code=404, detail="Room not found")
-    db.delete(room)
-    db.commit()
     return {"message": "Room deleted successfully"}
