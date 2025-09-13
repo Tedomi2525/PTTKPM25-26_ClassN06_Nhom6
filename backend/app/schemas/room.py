@@ -2,10 +2,6 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
-def snake_to_camel(snake_str):
-    components = snake_str.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
-
 class RoomBase(BaseModel):
     name: str = Field(..., max_length=50, description="Room name")
     capacity: int = Field(..., gt=0, description="Room capacity")
