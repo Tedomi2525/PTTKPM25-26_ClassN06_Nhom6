@@ -74,6 +74,7 @@ qldt_backend/
 ## Yêu cầu
 - Python 3.10+
 - Git
+- Postgresql 17.6
 
 ## Cài đặt
 ### 1. Clone repo
