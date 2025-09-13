@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -41,29 +41,9 @@ def login_service(db: Session, request: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sai username hoặc password",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-# Xử lý đăng ký
-def register_service(db: Session, request: UserCreate):
-    existing_user = get_user_by_username(db, request.username)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username đã tồn tại"
-        )
-
-    hashed_pw = get_password_hash(request.password)
-    new_user = User(
-        username=request.username,
-        full_name=request.full_name,
-        hashed_password=hashed_pw,
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
