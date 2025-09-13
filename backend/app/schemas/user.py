@@ -1,10 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 from typing import Optional
 
 class UserBase(BaseModel):
     username: str = Field(..., max_length=100, description="Username")
-    email: Optional[str] = Field(None, max_length=150, description="User email")
+    school_email: Optional[EmailStr] = Field(None, max_length=150, description="User school email",alias="schoolEmail")
     role: str = Field(..., description="User role", pattern="^(admin|teacher|student)$")
 
 class UserCreate(UserBase):

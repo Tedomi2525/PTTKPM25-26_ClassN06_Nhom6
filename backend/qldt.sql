@@ -40,6 +40,7 @@ CREATE TABLE teachers (
     teacher_code VARCHAR(20) UNIQUE NOT NULL,   -- Mã GV (VD: GV2301)
     first_name VARCHAR(50) NOT NULL,            -- Tên
     last_name VARCHAR(100) NOT NULL,            -- Họ và đệm
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     dob DATE,                                   -- Ngày sinh
     gender VARCHAR(10) CHECK (gender IN ('Nam', 'Nữ', 'Khác')), -- Giới tính
     email VARCHAR(100) UNIQUE,                  -- Email
