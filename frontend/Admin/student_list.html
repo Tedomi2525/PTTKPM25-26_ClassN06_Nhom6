@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh Sách Sinh Viên</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Danh Sách Sinh Viên</h4>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-primary text-center">
+            <tr>
+              <th>Mã SV</th>
+              <th>Họ và đệm</th>
+              <th>Tên</th>
+              <th>Ngày sinh</th>
+              <th>Giới tính</th>
+              <th>Email</th>
+              <th>Lớp</th>
+              <th>Khóa đào tạo</th>
+              <th>Niên khóa</th>
+              <th>Hệ đào tạo</th>
+              <th>Khoa quản lý</th>
+              <th>Ngành</th>
+              <th>Trạng thái</th>
+              <th>Chức vụ</th>
+              <th>Ảnh</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Ví dụ 1 sinh viên -->
+            <tr>
+              <td class="text-center">23010315</td>
+              <td>Hoàng Minh</td>
+              <td>Quân</td>
+              <td class="text-center">2005-09-12</td>
+              <td class="text-center">Nam</td>
+              <td>quan.hm@phenikaa-uni.edu.vn</td>
+              <td>K17-CNTT_4</td>
+              <td>DH_K17.40</td>
+              <td>2023-2027</td>
+              <td>Đại học chính quy</td>
+              <td>Khoa Công nghệ Thông tin</td>
+              <td>Công nghệ thông tin</td>
+              <td class="text-success">Đang học</td>
+              <td>Sinh viên</td>
+              <td class="text-center">
+                <img src="https://via.placeholder.com/50" class="rounded-circle" alt="Ảnh SV">
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-warning">Sửa</button>
+                <button class="btn btn-sm btn-danger">Xóa</button>
+              </td>
+            </tr>
+            <!-- Thêm các sinh viên khác tại đây -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
