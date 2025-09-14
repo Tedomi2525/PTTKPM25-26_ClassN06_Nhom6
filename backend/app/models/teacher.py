@@ -30,3 +30,4 @@ class Teacher(Base):
 
     # Relationship 
     user = relationship("User", back_populates="teacher")
+    course_classes = relationship("CourseClass", back_populates="teacher")
