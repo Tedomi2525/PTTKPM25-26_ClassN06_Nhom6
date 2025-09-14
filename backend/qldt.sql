@@ -18,14 +18,14 @@ DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(150) UNIQUE,
+    school_email VARCHAR(150) UNIQUE,
     password VARCHAR(512) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin','teacher','student')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (username, email, password, role)
+INSERT INTO users (username, school_email, password, role)
 VALUES
 ('admin1', 'admin1@example.com', '$2b$12$yWdfpKo...', 'admin'),
 ('admin2', 'admin2@example.com', '$2b$12$yWdfpKo...', 'admin'),
@@ -52,6 +52,8 @@ CREATE TABLE teachers (
 
     degree VARCHAR(50) CHECK (degree IN ('Cử nhân', 'Thạc sĩ', 'Tiến sĩ')), 
     academic_rank VARCHAR(50) CHECK (academic_rank IN ('Giảng viên', 'Phó Giáo sư', 'Giáo sư')), 
+		
+		status VARCHAR(20) DEFAULT ('active') CHECK (status IN ('active', 'inactive')) NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
