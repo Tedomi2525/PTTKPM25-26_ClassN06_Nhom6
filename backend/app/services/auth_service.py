@@ -5,12 +5,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from models import User 
 from schemas.auth import LoginRequest, UserCreate
+from app.core.config import settings
 
-SECRET_KEY = "wa7ue9eW8x1RuWZMxsTNIW9pka2R0_Iym1XY4j4FdCg"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") 
 
 def get_password_hash(password: str):
     return pwd_context.hash(password)
@@ -31,7 +28,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 # Xử lý đăng nhập
 def login_service(db: Session, request: LoginRequest):
@@ -41,8 +38,8 @@ def login_service(db: Session, request: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sai username hoặc password",
             headers={"WWW-Authenticate": "Bearer"},
-        ) 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
