@@ -1,5 +1,8 @@
 from fastapi import FastAPI
-from app.routers import test, rooms, programs, users, teacher
+from app.routers import test, rooms, programs, users, teacher, timetables
+# Import models để register với SQLAlchemy
+import app.models
+
 # Tạo app
 app = FastAPI(
     title="QLDT API",
@@ -12,3 +15,4 @@ app.include_router(rooms.router, prefix="/api")
 app.include_router(programs.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(teacher.router, prefix="/api")
+app.include_router(timetables.router, prefix="/api")
