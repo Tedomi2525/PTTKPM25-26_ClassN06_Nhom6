@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.room import RoomCreate, RoomUpdate, Room as RoomSchema
-from app.database import SessionLocal
+from app.database import SessionLocal, get_db
 from app.services import room_service
 
 router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/rooms", response_model=list[RoomSchema])
 def get_rooms(db: Session = Depends(get_db)):

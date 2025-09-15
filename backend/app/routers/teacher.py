@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.teacher import TeacherCreate, TeacherUpdate, Teacher as TeacherSchema
-from app.database import SessionLocal
+from app.database import SessionLocal, get_db
 from app.services import teacher_service
 
 router = APIRouter()
-
-def get_db():
-    db = SessionLocal() 
-    try:
-        yield db
-    finally:
-        db.close()
         
 @router.get("/teachers", response_model=list[TeacherSchema])
 def get_teachers(db: Session = Depends(get_db)):
