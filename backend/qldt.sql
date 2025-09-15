@@ -1,18 +1,21 @@
--- Xóa bảng theo thứ tự phụ thuộc
-DROP TABLE IF EXISTS attendances CASCADE;
-DROP TABLE IF EXISTS attendance_logs CASCADE;
-DROP TABLE IF EXISTS student_faces CASCADE;
-DROP TABLE IF EXISTS timetable_items CASCADE;
-DROP TABLE IF EXISTS timetable_templates CASCADE;
-DROP TABLE IF EXISTS schedules CASCADE;
-DROP TABLE IF EXISTS periods CASCADE;
-DROP TABLE IF EXISTS rooms CASCADE;
-DROP TABLE IF EXISTS enrollments CASCADE;
-DROP TABLE IF EXISTS course_classes CASCADE;
-DROP TABLE IF EXISTS courses CASCADE;
-DROP TABLE IF EXISTS students CASCADE;
-DROP TABLE IF EXISTS teachers CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+-- Drop tables in dependency order
+DROP TABLE IF EXISTS attendances;
+DROP TABLE IF EXISTS attendance_logs;
+DROP TABLE IF EXISTS student_faces;
+DROP TABLE IF EXISTS timetable_items;
+DROP TABLE IF EXISTS timetable_templates;
+DROP TABLE IF EXISTS schedules;
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS course_classes;
+DROP TABLE IF EXISTS program_courses;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS teachers;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS programs;
+DROP TABLE IF EXISTS periods;
+DROP TABLE IF EXISTS rooms;
+DROP TABLE IF EXISTS semesters;
 
 -- 1. USERS
 CREATE TABLE users (
@@ -137,20 +140,20 @@ CREATE TABLE course_classes (
     course_class_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
     teacher_id INT NOT NULL REFERENCES teachers(teacher_id) ON DELETE SET NULL,
-    semester VARCHAR(20) NOT NULL,
-    year VARCHAR(20) NOT NULL,
     section VARCHAR(20),
+    max_students INT CHECK (max_students > 0),
+    min_students INT CHECK (min_students >= 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO course_classes (course_id, teacher_id, semester, year, section)
+INSERT INTO course_classes (course_id, teacher_id, section, max_students, min_students)
 VALUES
-  (1, 1, 'Fall', '2025', 'A'),
-  (2, 1, 'Fall', '2025', 'B'),
-  (3, 2, 'Fall', '2025', 'A'),
-  (4, 2, 'Fall', '2025', 'A'),
-  (5, 3, 'Fall', '2025', 'A');
+  (1, 1, 'A1', 60, 15),
+  (2, 2, 'A1', 50, 15),
+  (3, 3, 'A1', 45, 15),
+  (4, 1, 'A1', 40, 15),
+  (5, 2, 'A1', 35, 15);
 
 -- 6. ENROLLMENTS
 CREATE TABLE enrollments (
@@ -255,7 +258,7 @@ CREATE TABLE student_faces (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_student_faces_student_id ON student_faces(student_id);
-CREATE INDEX idx_student_faces_vector ON student_faces USING GIN (embedding_vector);
+CREATE INDEX idx_student_faces_vector ON student_faces (embedding_vector);
 
 -- 13. ATTENDANCE_LOGS
 CREATE TABLE attendance_logs (
@@ -286,3 +289,36 @@ CREATE TABLE attendances (
 );
 
 CREATE INDEX idx_attendances ON attendances(student_id, date);
+
+-- 15. PROGRAMS
+CREATE TABLE programs (
+    program_id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,             -- tên CTĐT (VD: CNTT 2025-2029)
+    department VARCHAR(100),                -- khoa quản lý
+    start_year INT NOT NULL,                -- năm bắt đầu khóa
+    end_year INT,                           -- năm kết thúc
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 16. PROGRAM_COURSES
+CREATE TABLE program_courses (
+    program_course_id SERIAL PRIMARY KEY,
+    program_id INT NOT NULL REFERENCES programs(program_id) ON DELETE CASCADE,
+    course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
+    semester_no INT NOT NULL,               -- học kỳ dự kiến (1,2,3...)
+    is_required BOOLEAN DEFAULT TRUE,       -- bắt buộc hay tự chọn
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(program_id, course_id, semester_no)
+);
+
+-- 17. SEMESTERS
+CREATE TABLE semesters (
+  semester_id SERIAL PRIMARY KEY,
+  semester_name VARCHAR(255),
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
