@@ -7,7 +7,7 @@ from app.models.user import User as UserModel
 from app.schemas.teacher import TeacherCreate, TeacherUpdate
 from app.schemas.user import UserCreate
 
-from passlib.context import CryptContext
+from app.core.security import get_password_hash
 
 def generate_teacher_code(db: Session) -> str:
     # Lấy teacher_code lớn nhất trong DB
@@ -24,11 +24,6 @@ def generate_teacher_code(db: Session) -> str:
         new_number = last_number + 1
 
     return f"GV{new_number:06d}"  # padding 6 chữ số
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_password_hash(password: str):
-    return pwd_context.hash(password)
 
 def get_teachers(db: Session):
     return db.query(TeacherModel).all()
@@ -53,7 +48,7 @@ def create_teacher(db: Session, teacher_payload: TeacherCreate):
     user_payload = UserCreate(
         username=teacher_code,
         school_email=f"{teacher_code}@edunera.edu",
-        password=get_password_hash(f"{teacher_code}@"),  # Mặc định password là 123456
+        password=get_password_hash(f"{teacher_code}@"),
         role="teacher"
     )
 
