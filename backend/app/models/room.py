@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Room(Base):
@@ -10,3 +11,6 @@ class Room(Base):
     camera_stream_url = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    schedules = relationship("Schedule", back_populates="room")

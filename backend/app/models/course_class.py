@@ -19,3 +19,4 @@ class CourseClass(Base):
     # Relationships
     course = relationship("Course", back_populates="course_classes")
     teacher = relationship("Teacher", back_populates="course_classes")
+    schedules = relationship("Schedule", back_populates="course_class")
