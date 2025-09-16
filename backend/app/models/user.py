@@ -14,3 +14,4 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
     
     teacher = relationship("Teacher", back_populates="user", uselist=False)
+    student = relationship("Student", back_populates="user", uselist=False)
