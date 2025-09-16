@@ -196,7 +196,7 @@ def get_current_semester_courses(
         )
     
     # Import here to avoid circular imports
-    from app.services.timetable_service import get_current_semester_for_program
+    from backend.app.services.schedule_service import get_current_semester_for_program
     
     current_semester_code = get_current_semester_for_program(db, program_id)
     if not current_semester_code:
