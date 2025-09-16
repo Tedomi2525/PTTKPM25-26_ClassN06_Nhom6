@@ -85,7 +85,7 @@ CREATE TABLE students (
     gender VARCHAR(10) CHECK (gender IN ('Nam', 'Nữ', 'Khác')),
     email VARCHAR(100) UNIQUE,                         -- Email
     phone VARCHAR(20),                                 -- Số điện thoại
-
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     class VARCHAR(50),                                 -- Lớp (VD: K17-CNTT_4)
     training_program VARCHAR(50),                      -- Khóa đào tạo (VD: DH_K17.40)
     course_years VARCHAR(20),                          -- Niên khóa (VD: 2023-2027)
