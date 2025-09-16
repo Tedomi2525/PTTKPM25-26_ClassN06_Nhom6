@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 class RoomBase(BaseModel):
-    name: str = Field(..., max_length=50, description="Room name")
+    room_name: str = Field(..., max_length=50, description="Room name")
     capacity: int = Field(..., gt=0, description="Room capacity")
     camera_stream_url: Optional[str] = Field(None, description="Camera stream URL", alias="cameraStreamUrl")
 
@@ -11,7 +11,7 @@ class RoomCreate(RoomBase):
     pass
 
 class RoomUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=50, description="Room name")
+    room_name: Optional[str] = Field(None, max_length=50, description="Room name")
     capacity: Optional[int] = Field(None, gt=0, description="Room capacity")
     camera_stream_url: Optional[str] = Field(None, description="Camera stream URL", alias="cameraStreamUrl")
 

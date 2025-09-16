@@ -2,9 +2,9 @@
 DROP TABLE IF EXISTS attendances;
 DROP TABLE IF EXISTS attendance_logs;
 DROP TABLE IF EXISTS student_faces;
-DROP TABLE IF EXISTS timetable_items;
-DROP TABLE IF EXISTS timetable_templates;
 DROP TABLE IF EXISTS schedules;
+DROP TABLE IF EXISTS semesters;
+DROP TABLE IF EXISTS schedule_templates;
 DROP TABLE IF EXISTS enrollments;
 DROP TABLE IF EXISTS course_classes;
 DROP TABLE IF EXISTS program_courses;
@@ -15,7 +15,6 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS programs;
 DROP TABLE IF EXISTS periods;
 DROP TABLE IF EXISTS rooms;
-DROP TABLE IF EXISTS semesters;
 
 -- 1. USERS
 CREATE TABLE users (
@@ -341,7 +340,7 @@ VALUES
 -- 7. ROOMS
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
+    room_name VARCHAR(50) UNIQUE NOT NULL,
     capacity INT NOT NULL CHECK(capacity > 0),
     camera_stream_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -351,9 +350,9 @@ CREATE TABLE rooms (
 INSERT INTO rooms (name, capacity, camera_stream_url)
 VALUES
   ('P101', 60, 'rtsp://camera1'),
-  ('P102', 45, 'rtsp://camera2'),
-  ('Lab1', 30, 'rtsp://camera3'),
-  ('Lab2', 35, 'rtsp://camera4'),
+  ('P102', 70, 'rtsp://camera2'),
+  ('Lab1', 70, 'rtsp://camera3'),
+  ('Lab2', 70, 'rtsp://camera4'),
   ('Hall', 120, 'rtsp://camera5');
 
 -- 8. PERIODS
@@ -405,6 +404,20 @@ VALUES
 (3, '13:00', '15:40', 'Sat'),
 (4, '15:45', '18:25', 'Sat');
 
+-- 16. SEMESTERS
+CREATE TABLE semesters (
+  semester_id SERIAL PRIMARY KEY,
+  semester_name VARCHAR(255),
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+INSERT INTO semesters (semester_name, start_time, end_time, created_at, updated_at)
+VALUES
+('HK_1_2025', '2025-09-01 00:00:00', '2026-01-15 23:59:59', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- 9. SCHEDULES
 CREATE TABLE schedules (
     schedule_id SERIAL PRIMARY KEY,
@@ -413,37 +426,25 @@ CREATE TABLE schedules (
     day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
     period_start INT NOT NULL REFERENCES periods(period_id),
     period_end INT NOT NULL REFERENCES periods(period_id),
+    week_number INT CHECK(week_number BETWEEN 1 AND 20),  -- Tuần thứ mấy (1-10 cho học kỳ thường)
+    specific_date DATE,                                   -- Ngày cụ thể
+    semester_id INT REFERENCES semesters(semester_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(course_class_id, day_of_week, period_start, period_end)
+    UNIQUE(course_class_id, day_of_week, period_start, period_end, week_number)
 );
 
--- 10. TIMETABLE_TEMPLATES
-CREATE TABLE timetable_templates (
+-- 10. SCHEDULE_TEMPLATES
+CREATE TABLE schedule_templates (
     template_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    semester VARCHAR(20) NOT NULL,
-    year VARCHAR(20) NOT NULL,
-    target_group VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    course_class_id INT NOT NULL REFERENCES course_classes(course_class_id) ON DELETE CASCADE,
+    room_id INT NOT NULL REFERENCES rooms(room_id) ON DELETE SET NULL,
+    period_id INT NOT NULL REFERENCES periods(period_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 11. TIMETABLE_ITEMS
-CREATE TABLE timetable_items (
-    item_id SERIAL PRIMARY KEY,
-    template_id INT NOT NULL REFERENCES timetable_templates(template_id) ON DELETE CASCADE,
-    day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
-    period_start INT NOT NULL REFERENCES periods(period_id),
-    period_end INT NOT NULL REFERENCES periods(period_id),
-    course_class_id INT REFERENCES course_classes(course_class_id) ON DELETE SET NULL,
-    room_id INT REFERENCES rooms(room_id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(template_id, day_of_week, period_start, period_end)
-);
 
--- 12. STUDENT_FACES
+-- 11. STUDENT_FACES
 CREATE TABLE student_faces (
     face_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -456,7 +457,7 @@ CREATE TABLE student_faces (
 CREATE INDEX idx_student_faces_student_id ON student_faces(student_id);
 CREATE INDEX idx_student_faces_vector ON student_faces (embedding_vector);
 
--- 13. ATTENDANCE_LOGS
+-- 12. ATTENDANCE_LOGS
 CREATE TABLE attendance_logs (
     log_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -470,7 +471,7 @@ CREATE TABLE attendance_logs (
 );
 CREATE INDEX idx_attendance_logs ON attendance_logs(student_id, schedule_id, date);
 
--- 14. ATTENDANCES
+-- 13. ATTENDANCES
 CREATE TABLE attendances (
     attendance_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -486,7 +487,7 @@ CREATE TABLE attendances (
 
 CREATE INDEX idx_attendances ON attendances(student_id, date);
 
--- 15. PROGRAMS
+-- 14. PROGRAMS
 CREATE TABLE programs (
     program_id SERIAL PRIMARY KEY,
     program_name VARCHAR(150) NOT NULL,  -- tên CTĐT
@@ -502,7 +503,7 @@ INSERT INTO programs (program_name, department, start_year, duration)
 VALUES
 ('Công nghệ thông tin 2025-2029', 'Khoa Công nghệ Thông tin', 2025, 4);
 
--- 16. PROGRAM_COURSES
+-- 15. PROGRAM_COURSES
 CREATE TABLE program_courses (
     program_course_id SERIAL PRIMARY KEY,
     program_id INT NOT NULL REFERENCES programs(program_id) ON DELETE CASCADE,
@@ -528,17 +529,3 @@ INSERT INTO program_courses (program_id, course_id, semester_no, is_required) VA
 (1,71,'HK_2_4',TRUE),(1,72,'HK_2_4',TRUE),(1,73,'HK_2_4',TRUE),(1,74,'HK_2_4',TRUE),(1,75,'HK_2_4',TRUE),(1,76,'HK_2_4',TRUE),(1,77,'HK_2_4',TRUE),
 (1,78,'HK_3_4',TRUE),(1,79,'HK_3_4',TRUE),(1,80,'HK_3_4',TRUE),(1,81,'HK_3_4',TRUE),(1,82,'HK_3_4',TRUE),(1,83,'HK_3_4',TRUE),(1,84,'HK_3_4',TRUE),
 (1,85,'HK_1_1',TRUE),(1,86,'HK_1_1',TRUE),(1,87,'HK_1_1',TRUE),(1,88,'HK_1_1',TRUE),(1,89,'HK_1_1',TRUE);
-
--- 17. SEMESTERS
-CREATE TABLE semesters (
-  semester_id SERIAL PRIMARY KEY,
-  semester_name VARCHAR(255),
-  start_time TIMESTAMP,
-  end_time TIMESTAMP,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-);
-
-INSERT INTO semesters (semester_name, start_time, end_time, created_at, updated_at)
-VALUES
-('HK_1_2025', '2025-09-01 00:00:00', '2026-01-15 23:59:59', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

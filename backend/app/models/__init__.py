@@ -7,6 +7,10 @@ from .room import Room
 from .semester import Semester
 from .program import Program
 from .program_course import ProgramCourse
+from .schedule import Schedule
+from .schedule_template import ScheduleTemplate
+from .student import Student
+from .period import Period
 
 __all__ = [
     "User",
@@ -17,4 +21,8 @@ __all__ = [
     "Semester",
     "Program",
     "ProgramCourse",
+    "Schedule",
+    "ScheduleTemplate",
+    "Student", 
+    "Period",
 ]
