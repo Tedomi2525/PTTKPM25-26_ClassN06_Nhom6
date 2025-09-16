@@ -5,11 +5,68 @@ from app.models.program_course import ProgramCourse
 from app.models.program import Program
 from app.models.semester import Semester
 from app.models.course import Course
+from app.models.schedule import Schedule
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 import random
 
+def get_schedule(db: Session, program_id: int):
+    """Lấy lịch học hiện tại từ cơ sở dữ liệu cho một chương trình cụ thể"""
+    schedules = db.query(Schedule).join(
+        CourseClass, Schedule.course_class_id == CourseClass.course_class_id
+    ).join(
+        Course, CourseClass.course_id == Course.course_id
+    ).join(
+        ProgramCourse, Course.course_id == ProgramCourse.course_id
+    ).filter(
+        ProgramCourse.program_id == program_id
+    ).all()
+    
+    result = []
+    for sched in schedules:
+        result.append({
+            "schedule_id": sched.schedule_id,
+            "course_class_id": sched.course_class_id,
+            "room_id": sched.room_id,
+            "day_of_week": sched.day_of_week,
+            "period_start": sched.period_start,
+            "period_end": sched.period_end,
+            "created_at": sched.created_at,
+            "updated_at": sched.updated_at
+        })
+    
+    return result
+
+
+def get_schedule_by_semester(db: Session, program_id: int, semester_code: str):
+    """Lấy lịch học của một học kỳ cụ thể cho một chương trình"""
+    schedules = db.query(Schedule).join(
+        CourseClass, Schedule.course_class_id == CourseClass.course_class_id
+    ).join(
+        Course, CourseClass.course_id == Course.course_id
+    ).join(
+        ProgramCourse, Course.course_id == ProgramCourse.course_id
+    ).filter(
+        ProgramCourse.program_id == program_id,
+        ProgramCourse.semester_no == semester_code
+    ).all()
+    
+    result = []
+    for sched in schedules:
+        result.append({
+            "schedule_id": sched.schedule_id,
+            "course_class_id": sched.course_class_id,
+            "room_id": sched.room_id,
+            "day_of_week": sched.day_of_week,
+            "period_start": sched.period_start,
+            "period_end": sched.period_end,
+            "created_at": sched.created_at,
+            "updated_at": sched.updated_at,
+            "semester_code": semester_code
+        })
+    
+    return result
 
 def analyze_room_distribution(schedule):
     """Phân tích chất lượng phân bổ phòng trong lịch học"""
@@ -208,7 +265,7 @@ def get_courses_for_current_semester(db: Session, program_id: int):
     return [pc.course for pc in program_courses]
 
 
-def get_timetables(db, program_id: int):
+def generate_schedule(db, program_id: int):
     """Tạo thời khóa biểu tự động với các ràng buộc và quy tắc tối ưu"""
     rooms = db.query(Room).all()
     periods = db.query(Period).all()
@@ -247,7 +304,6 @@ def get_timetables(db, program_id: int):
         # Kiểm tra số phòng khả dụng
         available_rooms = [room for room in rooms if cc.max_students <= room_capacity[room.room_id]]
         if len(available_rooms) < sessions_needed:
-            print(f"Cảnh báo: Lớp {cc.course_class_id} cần {sessions_needed} ca nhưng chỉ có {len(available_rooms)} phòng phù hợp")
             if len(available_rooms) > 0:
                 sessions_needed = min(sessions_needed, len(available_rooms))
             else:
@@ -408,42 +464,63 @@ def get_timetables(db, program_id: int):
                         "period_id": period_id
                     })
                 else:
-                    print(f"Không thể xếp lịch cho lớp {cc.course_class_id}, ca {session_count + 1}")
+                    continue
 
     # Phân tích kết quả
     room_analysis = analyze_room_distribution(schedule)
     same_course_analysis = analyze_same_course_conflicts(schedule, courseClasses)
     daily_analysis = analyze_daily_schedule_distribution(schedule, courseClasses)
     
-    # Debug Rule 8
-    debug_rule8_violations = []
-    for class_id, analysis in daily_analysis['daily_analysis'].items():
-        if analysis['max_sessions_per_day'] > 3:
-            debug_rule8_violations.append({
-                'class_id': class_id,
-                'max_sessions_per_day': analysis['max_sessions_per_day'],
-                'daily_breakdown': analysis['daily_breakdown']
-            })
-    
-    # In báo cáo
-    print(f"Phân bổ phòng: {room_analysis['classes_with_multiple_rooms']}/{room_analysis['total_classes']} lớp có nhiều phòng ({room_analysis['distribution_score']}%)")
-    print(f"Ngày nghỉ: {daily_analysis['classes_with_rest_day']}/{daily_analysis['total_classes']} lớp có ≥1 ngày nghỉ ({daily_analysis['rest_day_rate']:.1f}%)")
-    
-    if same_course_analysis['same_course_pairs']:
-        print(f"Lớp cùng môn: {len(same_course_analysis['valid_arrangements'])}/{len(same_course_analysis['same_course_pairs'])} cặp hợp lệ ({same_course_analysis['valid_rate']:.1f}%)")
-    
-    if daily_analysis['classes_over_3_sessions'] > 0:
-        print(f"Cảnh báo: {daily_analysis['classes_over_3_sessions']} lớp có >3 ca/ngày")
-    
-    if debug_rule8_violations:
-        print(f"Rule 8 violations: {len(debug_rule8_violations)} lớp vi phạm")
-        for v in debug_rule8_violations:
-            print(f"  Lớp {v['class_id']}: {v['max_sessions_per_day']} ca/ngày {v['daily_breakdown']}")
+    # Lưu schedule vào database
+    try:
+        # Xóa schedule cũ của học kỳ hiện tại (không xóa học kỳ cũ)
+        current_semester_code = get_current_semester_for_program(db, program_id)
+        if current_semester_code and current_semester_code != "empty":
+            # Lấy danh sách course_class_id của học kỳ hiện tại
+            current_course_ids = [course.course_id for course in current_semester_courses]
+            current_class_ids = [cc.course_class_id for cc in courseClasses]
+            
+            # Chỉ xóa schedule của các lớp trong học kỳ hiện tại
+            existing_schedules = db.query(Schedule).filter(
+                Schedule.course_class_id.in_(current_class_ids)
+            ).all()
+            for schedule_item in existing_schedules:
+                db.delete(schedule_item)
+        
+        # Tạo mapping period_id -> day_of_week và period_number
+        period_mapping = {}
+        for period in periods:
+            day_map = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6}
+            period_mapping[period.period_id] = {
+                'day_of_week': day_map.get(period.day, 1),
+                'period_number': period.period_number
+            }
+        
+        # Lưu schedule mới
+        for item in schedule:
+            period_info = period_mapping.get(item['period_id'])
+            if period_info:
+                new_schedule = Schedule(
+                    course_class_id=item['course_class_id'],
+                    room_id=item['room_id'],
+                    day_of_week=period_info['day_of_week'],
+                    period_start=item['period_id'],
+                    period_end=item['period_id']  # Assuming single period for now
+                )
+                db.add(new_schedule)
+        
+        db.commit()
+        
+    except Exception as e:
+        db.rollback()
+        return {"error": f"Failed to save schedule: {str(e)}"}
     
     return {
         "schedule": [{"index": i+1, **item} for i, item in enumerate(schedule)],
-        "room_analysis": room_analysis,
-        "same_course_analysis": same_course_analysis,
-        "daily_analysis": daily_analysis,
-        "debug_rule8_violations": debug_rule8_violations
+        "analysis": {
+            "room_distribution": room_analysis,
+            "same_course_analysis": same_course_analysis,
+            "daily_distribution": daily_analysis
+        },
+        "saved_to_db": True
     }

@@ -6,9 +6,16 @@ from typing import Optional
 
 router = APIRouter()
 
-@router.get("/timetables")
-def get_timetables(
-    program_id: Optional[int] = Query(None, description="Filter timetables by program ID to show only current semester courses"),
+@router.post("/generate")
+def generate_schedule(
+    program_id: int = Query(..., description="Program ID to generate schedule for"),
     db: Session = Depends(get_db)
 ):
-    return schedule_service.get_timetables(db, program_id)
+    return schedule_service.generate_schedule(db, program_id)
+
+@router.get("/schedules")
+def get_schedule(
+    program_id: Optional[int] = Query(None, description="Filter schedule by program ID to show only current semester courses"),
+    db: Session = Depends(get_db)
+):
+    return schedule_service.get_schedule(db, program_id)
