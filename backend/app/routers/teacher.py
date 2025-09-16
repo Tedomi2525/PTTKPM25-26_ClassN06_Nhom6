@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.schemas.teacher import TeacherCreate, TeacherUpdate, Teacher as TeacherSchema
 from app.database import SessionLocal, get_db
 from app.services import teacher_service
+from typing import Optional
 
 router = APIRouter()
         
@@ -39,3 +40,29 @@ def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=400, detail="Cannot delete teacher due to existing references")
     return {"detail": "Teacher deleted successfully"}
+
+
+@router.get("/teachers/schedule")
+def get_teacher_schedule(
+    teacher_id: int, 
+    semester_id: Optional[int] = Query(None, description="Semester ID (if not provided, returns all semesters)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Lấy toàn bộ lịch giảng dạy của giáo viên theo ID
+    - Nếu không chỉ định semester_id: trả về tất cả các kỳ (để FE xem được cả các kỳ trước)
+    - Nếu có semester_id: chỉ trả về lịch của kỳ đó
+    """
+    try:
+        result = teacher_service.get_teacher_schedule(db, teacher_id, semester_id)
+        
+        if result is None:
+            raise HTTPException(status_code=404, detail="Teacher not found")
+            
+        return {
+            "success": True,
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get teacher schedule: {str(e)}")

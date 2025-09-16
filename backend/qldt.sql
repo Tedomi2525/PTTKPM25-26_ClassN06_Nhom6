@@ -340,7 +340,7 @@ VALUES
 -- 7. ROOMS
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
+    room_name VARCHAR(50) UNIQUE NOT NULL,
     capacity INT NOT NULL CHECK(capacity > 0),
     camera_stream_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
