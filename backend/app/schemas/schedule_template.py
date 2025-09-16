@@ -11,14 +11,15 @@ class ScheduleTemplateCreate(ScheduleTemplateBase):
     pass
 
 class ScheduleTemplateUpdate(ScheduleTemplateBase):
-    course_class_id: Optional[int] = None
-    room_id: Optional[int] = None
-    period_id: Optional[int] = None
+    course_class_id: Optional[int] = Field(None, description="ID của lớp học")
+    room_id: Optional[int] = Field(None, description="ID phòng học")
+    period_id: Optional[int] = Field(None, description="ID ca học")
 
 class ScheduleTemplate(ScheduleTemplateBase):
-    template_id: int = Field(..., alias="templateId")
-    created_at: datetime = Field(..., alias="createdAt")
-
+    template_id: int = Field(..., alias="templateId", description="ID của mẫu lịch")
+    created_at: datetime = Field(..., alias="createdAt", description="Thời gian tạo")
+    updated_at: datetime = Field(..., alias="updatedAt", description="Thời gian cập nhật")
+    day_of_week: int = Field(..., alias="dayOfWeek", description="Thứ trong tuần (1=Thứ Hai, 7=Chủ Nhật)")
     class Config:
         from_attributes = True
         populate_by_name = True
