@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import test, rooms, programs, users, teacher, timetables
+from app.routers import test, rooms, programs, users, teacher, timetables, program_courses
 # Import models để register với SQLAlchemy
 import app.models
 
@@ -16,3 +16,4 @@ app.include_router(programs.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(teacher.router, prefix="/api")
 app.include_router(timetables.router, prefix="/api")
+app.include_router(program_courses.router, prefix="/api")

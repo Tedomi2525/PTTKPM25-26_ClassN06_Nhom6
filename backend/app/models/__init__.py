@@ -6,8 +6,7 @@ from .course_class import CourseClass
 from .room import Room
 from .semester import Semester
 from .program import Program
-from .attendance import Attendance
-from .timetable import Timetable
+from .program_course import ProgramCourse
 
 __all__ = [
     "User",
@@ -17,6 +16,5 @@ __all__ = [
     "Room",
     "Semester",
     "Program",
-    "Attendance", 
-    "Timetable"
+    "ProgramCourse",
 ]
