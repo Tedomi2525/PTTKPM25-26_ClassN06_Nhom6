@@ -14,3 +14,4 @@ class Room(Base):
 
     # Relationships
     schedules = relationship("Schedule", back_populates="room")
+    schedule_templates = relationship("ScheduleTemplate", back_populates="room")
