@@ -333,10 +333,6 @@ CREATE TABLE enrollments (
     UNIQUE(student_id, course_class_id)
 );
 
-INSERT INTO enrollments (student_id, course_class_id)
-VALUES
-  (1, 1), (1, 2), (3, 3), (3, 5), (1, 5), (1, 4), (2, 3);
-
 -- 7. ROOMS
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,

@@ -21,3 +21,4 @@ class CourseClass(Base):
     teacher = relationship("Teacher", back_populates="course_classes")
     schedules = relationship("Schedule", back_populates="course_class")
     schedule_templates = relationship("ScheduleTemplate", back_populates="course_class")
+    enrollments = relationship("Enrollment", back_populates="course_class")

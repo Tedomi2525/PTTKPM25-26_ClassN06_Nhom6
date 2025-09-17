@@ -105,7 +105,7 @@ def delete_teacher(db: Session, teacher_id: int):
         return False
 
 
-def get_teacher_schedule(db: Session, teacher_id: int, semester_id: Optional[int] = None):
+def get_teacher_schedule(db: Session, teacher_id: int):
     """
     Lấy toàn bộ lịch giảng dạy của giáo viên theo ID
     Nếu không chỉ định semester_id thì lấy tất cả các kỳ
@@ -129,10 +129,6 @@ def get_teacher_schedule(db: Session, teacher_id: int, semester_id: Optional[int
     ).filter(
         CourseClass.teacher_id == teacher_id
     )
-    
-    # Nếu có chỉ định semester_id thì filter theo đó
-    if semester_id:
-        query = query.filter(Schedule.semester_id == semester_id)
     
     # Order by semester, week, day, period để dễ xem
     schedules = query.order_by(
