@@ -3,25 +3,33 @@ from datetime import datetime
 from typing import Optional
 
 class CourseClassBase(BaseModel):
-    course_id: int = Field(..., description="ID of the course", alias="courseId")
-    teacher_id: Optional[int] = Field(None, description="ID of the teacher", alias="teacherId")
-    semester: str = Field(..., description="Semester")
-    year: str = Field(..., description="Year")
-    section: Optional[str] = Field(None, description="Section")
+    course_id: int = Field(..., alias="courseId", description="ID of the course")
+    teacher_id: int = Field(..., alias="teacherId", description="ID of the teacher")
+    section: Optional[str] = Field(None, description="Section name")
+    max_students: Optional[int] = Field(None, alias="maxStudents", gt=0, description="Maximum number of students")
+    min_students: Optional[int] = Field(None, alias="minStudents", ge=0, description="Minimum number of students")
+    
+    class Config:
+        populate_by_name = True
 
 class CourseClassCreate(CourseClassBase):
     pass
 
 class CourseClassUpdate(BaseModel):
-    teacher_id: Optional[int] = Field(None, description="ID of the teacher", alias="teacherId")
-    semester: Optional[str] = Field(None, description="Semester")
-    year: Optional[str] = Field(None, description="Year")
-    section: Optional[str] = Field(None, description="Section")
+    course_id: Optional[int] = Field(None, alias="courseId", description="ID of the course")
+    teacher_id: Optional[int] = Field(None, alias="teacherId", description="ID of the teacher")
+    section: Optional[str] = Field(None, description="Section name")
+    max_students: Optional[int] = Field(None, alias="maxStudents", gt=0, description="Maximum number of students")
+    min_students: Optional[int] = Field(None, alias="minStudents", ge=0, description="Minimum number of students")
+    
+    class Config:
+        populate_by_name = True
 
 class CourseClassResponse(CourseClassBase):
-    course_class_id: int = Field(..., description="ID of the course class", alias="courseClassId")
-    created_at: datetime = Field(..., description="Creation timestamp", alias="createdAt")
-    updated_at: datetime = Field(..., description="Last update timestamp", alias="updatedAt")
+    course_class_id: int = Field(..., alias="courseClassId", description="ID of the course class")
+    created_at: datetime = Field(..., alias="createdAt", description="Creation timestamp")
+    updated_at: datetime = Field(..., alias="updatedAt", description="Last update timestamp")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        populate_by_name = True

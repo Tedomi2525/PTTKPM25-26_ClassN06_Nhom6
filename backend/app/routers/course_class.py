@@ -25,6 +25,10 @@ def get_course_class(course_class_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="CourseClass not found")
     return db_course_class
 
+@router.get("/by_course/{course_id}", response_model=List[CourseClassResponse])
+def get_course_classes_by_course_id(course_id: int, db: Session = Depends(get_db)):
+    return course_class_service.get_course_classes_by_course_id(db, course_id)
+
 @router.put("/{course_class_id}", response_model=CourseClassResponse)
 def update_course_class(course_class_id: int, course_class: CourseClassUpdate, db: Session = Depends(get_db)):
     db_course_class = course_class_service.update_course_class(db, course_class_id, course_class)

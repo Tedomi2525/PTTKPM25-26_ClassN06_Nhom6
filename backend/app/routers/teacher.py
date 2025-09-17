@@ -45,16 +45,13 @@ def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
 @router.get("/teachers/schedule")
 def get_teacher_schedule(
     teacher_id: int, 
-    semester_id: Optional[int] = Query(None, description="Semester ID (if not provided, returns all semesters)"),
     db: Session = Depends(get_db)
 ):
     """
     Lấy toàn bộ lịch giảng dạy của giáo viên theo ID
-    - Nếu không chỉ định semester_id: trả về tất cả các kỳ (để FE xem được cả các kỳ trước)
-    - Nếu có semester_id: chỉ trả về lịch của kỳ đó
     """
     try:
-        result = teacher_service.get_teacher_schedule(db, teacher_id, semester_id)
+        result = teacher_service.get_teacher_schedule(db, teacher_id)
         
         if result is None:
             raise HTTPException(status_code=404, detail="Teacher not found")

@@ -18,6 +18,9 @@ def create_course_class(db: Session, course_class: CourseClassCreate):
 def get_course_class(db: Session, course_class_id: int):
     return db.query(CourseClass).filter(CourseClass.course_class_id == course_class_id).first()
 
+def get_course_classes_by_course_id(db: Session, course_id: int):
+    return db.query(CourseClass).filter(CourseClass.course_id == course_id).all()
+
 def get_course_classes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(CourseClass).offset(skip).limit(limit).all()
 
