@@ -1,17 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.program import ProgramCreate, ProgramUpdate, Program as ProgramSchema
-from app.database import SessionLocal
+from app.database import SessionLocal, get_db
 from app.services import program_service
 
 router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/programs", response_model=list[ProgramSchema])
 def get_programs(db: Session = Depends(get_db)):

@@ -23,10 +23,11 @@ class Teacher(Base):
     degree = Column(String(50))
     academic_rank = Column(String(50))
     
-    created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
-    
     status = Column(String(20), default="active")  # active, inactive
 
-    # Relationship 
+    created_at = Column(DateTime, default=func.current_timestamp())
+    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+
+    # Relationships
     user = relationship("User", back_populates="teacher")
+    course_classes = relationship("CourseClass", back_populates="teacher")

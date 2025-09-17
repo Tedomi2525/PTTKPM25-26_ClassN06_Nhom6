@@ -8,6 +8,7 @@ class Program(Base):
     program_name = Column(String(150), nullable=False)
     department = Column(String(100))
     start_year = Column(Integer, nullable=False)
-    end_year = Column(Integer)
+    duration = Column(Integer)
+    current_semester = Column(String(10))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db
+from app.database import get_db
 from schemas.auth import LoginRequest, Token, UserOut
 from services import auth_service
 from fastapi.security import OAuth2PasswordBearer
