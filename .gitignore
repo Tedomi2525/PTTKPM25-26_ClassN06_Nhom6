@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+/back_end/face_service/detector/models_services/*
