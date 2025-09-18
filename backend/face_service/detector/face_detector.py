@@ -4,7 +4,7 @@ import cv2
 from typing import List, Tuple
 
 # Load YOLOv8n-face model (đường dẫn đến file .pt của bạn)
-model = YOLO("services/detector/models_services/yolov8n-face.pt")
+model = YOLO("models_services/yolov8n-face.pt")
 
 
 def detect_faces(image: np.ndarray) -> List[Tuple[int, int, int, int]]:

@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import cv2
-from services.detector.face_detector import detect_faces, crop_faces
+from face_service.detector.face_detector import detect_faces, crop_faces
 
 def test_face_detection(image_path: str):
     image = cv2.imread(image_path)
@@ -33,4 +33,4 @@ def test_face_detection(image_path: str):
 
 # 📌 Gọi hàm test
 if __name__ == "__main__":
-    test_face_detection("C:/WORKSPACE/fastAPI/school_management/services/detector/abc.jpg")  # 🔁 Thay bằng đường dẫn ảnh của bạn
+    test_face_detection("abc.jpg")  # 🔁 Thay bằng đường dẫn ảnh của bạn
