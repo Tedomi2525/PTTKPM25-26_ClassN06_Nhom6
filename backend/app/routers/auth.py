@@ -1,16 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from schemas.auth import LoginRequest, Token, UserOut
-from services import auth_service
+from app.schemas.auth import LoginRequest, Token, UserOut
+from app.services import auth_service
 from fastapi.security import OAuth2PasswordBearer
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["auth"],
-)
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+router = APIRouter()
 
 @router.post("/login", response_model=Token)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
