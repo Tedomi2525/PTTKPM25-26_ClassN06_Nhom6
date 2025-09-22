@@ -6,13 +6,20 @@ class CourseBase(BaseModel):
     course_code: str = Field(..., alias="courseCode", description="Code of the course")
     name: str = Field(..., description="Name of the course")
     credits: int = Field(..., description="Credits of the course")
+    
+    class Config:
+        populate_by_name = True
 
 class CourseCreate(CourseBase):
     pass
 
 class CourseUpdate(BaseModel):
+    course_code: Optional[str] = Field(None, alias="courseCode", description="Code of the course")
     name: Optional[str] = Field(None, description="Name of the course")
     credits: Optional[int] = Field(None, description="Credits of the course")
+    
+    class Config:
+        populate_by_name = True
 
 class CourseResponse(CourseBase):
     course_id: int = Field(..., alias="courseId", description="ID of the course")
@@ -20,4 +27,5 @@ class CourseResponse(CourseBase):
     updated_at: datetime = Field(..., alias="updatedAt", description="Last update timestamp")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        populate_by_name = True
