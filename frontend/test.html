@@ -1,185 +1,175 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
-    <title>Thời khóa biểu</title>
-
-    <!-- Bootstrap -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- FullCalendar -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
-    <!-- Date Picker (Flatpickr) -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-    <!-- Link icon -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-
-    <style>
-      body {
-        background-color: #f0f3fa;
-      }
-      #calendar {
-        max-width: 75%;
-        background: #fff;
-        border-radius: 8px;
-        padding: 15px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-      .calendar-container {
-        display: flex;
-        gap: 20px;
-      }
-      #datepicker {
-        max-width: 250px;
-      }
-      .fc-toolbar-title {
-        font-size: 1.25rem;
-        font-weight: bold;
-      }
-      .fc-timegrid-slot-label {
-        font-size: 0.85rem;
-      }
-      .fc-event {
-        font-size: 0.75rem;
-        padding: 2px;
-      }
-    </style>
+    <title>Đăng nhập - Phenikaa University</title>
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="styleguide.css" />
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
-    <div class="container mt-4">
-      <h5 class="mb-4">📅 Lịch cá nhân</h5>
-      <div class="calendar-container">
-        <!-- Lịch chính -->
-        <div id="calendar"></div>
 
-        <!-- Lịch nhỏ -->
-        <div id="datepicker" class="card p-3 shadow-sm">
-          <div id="calendarPicker"></div>
-          <!-- chỉ để hiện lịch -->
+  <body>
+    <main class="login">
+      <div class="overlap-wrapper">
+        <div class="overlap">
+          <section class="right">
+            <div class="overlap-group">
+              <div class="rectangle"></div>
+              <img
+                class="group"
+                src="https://c.animaapp.com/mewurn4ndN2M6v/img/group-5.png"
+                alt="Social media icons"
+              />
+              <form class="login-form" novalidate>
+                <img
+                  class="logo"
+                  src="https://c.animaapp.com/mewurn4ndN2M6v/img/nyke7cq38r-logo-phenikaa-uni-n-n-tr-ng-1.png"
+                  alt="Phenikaa University Logo"
+                />
+                <div class="role">
+                  <div class="overlap">
+                    <div class="group-2">
+                      <div class="overlap-group-2">
+                        <div class="rectangle-6"></div>
+                        <label class="ch-n-vai-tr-c-a-b-n" for="role-select"
+                          >Chọn vai trò của bạn</label
+                        >
+                      </div>
+                    </div>
+                    <div class="rectangle-7"></div>
+                    <div class="rectangle-8"></div>
+                    <select
+                      id="role-select"
+                      name="role"
+                      class="role-select"
+                      required
+                      aria-describedby="role-error"
+                    >
+                      <option value="student">Sinh Viên</option>
+                      <option value="teacher">Giảng Viên</option>
+                      <option value="admin">Quản trị viên</option>
+                    </select>
+                    <div class="frame">
+                      <div class="play-arrow-filled">
+                        <img
+                          class="img"
+                          src="https://c.animaapp.com/mewurn4ndN2M6v/img/icon-1.svg"
+                          alt="Dropdown arrow"
+                        />
+                      </div>
+                    </div>
+                    <div class="text-wrapper-3">Sinh Viên</div>
+                  </div>
+                </div>
+                <div class="div-wrapper">
+                  <div class="div">
+                    <div class="rectangle-5"></div>
+                    <label class="text-wrapper-2" for="username"
+                      >Tên đăng nhập *</label
+                    >
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      class="username-input"
+                      required
+                      aria-describedby="username-error"
+                      autocomplete="username"
+                    />
+                  </div>
+                </div>
+                <div class="overlap-group-wrapper">
+                  <div class="div">
+                    <div class="rectangle-3"></div>
+                    <label class="text-wrapper-2" for="password"
+                      >Mật khẩu *</label
+                    >
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="password-input"
+                      required
+                      aria-describedby="password-error"
+                      autocomplete="current-password"
+                    />
+                  </div>
+                </div>
+                <nav class="auth-links">
+                  <a href="#" class="text-wrapper-9">Đổi mật khẩu</a>
+                  <a href="#" class="text-wrapper-4">Quên mật khẩu?</a>
+                </nav>
+                <button type="submit" class="button">
+                  <span class="text-wrapper">Đăng nhập</span>
+                </button>
+              </form>
+              <footer class="footer-info">
+                <p class="p">
+                  Copyright © 2025. Phenikaa University. All rights. Developed
+                  by PHX Smart School
+                </p>
+                <address class="text-wrapper-5">
+                  Phòng Công tác sinh viên - Địa chỉ: Tầng 3, Toà nhà A9, Trường
+                  Đại học Phenikaa, Nguyễn Trác, Hà Đông, Hà Nội
+                </address>
+              </footer>
+            </div>
+          </section>
+          <section class="left">
+            <div class="overlap-2">
+              <div class="rectangle-9"></div>
+              <img
+                class="students-pana"
+                src="https://c.animaapp.com/mewurn4ndN2M6v/img/students-pana-fba09de9-1.svg"
+                alt="Students illustration"
+              />
+              <header class="hero-text">
+                <h1 class="text-wrapper-7">Phân tích thiết kế phần mềm</h1>
+                <h2 class="text-wrapper-8">Nhóm 6</h2>
+                <h3 class="text-wrapper-6">Quản lý học sinh</h3>
+              </header>
+            </div>
+          </section>
         </div>
       </div>
-    </div>
+    </main>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        var calendarEl = document.getElementById("calendar");
+      document
+        .querySelector(".login-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: "timeGridWeek",
-          locale: "vi", // Tiếng Việt
-          slotMinTime: "06:00:00",
-          slotMaxTime: "22:00:00",
-          headerToolbar: false, // <-- ẩn toàn bộ header
-          allDaySlot: false,
-          firstDay: 0, // Chủ nhật là ngày đầu tuần
-          height: "auto",
-          dayHeaderContent: function (arg) {
-            // Lấy ngày/tháng/năm
-            let date = arg.date;
-            let d = String(date.getDate()).padStart(2, "0");
-            let m = String(date.getMonth() + 1).padStart(2, "0");
-            let y = date.getFullYear();
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const role = document.getElementById("role-select").value;
 
-            // Lấy thứ (theo ngôn ngữ VN)
-            let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            let thu = weekdays[date.getDay()];
+          try {
+            const response = await fetch("http://127.0.0.1:8000/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ username, password, role }),
+            });
 
-            // Trả về custom HTML
-            return {
-              html: `<div style="text-align:center">
-               <div>${d}/${m}/${y}</div>
-               <small>${thu}</small>
-             </div>`,
-            };
-          },
-          expandRows: true,
-          slotLabelFormat: {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          },
-          events: [
-            {
-              title:
-                "Phân tích & thiết kế hệ thống\nTiết 1-2\nPhòng A6-07\nGV: Cô Mai",
-              start: "2025-09-08T06:45:00",
-              end: "2025-09-08T09:25:00",
-              color: "#1e88e5",
-            },
-            {
-              title:
-                "Phân tích & thiết kế hệ thống\nTiết 1-2\nPhòng A6-07\nGV: Cô Mai",
-              start: "2025-09-09T06:45:00",
-              end: "2025-09-09T09:25:00",
-              color: "#1e88e5",
-            },
-            {
-              title: "An toàn & bảo mật\nTiết 1-2\nPhòng A8-104\nGV: Thầy Ngữ",
-              start: "2025-09-10T06:45:00",
-              end: "2025-09-10T09:25:00",
-              color: "#fb8c00",
-            },
-            {
-              title: "Điện toán đám mây\nTiết 1-2\nPhòng A6-02\nGV: Thầy Phạm",
-              start: "2025-09-11T06:45:00",
-              end: "2025-09-11T09:25:00",
-              color: "#e53935",
-            },
-            {
-              title: "Tiếng Anh 2\nTiết 7-8\nPhòng A2-201\nGV: Cô Hằng",
-              start: "2025-09-08T13:00:00",
-              end: "2025-09-08T14:40:00",
-              color: "#43a047",
-            },
-            {
-              title: "Tiếng Anh 2\nTiết 7-8\nPhòng A2-201\nGV: Cô Hằng",
-              start: "2025-09-09T13:00:00",
-              end: "2025-09-09T14:40:00",
-              color: "#43a047",
-            },
-          ],
-        });
-
-        calendar.render();
-
-        let axisTop = document.querySelector(".fc-timegrid-axis-frame");
-        if (axisTop) {
-          axisTop.innerHTML =
-            `
-    <div style="display:flex; flex-direction:column; align-items:center; font-size:12px; margin-bottom:4px;">
-      <i class="fa-thin fa-clock"></i>
-      <span>GMT+7</span>
-    </div>
-  ` + axisTop.innerHTML;
-        }
-
-        // Date Picker đồng bộ với calendar
-        flatpickr("#calendarPicker", {
-          inline: true,
-          locale: "vn",
-          onChange: function (selectedDates) {
-            if (selectedDates.length > 0) {
-              calendar.gotoDate(selectedDates[0]);
+            if (!response.ok) {
+              throw new Error("Sai tài khoản hoặc mật khẩu!");
             }
-          },
+
+            const data = await response.json();
+            console.log("Đăng nhập thành công:", data);
+
+            // Lưu token để dùng cho request sau
+            localStorage.setItem("token", data.access_token);
+
+            // Ví dụ chuyển hướng sang dashboard
+            window.location.href = "/frontend/Admin/navbar.html";
+          } catch (err) {
+            alert(err.message);
+          }
         });
-      });
     </script>
   </body>
 </html>
