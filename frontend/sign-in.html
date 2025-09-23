@@ -1,101 +1,175 @@
 <!DOCTYPE html>
 <html lang="vi">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>Đăng nhập - Phenikaa University</title>
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="styleguide.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta charset="utf-8" />
-  <title>Đăng nhập - Phenikaa University</title>
-  <link rel="stylesheet" href="globals.css" />
-  <link rel="stylesheet" href="styleguide.css" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-
-<body>
-  <main class="login">
-    <div class="overlap-wrapper">
-      <div class="overlap">
-        <section class="right">
-          <div class="overlap-group">
-            <div class="rectangle"></div>
-            <img class="group" src="https://c.animaapp.com/mewurn4ndN2M6v/img/group-5.png" alt="Social media icons" />
-            <form class="login-form" novalidate>
-              <img class="logo"
-                src="https://c.animaapp.com/mewurn4ndN2M6v/img/nyke7cq38r-logo-phenikaa-uni-n-n-tr-ng-1.png"
-                alt="Phenikaa University Logo" />
-              <div class="role">
-                <div class="overlap">
-                  <div class="group-2">
-                    <div class="overlap-group-2">
-                      <div class="rectangle-6"></div>
-                      <label class="ch-n-vai-tr-c-a-b-n" for="role-select">Chọn vai trò của bạn</label>
+  <body>
+    <main class="login">
+      <div class="overlap-wrapper">
+        <div class="overlap">
+          <section class="right">
+            <div class="overlap-group">
+              <div class="rectangle"></div>
+              <img
+                class="group"
+                src="https://c.animaapp.com/mewurn4ndN2M6v/img/group-5.png"
+                alt="Social media icons"
+              />
+              <form class="login-form" novalidate>
+                <img
+                  class="logo"
+                  src="https://c.animaapp.com/mewurn4ndN2M6v/img/nyke7cq38r-logo-phenikaa-uni-n-n-tr-ng-1.png"
+                  alt="Phenikaa University Logo"
+                />
+                <div class="role">
+                  <div class="overlap">
+                    <div class="group-2">
+                      <div class="overlap-group-2">
+                        <div class="rectangle-6"></div>
+                        <label class="ch-n-vai-tr-c-a-b-n" for="role-select"
+                          >Chọn vai trò của bạn</label
+                        >
+                      </div>
                     </div>
-                  </div>
-                  <div class="rectangle-7"></div>
-                  <div class="rectangle-8"></div>
-                  <select id="role-select" name="role" class="role-select" required aria-describedby="role-error">
-                    <option value="student">Sinh Viên</option>
-                    <option value="teacher">Giảng Viên</option>
-                  </select>
-                  <div class="frame">
-                    <div class="play-arrow-filled">
-                      <img class="img" src="https://c.animaapp.com/mewurn4ndN2M6v/img/icon-1.svg"
-                        alt="Dropdown arrow" />
+                    <div class="rectangle-7"></div>
+                    <div class="rectangle-8"></div>
+                    <select
+                      id="role-select"
+                      name="role"
+                      class="role-select"
+                      required
+                      aria-describedby="role-error"
+                    >
+                      <option value="student">Sinh Viên</option>
+                      <option value="teacher">Giảng Viên</option>
+                      <option value="admin">Quản trị viên</option>
+                    </select>
+                    <div class="frame">
+                      <div class="play-arrow-filled">
+                        <img
+                          class="img"
+                          src="https://c.animaapp.com/mewurn4ndN2M6v/img/icon-1.svg"
+                          alt="Dropdown arrow"
+                        />
+                      </div>
                     </div>
+                    <div class="text-wrapper-3">Sinh Viên</div>
                   </div>
-                  <div class="text-wrapper-3">Sinh Viên</div>
                 </div>
-              </div>
-              <div class="div-wrapper">
-                <div class="div">
-                  <div class="rectangle-5"></div>
-                  <label class="text-wrapper-2" for="username">Tên đăng nhập *</label>
-                  <input type="text" id="username" name="username" class="username-input" required
-                    aria-describedby="username-error" autocomplete="username" />
+                <div class="div-wrapper">
+                  <div class="div">
+                    <div class="rectangle-5"></div>
+                    <label class="text-wrapper-2" for="username"
+                      >Tên đăng nhập *</label
+                    >
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      class="username-input"
+                      required
+                      aria-describedby="username-error"
+                      autocomplete="username"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div class="overlap-group-wrapper">
-                <div class="div">
-                  <div class="rectangle-3"></div>
-                  <label class="text-wrapper-2" for="password">Mật khẩu *</label>
-                  <input type="password" id="password" name="password" class="password-input" required
-                    aria-describedby="password-error" autocomplete="current-password"/>
+                <div class="overlap-group-wrapper">
+                  <div class="div">
+                    <div class="rectangle-3"></div>
+                    <label class="text-wrapper-2" for="password"
+                      >Mật khẩu *</label
+                    >
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="password-input"
+                      required
+                      aria-describedby="password-error"
+                      autocomplete="current-password"
+                    />
+                  </div>
                 </div>
-              </div>
-              <nav class="auth-links">
-                <a href="#" class="text-wrapper-9">Đổi mật khẩu</a>
-                <a href="#" class="text-wrapper-4">Quên mật khẩu?</a>
-              </nav>
-              <button type="submit" class="button">
-                <span class="text-wrapper">Đăng nhập</span>
-              </button>
-            </form>
-            <footer class="footer-info">
-              <p class="p">
-                Copyright © 2025. Phenikaa University. All rights. Developed
-                by PHX Smart School
-              </p>
-              <address class="text-wrapper-5">
-                Phòng Công tác sinh viên - Địa chỉ: Tầng 3, Toà nhà A9, Trường
-                Đại học Phenikaa, Nguyễn Trác, Hà Đông, Hà Nội
-              </address>
-            </footer>
-          </div>
-        </section>
-        <section class="left">
-          <div class="overlap-2">
-            <div class="rectangle-9"></div>
-            <img class="students-pana" src="https://c.animaapp.com/mewurn4ndN2M6v/img/students-pana-fba09de9-1.svg"
-              alt="Students illustration" />
-            <header class="hero-text">
-              <h1 class="text-wrapper-7">Phân tích thiết kế phần mềm</h1>
-              <h2 class="text-wrapper-8">Nhóm 6</h2>
-              <h3 class="text-wrapper-6">Quản lý học sinh</h3>
-            </header>
-          </div>
-        </section>
+                <nav class="auth-links">
+                  <a href="#" class="text-wrapper-9">Đổi mật khẩu</a>
+                  <a href="#" class="text-wrapper-4">Quên mật khẩu?</a>
+                </nav>
+                <button type="submit" class="button">
+                  <span class="text-wrapper">Đăng nhập</span>
+                </button>
+              </form>
+              <footer class="footer-info">
+                <p class="p">
+                  Copyright © 2025. Phenikaa University. All rights. Developed
+                  by PHX Smart School
+                </p>
+                <address class="text-wrapper-5">
+                  Phòng Công tác sinh viên - Địa chỉ: Tầng 3, Toà nhà A9, Trường
+                  Đại học Phenikaa, Nguyễn Trác, Hà Đông, Hà Nội
+                </address>
+              </footer>
+            </div>
+          </section>
+          <section class="left">
+            <div class="overlap-2">
+              <div class="rectangle-9"></div>
+              <img
+                class="students-pana"
+                src="https://c.animaapp.com/mewurn4ndN2M6v/img/students-pana-fba09de9-1.svg"
+                alt="Students illustration"
+              />
+              <header class="hero-text">
+                <h1 class="text-wrapper-7">Phân tích thiết kế phần mềm</h1>
+                <h2 class="text-wrapper-8">Nhóm 6</h2>
+                <h3 class="text-wrapper-6">Quản lý học sinh</h3>
+              </header>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
-  </main>
-</body>
+    </main>
 
+    <script>
+      document
+        .querySelector(".login-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const role = document.getElementById("role-select").value;
+
+          try {
+            const response = await fetch("http://127.0.0.1:8000/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ username, password, role }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Sai tài khoản hoặc mật khẩu!");
+            }
+
+            const data = await response.json();
+            console.log("Đăng nhập thành công:", data);
+
+            // Lưu token để dùng cho request sau
+            localStorage.setItem("token", data.access_token);
+
+            // Ví dụ chuyển hướng sang dashboard
+            window.location.href = "/frontend/Admin/navbar.html";
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+    </script>
+  </body>
 </html>
