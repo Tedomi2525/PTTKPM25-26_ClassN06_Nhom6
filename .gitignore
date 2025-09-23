@@ -1,5 +1,7 @@
-**/__pycache__/
-**/*.pyc
-**/*.pyo
-**/*.pyd
-**/*.env
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+/backend/face_service/detector/models_services/*
+
