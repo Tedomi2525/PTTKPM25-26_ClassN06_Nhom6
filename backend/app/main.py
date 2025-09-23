@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth
+from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses
 
 # Tạo app
 app = FastAPI(
@@ -19,3 +19,5 @@ app.include_router(students.router, prefix="/api")
 app.include_router(enrollments.router, prefix="/api")
 app.include_router(course_class.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(course_class.router, prefix="/api")
+app.include_router(courses.router, prefix="/api")

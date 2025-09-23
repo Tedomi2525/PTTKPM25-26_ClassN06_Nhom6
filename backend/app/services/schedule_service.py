@@ -94,6 +94,10 @@ def get_courses_for_current_semester(db: Session, program_id: int):
         ProgramCourse.semester_no == current_semester_code
     ).all()
 
+    print(f"Current semester code: {current_semester_code}, Found {len(program_courses)} courses.")
+    for pc in program_courses:
+        print(f"Course ID: {pc.course_id}, Course Name: {pc.course.name}")
+
     return [pc.course for pc in program_courses]
 
 

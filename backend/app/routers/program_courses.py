@@ -12,12 +12,9 @@ from app.schemas.program_course import (
     ProgramCourseWithDetails
 )
 
-router = APIRouter(
-    prefix="/program-courses",
-    tags=["program-courses"]
-)
+router = APIRouter()
 
-@router.post("/", response_model=ProgramCourseResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/program_courses", response_model=ProgramCourseResponse, status_code=status.HTTP_201_CREATED)
 def create_program_course(
     program_course: ProgramCourseCreate,
     db: Session = Depends(get_db)
@@ -60,7 +57,7 @@ def create_program_course(
     
     return db_program_course
 
-@router.get("/", response_model=List[ProgramCourseWithDetails])
+@router.get("/program_courses", response_model=List[ProgramCourseWithDetails])
 def get_program_courses(
     program_id: int = None,
     semester_no: str = None,  # Changed from int to str
@@ -99,7 +96,7 @@ def get_program_courses(
     
     return result
 
-@router.get("/{program_course_id}", response_model=ProgramCourseWithDetails)
+@router.get("/program_courses/{program_course_id}", response_model=ProgramCourseWithDetails)
 def get_program_course(
     program_course_id: int,
     db: Session = Depends(get_db)
@@ -130,7 +127,7 @@ def get_program_course(
         program_name=program_course.program.program_name
     )
 
-@router.put("/{program_course_id}", response_model=ProgramCourseResponse)
+@router.put("/program_courses/{program_course_id}", response_model=ProgramCourseResponse)
 def update_program_course(
     program_course_id: int,
     program_course_update: ProgramCourseUpdate,
@@ -158,7 +155,7 @@ def update_program_course(
     
     return db_program_course
 
-@router.delete("/{program_course_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/program_courses/{program_course_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_program_course(
     program_course_id: int,
     db: Session = Depends(get_db)

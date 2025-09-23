@@ -5,10 +5,7 @@ from app.database import get_db
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse
 from app.services import course_service
 
-router = APIRouter(
-    prefix="/courses",
-    tags=["courses"],
-)
+router = APIRouter()
 
 @router.post("/", response_model=CourseResponse)
 def create_course(course: CourseCreate, db: Session = Depends(get_db)):

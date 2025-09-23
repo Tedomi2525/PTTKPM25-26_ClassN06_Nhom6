@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from app.models.teacher import Teacher as TeacherModel
@@ -104,18 +104,31 @@ def delete_teacher(db: Session, teacher_id: int):
         db.rollback()
         return False
 
-
-def get_teacher_schedule(db: Session, teacher_id: int):
+def get_teacher_weekly_schedule(db: Session, teacher_id: int, sunday_date: str):
     """
-    Lấy toàn bộ lịch giảng dạy của giáo viên theo ID
-    Nếu không chỉ định semester_id thì lấy tất cả các kỳ
+    Lấy lịch giảng dạy của giáo viên trong tuần cụ thể
+    Args:
+        teacher_id: ID của giáo viên
+        sunday_date: Ngày chủ nhật của tuần (format: DD/MM/YYYY hoặc YYYY-MM-DD)
     """
     # Kiểm tra giáo viên có tồn tại không
     teacher = db.query(TeacherModel).filter(TeacherModel.teacher_id == teacher_id).first()
     if not teacher:
         return None
     
-    # Base query với joins cần thiết
+    try:
+        # Parse ngày Chủ nhật
+        if '/' in sunday_date:
+            sunday = datetime.strptime(sunday_date, "%d/%m/%Y").date()
+        else:
+            sunday = datetime.strptime(sunday_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError("Invalid date format. Use DD/MM/YYYY or YYYY-MM-DD")
+    
+    # Tính ngày cuối tuần (thứ 7)
+    saturday = sunday + timedelta(days=6)
+    
+    # Query lấy lịch trong tuần
     query = db.query(Schedule).join(
         CourseClass, Schedule.course_class_id == CourseClass.course_class_id
     ).join(
@@ -127,13 +140,14 @@ def get_teacher_schedule(db: Session, teacher_id: int):
     ).outerjoin(
         Semester, Schedule.semester_id == Semester.semester_id
     ).filter(
-        CourseClass.teacher_id == teacher_id
+        CourseClass.teacher_id == teacher_id,
+        Schedule.specific_date >= sunday,
+        Schedule.specific_date <= saturday
     )
     
-    # Order by semester, week, day, period để dễ xem
+    # Order by day, period để dễ xem
     schedules = query.order_by(
-        Semester.semester_id.desc().nullslast(),  # Học kỳ mới nhất trước
-        Schedule.week_number,
+        Schedule.specific_date,
         Schedule.day_of_week,
         Schedule.period_start
     ).all()
@@ -148,6 +162,11 @@ def get_teacher_schedule(db: Session, teacher_id: int):
                 "email": teacher.email,
                 "department": teacher.department
             },
+            "week_info": {
+                "sunday_date": sunday.strftime("%d/%m/%Y"),
+                "saturday_date": saturday.strftime("%d/%m/%Y"),
+                "week_range": f"{sunday.strftime('%d/%m/%Y')} - {saturday.strftime('%d/%m/%Y')}"
+            },
             "total_schedules": 0,
             "schedules": []
         }
@@ -158,11 +177,22 @@ def get_teacher_schedule(db: Session, teacher_id: int):
         # Lấy thông tin period end
         period_end = db.query(Period).filter(Period.period_id == schedule.period_end).first()
         
+        # Map day_of_week to Vietnamese
+        day_names = {
+            1: "Chủ nhật",
+            2: "Thứ 2", 
+            3: "Thứ 3",
+            4: "Thứ 4",
+            5: "Thứ 5",
+            6: "Thứ 6",
+            7: "Thứ 7"
+        }
+        
         schedule_info = {
             "schedule_id": schedule.schedule_id,
-            "week_number": schedule.week_number,
             "day_of_week": schedule.day_of_week,
-            "specific_date": schedule.specific_date.isoformat() if schedule.specific_date else None,
+            "day_name": day_names.get(schedule.day_of_week, "Unknown"),
+            "specific_date": schedule.specific_date.strftime("%d/%m/%Y") if schedule.specific_date else None,
             "course": {
                 "course_id": schedule.course_class.course.course_id,
                 "course_code": schedule.course_class.course.course_code,
@@ -194,12 +224,8 @@ def get_teacher_schedule(db: Session, teacher_id: int):
             },
             "semester": {
                 "semester_id": schedule.semester.semester_id if schedule.semester else None,
-                "semester_name": schedule.semester.semester_name if schedule.semester else None,
-                "start_time": schedule.semester.start_time.isoformat() if schedule.semester and schedule.semester.start_time else None,
-                "end_time": schedule.semester.end_time.isoformat() if schedule.semester and schedule.semester.end_time else None
-            } if schedule.semester else None,
-            "created_at": schedule.created_at.isoformat() if schedule.created_at else None,
-            "updated_at": schedule.updated_at.isoformat() if schedule.updated_at else None
+                "semester_name": schedule.semester.semester_name if schedule.semester else None
+            } if schedule.semester else None
         }
         result.append(schedule_info)
     
@@ -210,6 +236,11 @@ def get_teacher_schedule(db: Session, teacher_id: int):
             "full_name": f"{teacher.last_name} {teacher.first_name}",
             "email": teacher.email,
             "department": teacher.department
+        },
+        "week_info": {
+            "sunday_date": sunday.strftime("%d/%m/%Y"),
+            "saturday_date": saturday.strftime("%d/%m/%Y"),
+            "week_range": f"{sunday.strftime('%d/%m/%Y')} - {saturday.strftime('%d/%m/%Y')}"
         },
         "total_schedules": len(result),
         "schedules": result

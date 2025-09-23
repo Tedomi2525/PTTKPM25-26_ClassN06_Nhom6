@@ -343,7 +343,7 @@ CREATE TABLE rooms (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO rooms (name, capacity, camera_stream_url)
+INSERT INTO rooms (room_name, capacity, camera_stream_url)
 VALUES
   ('P101', 60, 'rtsp://camera1'),
   ('P102', 70, 'rtsp://camera2'),
@@ -523,5 +523,4 @@ INSERT INTO program_courses (program_id, course_id, semester_no, is_required) VA
 (1,57,'HK_3_3',TRUE),(1,58,'HK_3_3',TRUE),(1,59,'HK_3_3',TRUE),(1,60,'HK_3_3',TRUE),(1,61,'HK_3_3',TRUE),(1,62,'HK_3_3',TRUE),(1,63,'HK_3_3',TRUE),
 (1,64,'HK_1_4',TRUE),(1,65,'HK_1_4',TRUE),(1,66,'HK_1_4',TRUE),(1,67,'HK_1_4',TRUE),(1,68,'HK_1_4',TRUE),(1,69,'HK_1_4',TRUE),(1,70,'HK_1_4',TRUE),
 (1,71,'HK_2_4',TRUE),(1,72,'HK_2_4',TRUE),(1,73,'HK_2_4',TRUE),(1,74,'HK_2_4',TRUE),(1,75,'HK_2_4',TRUE),(1,76,'HK_2_4',TRUE),(1,77,'HK_2_4',TRUE),
-(1,78,'HK_3_4',TRUE),(1,79,'HK_3_4',TRUE),(1,80,'HK_3_4',TRUE),(1,81,'HK_3_4',TRUE),(1,82,'HK_3_4',TRUE),(1,83,'HK_3_4',TRUE),(1,84,'HK_3_4',TRUE),
-(1,85,'HK_1_1',TRUE),(1,86,'HK_1_1',TRUE),(1,87,'HK_1_1',TRUE),(1,88,'HK_1_1',TRUE),(1,89,'HK_1_1',TRUE);
+(1,78,'HK_3_4',TRUE),(1,79,'HK_3_4',TRUE),(1,80,'HK_3_4',TRUE),(1,81,'HK_3_4',TRUE),(1,82,'HK_3_4',TRUE),(1,83,'HK_3_4',TRUE),(1,84,'HK_3_4',TRUE);
