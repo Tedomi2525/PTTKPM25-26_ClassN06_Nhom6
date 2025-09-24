@@ -4,7 +4,7 @@ from typing import Optional
 
 class UserBase(BaseModel):
     username: str = Field(..., max_length=100, description="Username")
-    school_email: Optional[EmailStr] = Field(None, alias="schoolEmail", max_length=150, description="User school email")
+    email: Optional[EmailStr] = Field(None, alias="email", max_length=150, description="User email")
     role: str = Field(..., description="User role", pattern="^(admin|teacher|student)$")
     
     class Config:
@@ -15,7 +15,7 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, max_length=100, description="Username")
-    school_email: Optional[EmailStr] = Field(None, alias="schoolEmail", max_length=150, description="User school email")
+    email: Optional[EmailStr] = Field(None, alias="email", max_length=150, description="User email")
     role: Optional[str] = Field(None, description="User role", pattern="^(admin|teacher|student)$")
     password: Optional[str] = Field(None, min_length=8, max_length=255, description="User password")
     

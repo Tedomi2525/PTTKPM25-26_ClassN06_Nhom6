@@ -53,10 +53,10 @@ def create_student(db: Session, student_payload: StudentCreate):
         # 1. Sinh student_code
         student_code = generate_student_code(db)
 
-        # 2. Tạo user trước
+        # 2. Tạo user cho sinh viên
         user_payload = UserCreate(
             username=student_code,
-            school_email=f"{student_code}@edunera.edu",
+            email=f"{student_code}@edunera.edu",
             password=get_password_hash(f"{student_code}@"),
             role="student"
         )
@@ -71,6 +71,7 @@ def create_student(db: Session, student_payload: StudentCreate):
         student_data = student_payload.model_dump(by_alias=False, exclude_unset=True)
         student_data["student_code"] = student_code
         student_data["user_id"] = new_user.user_id
+        student_data["email"] = new_user.email
         
         # Xử lý field class_name nếu có
         if "class_name" in student_data and student_data["class_name"] is None:

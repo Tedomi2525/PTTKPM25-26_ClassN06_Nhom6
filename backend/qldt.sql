@@ -20,21 +20,12 @@ DROP TABLE IF EXISTS rooms;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
-    school_email VARCHAR(150) UNIQUE,
+    email VARCHAR(150) UNIQUE,
     password VARCHAR(512) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin','teacher','student')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO users (username, school_email, password, role)
-VALUES
-('admin1', 'admin1@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin2', 'admin2@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin3', 'admin3@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin4', 'admin4@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin5', 'admin5@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin6', 'admin6@example.com', '$2b$12$yWdfpKo...', 'admin');
 
 -- 2. TEACHERS
 CREATE TABLE teachers (
