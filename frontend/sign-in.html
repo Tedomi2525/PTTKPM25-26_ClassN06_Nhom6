@@ -164,8 +164,16 @@
             // Lưu token để dùng cho request sau
             localStorage.setItem("token", data.access_token);
 
-            // Ví dụ chuyển hướng sang dashboard
-            window.location.href = "/frontend/Admin/navbar.html";
+            // Chuyển hướng theo role
+            if (role === "admin") {
+              window.location.href = "/frontend/Admin/navbar.html";
+            } else if (role === "student") {
+              window.location.href = "/frontend/Student/student_dashboard.html";
+            } else if (role === "teacher") {
+              window.location.href = "/frontend/Teacher/teacher_dashboard.html";
+            } else {
+              alert("Không tìm thấy trang cho vai trò này!");
+            }
           } catch (err) {
             alert(err.message);
           }
