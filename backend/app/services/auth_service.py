@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models import User
-from app.schemas.auth import LoginRequest
+from app.schemas.auth import LoginRequest, UserPasswordUpdate
 from datetime import timedelta
 from app.core.config import settings
 from app.core.security import verify_password, create_access_token
+from app.core.security import get_password_hash
 
 def get_user_by_username(db: Session, username: str):
     return db.query(User).filter(User.username == username).first()
@@ -28,3 +29,12 @@ def login_service(db: Session, request: LoginRequest):
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+def update_user_password(db: Session, user_id: int, payload: UserPasswordUpdate):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        return None
+    user.password = get_password_hash(payload.password)
+    db.commit()
+    db.refresh(user)
+    return user 
