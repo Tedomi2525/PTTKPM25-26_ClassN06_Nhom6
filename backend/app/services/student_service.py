@@ -72,6 +72,10 @@ def create_student(db: Session, student_payload: StudentCreate):
         student_data["student_code"] = student_code
         student_data["user_id"] = new_user.user_id
         
+        # 👇 tự sinh email cho Student
+        if not student_data.get("email"):
+            student_data["email"] = f"{student_code}@edunera.edu"
+
         # Xử lý field class_name nếu có
         if "class_name" in student_data and student_data["class_name"] is None:
             student_data.pop("class_name")
