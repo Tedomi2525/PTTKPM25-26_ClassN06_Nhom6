@@ -55,7 +55,7 @@ def create_teacher(db: Session, teacher_payload: TeacherCreate):
     # 2. Tạo user trước
     user_payload = UserCreate(
         username=teacher_code,
-        school_email=f"{teacher_code}@edunera.edu",
+        email=f"{teacher_code}@edunera.edu",
         password=get_password_hash(f"{teacher_code}@"),
         role="teacher"
     )
@@ -70,7 +70,7 @@ def create_teacher(db: Session, teacher_payload: TeacherCreate):
     teacher_data = teacher_payload.dict(by_alias=False)
     teacher_data["teacher_code"] = teacher_code
     teacher_data["user_id"] = new_user.user_id
-    teacher_data["email"] = user_payload.school_email  # Gán email trường
+    teacher_data["email"] = user_payload.email
 
     new_teacher = TeacherModel(**teacher_data)
     db.add(new_teacher)
