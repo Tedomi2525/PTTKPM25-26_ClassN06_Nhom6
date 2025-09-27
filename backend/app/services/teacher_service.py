@@ -70,6 +70,7 @@ def create_teacher(db: Session, teacher_payload: TeacherCreate):
     teacher_data = teacher_payload.dict(by_alias=False)
     teacher_data["teacher_code"] = teacher_code
     teacher_data["user_id"] = new_user.user_id
+    teacher_data["email"] = user_payload.school_email  # Gán email trường
 
     new_teacher = TeacherModel(**teacher_data)
     db.add(new_teacher)

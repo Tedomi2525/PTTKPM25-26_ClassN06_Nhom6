@@ -73,7 +73,7 @@ def create_student(db: Session, student_payload: StudentCreate):
         student_data["user_id"] = new_user.user_id
         student_data["email"] = new_user.email
         
-        # 👇 tự sinh email cho Student
+        # Sinh email cho Student
         if not student_data.get("email"):
             student_data["email"] = f"{student_code}@edunera.edu"
 

@@ -1,3 +1,35 @@
+"""
+SCHEDULE SERVICE - Dịch vụ quản lý và tạo thời khóa biểu tự động
+
+Module này chứa các function xử lý logic tạo thời khóa biểu tự động cho hệ thống quản lý đào tạo.
+
+ARCHITECTURE OVERVIEW:
+======================
+1. TEMPLATE-BASED APPROACH:
+   - Tạo template cho 1 tuần học (schedule_templates table)
+   - Nhân bản template cho toàn bộ học kỳ (schedules table)
+   - Cho phép tùy chỉnh từng tuần riêng biệt
+
+2. INTELLIGENT SCHEDULING ALGORITHM:
+   - Sử dụng scoring system với hard/soft constraints
+   - Tự động xử lý xung đột về phòng học, giáo viên, thời gian
+   - Tối ưu hóa việc phân bổ phòng và thời gian học
+
+3. MAIN FUNCTIONS:
+   - generate_schedule(): Entry point chính để tạo lịch hoàn chỉnh
+   - generate_schedule_template(): Tạo template 1 tuần
+   - generate_semester_schedule(): Tạo lịch cho toàn bộ học kỳ
+   - get_schedule_*(): Các function lấy lịch theo điều kiện
+
+BUSINESS RULES:
+===============
+- Môn ≥3 tín chỉ: 2 ca/tuần, môn <3 tín chỉ: 1 ca/tuần
+- Giáo viên không thể dạy 2 lớp cùng lúc
+- Phòng học phải đủ sức chứa
+- Ưu tiên tập trung lịch trong 4-5 ngày/tuần
+- Tránh xếp quá nhiều ca trong 1 ngày
+"""
+
 from app.models.room import Room
 from app.models.period import Period
 from app.models.course_class import CourseClass
@@ -13,7 +45,22 @@ from sqlalchemy import desc
 import random
 
 def get_schedule(db: Session, program_id: int):
-    """Lấy lịch học hiện tại từ cơ sở dữ liệu cho một chương trình cụ thể"""
+    """
+    Lấy tất cả lịch học hiện tại của một chương trình đào tạo.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        
+    Returns:
+        List[dict]: Danh sách các lịch học với thông tin chi tiết
+        - schedule_id: ID của lịch học
+        - course_class_id: ID của lớp học phần  
+        - room_id: ID phòng học
+        - day_of_week: Thứ trong tuần (1=Thứ 2, 7=Chủ nhật)
+        - period_start/end: Ca học bắt đầu/kết thúc
+        - created_at/updated_at: Thời gian tạo/cập nhật
+    """
     schedules = db.query(Schedule).join(
         CourseClass, Schedule.course_class_id == CourseClass.course_class_id
     ).join(
@@ -41,7 +88,17 @@ def get_schedule(db: Session, program_id: int):
 
 
 def get_schedule_by_semester(db: Session, program_id: int, semester_code: str):
-    """Lấy lịch học của một học kỳ cụ thể cho một chương trình"""
+    """
+    Lấy lịch học của một học kỳ cụ thể trong chương trình đào tạo.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        semester_code: Mã học kỳ (ví dụ: "HK_1_1", "HK_2_1")
+        
+    Returns:
+        List[dict]: Danh sách lịch học có thêm thông tin semester_code
+    """
     schedules = db.query(Schedule).join(
         CourseClass, Schedule.course_class_id == CourseClass.course_class_id
     ).join(
@@ -71,7 +128,21 @@ def get_schedule_by_semester(db: Session, program_id: int, semester_code: str):
 
 
 def get_current_semester_for_program(db: Session, program_id: int):
-    """Lấy mã học kỳ hiện tại cho chương trình (không tự động cập nhật)"""
+    """
+    Lấy mã học kỳ hiện tại của chương trình đào tạo.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        
+    Returns:
+        str: Mã học kỳ hiện tại (ví dụ: "HK_1_1") hoặc "HK_1_1" nếu chưa được thiết lập
+        None: Nếu không tìm thấy chương trình
+        
+    Note:
+        - Không tự động cập nhật học kỳ hiện tại
+        - Trả về giá trị mặc định "HK_1_1" nếu chưa được thiết lập
+    """
     program = db.query(Program).filter(Program.program_id == program_id).first()
     if not program:
         return None
@@ -84,7 +155,22 @@ def get_current_semester_for_program(db: Session, program_id: int):
 
 
 def get_courses_for_current_semester(db: Session, program_id: int):
-    """Lấy tất cả môn học của học kỳ hiện tại cho chương trình"""
+    """
+    Lấy danh sách tất cả môn học thuộc học kỳ hiện tại của chương trình.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        
+    Returns:
+        List[Course]: Danh sách các môn học trong học kỳ hiện tại
+        []: Danh sách rỗng nếu không tìm thấy môn học hoặc học kỳ
+        
+    Process:
+        1. Lấy mã học kỳ hiện tại của chương trình
+        2. Tìm các môn học trong chương trình có semester_no tương ứng
+        3. In log để debug số lượng môn học tìm được
+    """
     current_semester_code = get_current_semester_for_program(db, program_id)
     if not current_semester_code:
         return []
@@ -102,32 +188,82 @@ def get_courses_for_current_semester(db: Session, program_id: int):
 
 
 def generate_schedule_template(db: Session, program_id: int):
-    """Tạo mẫu thời khóa biểu cho 1 tuần và lưu vào schedule_templates"""
-    rooms = db.query(Room).all()
-    periods = db.query(Period).all()
+    """
+    Tạo mẫu thời khóa biểu tối ưu cho 1 tuần học và lưu vào bảng schedule_templates.
     
-    # Lọc lớp học theo chương trình và học kỳ hiện tại
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        
+    Returns:
+        dict: {"template": [list_of_schedule_items]} nếu thành công
+        str: "empty" nếu không có môn học trong học kỳ hiện tại
+        dict: {"error": "message"} nếu có lỗi
+        
+    Algorithm:
+        Sử dụng thuật toán xếp lịch dựa trên điểm số (scoring algorithm):
+        
+        1. PREPARATION PHASE:
+           - Lấy danh sách phòng học, ca học, lớp học phần
+           - Tính toán số ca cần thiết cho mỗi lớp (2 ca cho môn ≥3 tín chỉ, 1 ca cho môn <3 tín chỉ)
+           - Khởi tạo tracking slots cho giáo viên và phòng học
+           
+        2. SCORING PHASE (cho mỗi lớp học phần):
+           Tính điểm cho từng cặp (phòng, ca) dựa trên các rules:
+           
+           HARD CONSTRAINTS (Điểm âm lớn = loại bỏ hoàn toàn):
+           - Rule 1: Phòng đủ sức chứa (+5 nếu đủ, -1000 nếu không đủ)
+           - Rule 2: Giáo viên rảnh (+10 nếu rảnh, -1000 nếu bận)
+           - Rule 3: Phòng trống (-1000 nếu phòng đã bị chiếm)
+           - Rule 5: Không trùng ca cho cùng lớp (-1000 nếu trùng)
+           
+           SOFT CONSTRAINTS (Điểm âm nhỏ = không khuyến khích):
+           - Rule 6: Ưu tiên phòng khác nhau (+50 phòng mới, -500 phòng cũ)
+           - Rule 7: Xử lý xung đột lớp cùng môn (-200 dùng chung phòng, +50 phòng khác)
+           - Rule 8: Giới hạn 3 ca/ngày (-10000 nếu ≥3 ca, -500 nếu 2 ca)
+           
+           OPTIMIZATION RULES (Cải thiện chất lượng):
+           - Rule 9: Ưu tiên tập trung lịch (+100 cho ≤4 ngày/tuần)
+           - Tránh xếp các ca quá gần nhau cho môn nhiều tín chỉ
+           
+        3. SELECTION PHASE:
+           - Chọn top 20% slots có điểm cao nhất
+           - Ưu tiên slots sử dụng phòng mới
+           - Random selection trong nhóm tốt nhất để tránh bias
+           
+        4. PERSISTENCE PHASE:
+           - Xóa template cũ của học kỳ hiện tại
+           - Lưu template mới vào database
+    """
+    # Bước 1: Lấy dữ liệu cơ bản từ database
+    rooms = db.query(Room).all()  # Tất cả phòng học
+    periods = db.query(Period).all()  # Tất cả ca học trong tuần
+    
+    # Bước 2: Lọc lớp học theo chương trình và học kỳ hiện tại
     if program_id:
         current_semester_courses = get_courses_for_current_semester(db, program_id)
         if not current_semester_courses:
-            return "empty"
+            return "empty"  # Không có môn học trong học kỳ hiện tại
         
+        # Lấy danh sách lớp học phần của các môn trong học kỳ hiện tại
         course_ids = [course.course_id for course in current_semester_courses]
         courseClasses = db.query(CourseClass).join(Course).filter(
             Course.course_id.in_(course_ids)
         ).all() if course_ids else []
 
-    room_capacity = {r.room_id: r.capacity for r in rooms}
-    day_order = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6}
+    # Bước 3: Chuẩn bị dữ liệu mapping và tracking
+    room_capacity = {r.room_id: r.capacity for r in rooms}  # Map room_id -> capacity
+    day_order = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6}  # Thứ tự các ngày
     
-    # Tạo mapping period_id -> (day, period_number)
+    # Tạo mapping period_id -> (day, period_number) để tra cứu nhanh
     period_info = {}
     for p in periods:
         period_info[p.period_id] = (p.day, p.period_number)
 
-    teacherSlot = {}  # teacher_id -> set(period_id)
-    roomSlot = {}     # room_id -> set(period_id)
-    template_schedule = []
+    # Bước 4: Khởi tạo tracking slots đã sử dụng
+    teacherSlot = {}  # teacher_id -> set(period_id): Track ca học của từng giáo viên
+    roomSlot = {}     # room_id -> set(period_id): Track ca học của từng phòng
+    template_schedule = []  # Kết quả template cuối cùng
 
     for cc in courseClasses:
         teacher_id = cc.teacher_id
@@ -289,21 +425,22 @@ def generate_schedule_template(db: Session, program_id: int):
                 else:
                     continue
     
-    # Lưu template vào database
+    # Bước 6: Lưu template vào database
     try:
-        # Xóa template cũ của học kỳ hiện tại
+        # Bước 6.1: Xóa template cũ của học kỳ hiện tại để tránh duplicate
         current_semester_code = get_current_semester_for_program(db, program_id)
         if current_semester_code and current_semester_code != "empty":
             current_course_ids = [course.course_id for course in current_semester_courses]
             current_class_ids = [cc.course_class_id for cc in courseClasses]
             
+            # Tìm và xóa tất cả template cũ của các lớp trong học kỳ hiện tại
             existing_templates = db.query(ScheduleTemplate).filter(
                 ScheduleTemplate.course_class_id.in_(current_class_ids)
             ).all()
             for template_item in existing_templates:
                 db.delete(template_item)
         
-        # Lưu template mới
+        # Bước 6.2: Lưu template mới vào database
         for item in template_schedule:
             new_template = ScheduleTemplate(
                 course_class_id=item['course_class_id'],
@@ -312,19 +449,40 @@ def generate_schedule_template(db: Session, program_id: int):
             )
             db.add(new_template)
         
-        db.commit()
+        db.commit()  # Commit tất cả thay đổi
         
     except Exception as e:
-        db.rollback()
+        db.rollback()  # Rollback nếu có lỗi
         return {"error": f"Failed to save schedule template: {str(e)}"}
     
+    # Bước 7: Trả về kết quả template với index để dễ debug
     return {
         "template": [{"index": i+1, **item} for i, item in enumerate(template_schedule)]
     }
 
 
 def generate_semester_schedule(db: Session, program_id: int, semester_id: int, total_weeks: int = 10, force_recreate_template: bool = False):
-    """Tạo lịch học cho cả học kỳ (10 tuần) từ template"""
+    """
+    Tạo lịch học hoàn chỉnh cho cả học kỳ (mặc định 10 tuần) từ template.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        semester_id: ID của học kỳ
+        total_weeks: Tổng số tuần học (mặc định 10)
+        force_recreate_template: Có bắt buộc tạo lại template hay không
+        
+    Returns:
+        dict: {"message": ..., "total_schedules": ..., "schedules": [...]} nếu thành công
+        dict: {"error": "message"} nếu có lỗi
+        
+    Process:
+        1. Validate semester existence
+        2. Get or create schedule template (1 tuần mẫu)
+        3. Calculate first Monday of semester
+        4. Generate schedule for each week by replicating template
+        5. Save all schedules to database with specific dates
+    """
     
     # Lấy thông tin học kỳ
     semester = db.query(Semester).filter(Semester.semester_id == semester_id).first()
@@ -383,32 +541,34 @@ def generate_semester_schedule(db: Session, program_id: int, semester_id: int, t
                 'period_number': period.period_number
             }
         
-        # Tính ngày bắt đầu học kỳ (thứ 2 đầu tiên)
+        # Bước 3: Tính toán ngày bắt đầu học kỳ (thứ 2 đầu tiên)
         semester_start = semester.start_time.date()
-        # Tìm thứ 2 đầu tiên
-        days_ahead = 0 - semester_start.weekday()  # 0 = Monday
-        if days_ahead < 0:
-            days_ahead += 7
+        # Tìm thứ 2 đầu tiên từ ngày bắt đầu học kỳ
+        days_ahead = 0 - semester_start.weekday()  # 0 = Monday trong Python
+        if days_ahead < 0:  # Nếu ngày bắt đầu không phải thứ 2
+            days_ahead += 7  # Tìm thứ 2 tuần tiếp theo
         first_monday = semester_start + timedelta(days=days_ahead)
         
-        # Generate lịch cho từng tuần
+        # Bước 4: Generate lịch cho từng tuần bằng cách nhân bản template
         schedules_created = []
         for week in range(1, total_weeks + 1):
-            week_start_date = first_monday + timedelta(weeks=week-1)
+            week_start_date = first_monday + timedelta(weeks=week-1)  # Thứ 2 của tuần thứ week
             
+            # Bước 4.1: Tạo lịch cho tuần hiện tại từ template
             for template in templates:
                 period_info = period_mapping.get(template.period_id)
                 if period_info:
-                    # Tính ngày cụ thể
-                    day_offset = period_info['day_of_week'] - 1  # Monday = 0
+                    # Tính ngày cụ thể trong tuần (ví dụ: thứ 3 của tuần thứ 2)
+                    day_offset = period_info['day_of_week'] - 1  # Monday = 0, Tuesday = 1, ...
                     specific_date = week_start_date + timedelta(days=day_offset)
                     
+                    # Tạo record lịch học cho ngày cụ thể
                     new_schedule = Schedule(
                         course_class_id=template.course_class_id,
                         room_id=template.room_id,
                         day_of_week=period_info['day_of_week'],
                         period_start=template.period_id,
-                        period_end=template.period_id,
+                        period_end=template.period_id,  # Hiện tại 1 period = 1 ca học
                         week_number=week,
                         specific_date=specific_date,
                         semester_id=semester_id
@@ -429,13 +589,29 @@ def generate_semester_schedule(db: Session, program_id: int, semester_id: int, t
         db.rollback()
         return {"error": f"Failed to generate semester schedule: {str(e)}"}
     
+    # Bước 5: Trả về kết quả tạo lịch
     return {
         "message": f"Successfully generated schedule for {total_weeks} weeks",
         "total_schedules": len(schedules_created),
-        "schedules": schedules_created[:50]  # Chỉ trả về 50 schedule đầu để tránh quá tải
+        "schedules": schedules_created[:50]  # Chỉ trả về 50 schedule đầu để tránh response quá lớn
     }
 def generate_schedule_legacy(db, program_id: int):
-    """[LEGACY] Tạo thời khóa biểu tự động với các ràng buộc và quy tắc tối ưu cho 1 tuần"""
+    """
+    [LEGACY - DEPRECATED] Tạo thời khóa biểu tự động cho 1 tuần học.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        
+    Returns:
+        dict: {"error": "message"} nếu có lỗi
+        Không return gì nếu thành công (chỉ lưu vào database)
+        
+    Warning:
+        Function này đã được thay thế bởi generate_schedule_template().
+        Chỉ giữ lại để tương thích ngược.
+        Logic tương tự generate_schedule_template() nhưng lưu trực tiếp vào bảng Schedule.
+    """
     rooms = db.query(Room).all()
     periods = db.query(Period).all()
     
@@ -654,9 +830,25 @@ def generate_schedule_legacy(db, program_id: int):
     
 def generate_schedule(db: Session, program_id: int, semester_id: int = None, total_weeks: int = 10):
     """
-    Tạo thời khóa biểu hoàn chỉnh cho học kỳ:
-    1. Tự động tạo template nếu cần
-    2. Generate lịch cho 10 tuần từ template
+    [MAIN ENTRY POINT] Tạo thời khóa biểu hoàn chỉnh cho học kỳ.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        semester_id: ID của học kỳ (optional, sẽ dùng học kỳ mới nhất nếu None)
+        total_weeks: Tổng số tuần học (mặc định 10)
+        
+    Returns:
+        dict: {"message": ..., "semester_info": {...}} nếu thành công
+        dict: {"error": "message"} nếu có lỗi
+        
+    Process:
+        1. Tự động lấy semester_id mới nhất nếu không được cung cấp
+        2. Gọi generate_semester_schedule() với force_recreate_template=True
+        3. Function này sẽ tự động tạo template nếu cần và generate lịch 10 tuần
+        
+    Note:
+        Đây là function chính được gọi từ API để tạo lịch học hoàn chỉnh.
     """
     
     # Bước 1: Lấy semester_id nếu không được cung cấp
@@ -680,7 +872,31 @@ def generate_schedule(db: Session, program_id: int, semester_id: int = None, tot
 
 
 def get_schedule_by_week(db: Session, program_id: int, semester_id: int, week_number: int):
-    """Lấy lịch học của một tuần cụ thể"""
+    """
+    Lấy lịch học của một tuần cụ thể trong học kỳ.
+    
+    Args:
+        db: Database session
+        program_id: ID của chương trình đào tạo
+        semester_id: ID của học kỳ
+        week_number: Số thứ tự tuần (1, 2, 3, ..., 10)
+        
+    Returns:
+        List[dict]: Danh sách lịch học trong tuần với các thông tin:
+        - schedule_id: ID của lịch học
+        - course_class_id: ID của lớp học phần
+        - room_id: ID phòng học
+        - day_of_week: Thư trong tuần (1=Thứ 2, 7=Chủ nhật)
+        - period_start/end: Ca học bắt đầu/kết thúc
+        - week_number: Số tuần
+        - specific_date: Ngày cụ thể (ISO format)
+        - semester_id: ID học kỳ
+        
+    Process:
+        1. Lấy danh sách môn học của chương trình trong học kỳ hiện tại
+        2. Filter lịch theo semester_id, week_number và course_class_id
+        3. Trả về danh sách lịch học với đầy đủ thông tin
+    """
     
     # Lấy courses của chương trình hiện tại
     current_semester_courses = get_courses_for_current_semester(db, program_id)
