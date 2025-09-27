@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, semesters
-# Tạo app
 
-from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses
+from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses, semesters
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
