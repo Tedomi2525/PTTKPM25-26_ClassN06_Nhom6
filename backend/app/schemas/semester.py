@@ -22,7 +22,7 @@ class SemesterUpdate(BaseModel):
     class Config:
         populate_by_name = True
 
-class SemesterResponse(SemesterBase):
+class Semester(SemesterBase):
     semester_id: int = Field(..., alias="semesterId", description="Unique ID of the semester")
     created_at: datetime = Field(..., alias="createdAt", description="Creation timestamp")
     updated_at: datetime = Field(..., alias="updatedAt", description="Last update timestamp")
