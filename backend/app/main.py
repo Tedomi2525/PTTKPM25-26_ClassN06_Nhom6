@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, semesters
+# Tạo app
+
 from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -29,3 +32,4 @@ app.include_router(course_class.router, prefix="/api")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(course_class.router, prefix="/api")
 app.include_router(courses.router, prefix="/api")
+app.include_router(semesters.router, prefix="/api")
