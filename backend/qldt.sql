@@ -20,21 +20,12 @@ DROP TABLE IF EXISTS rooms;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
-    school_email VARCHAR(150) UNIQUE,
+    email VARCHAR(150) UNIQUE,
     password VARCHAR(512) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin','teacher','student')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO users (username, school_email, password, role)
-VALUES
-('admin1', 'admin1@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin2', 'admin2@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin3', 'admin3@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin4', 'admin4@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin5', 'admin5@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin6', 'admin6@example.com', '$2b$12$yWdfpKo...', 'admin');
 
 -- 2. TEACHERS
 CREATE TABLE teachers (
@@ -104,15 +95,15 @@ INSERT INTO students (
     class, training_program, course_years, education_type,
     faculty, major, status, position, avatar
 ) VALUES
-('23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
+('SV23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
  'K17-CNTT_4', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa Công nghệ Thông tin', 'Công nghệ thông tin', 'Đang học', 'Sinh viên', '/images/students/quan.jpg'),
  
-('23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
+('SV23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
  'K17-CNTT_2', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa CNTT', 'Hệ thống thông tin', 'Đang học', 'Lớp phó', '/images/students/lan.jpg'),
 
-('23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
+('SV23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
  'K17-CNTT_1', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa CNTT', 'Khoa học máy tính', 'Đang học', 'Sinh viên', '/images/students/huy.jpg');
 

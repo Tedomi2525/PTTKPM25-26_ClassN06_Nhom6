@@ -1,20 +1,23 @@
 <!DOCTYPE html>
+
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <title>Danh Sách Giảng Viên</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
-<div class="container mt-5">
+<div class="mx-auto mt-4" style="width:90%;">
   <div class="card shadow-lg">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-primary text-white rounded-top d-flex justify-content-between align-items-center">
       <h4 class="mb-0">Danh Sách Giảng Viên</h4>
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
+        <table class="table table-bordered table-hover table-sm align-middle">
           <thead class="table-primary text-center">
             <tr>
               <th>Mã GV</th>
@@ -23,42 +26,87 @@
               <th>Ngày sinh</th>
               <th>Giới tính</th>
               <th>Email</th>
-              <th>Số điện thoại</th>
-              <th>Khoa quản lý</th>
+              <th>SĐT</th>
+              <th>Khoa</th>
               <th>Bộ môn</th>
               <th>Chuyên ngành</th>
               <th>Học vị</th>
               <th>Học hàm</th>
+              <th>Ảnh</th>
               <th>Hành động</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Ví dụ 1 giảng viên -->
-            <tr>
-              <td class="text-center">GV2301</td>
-              <td>Nguyễn Văn</td>
-              <td>An</td>
-              <td class="text-center">1980-05-20</td>
-              <td class="text-center">Nam</td>
-              <td>an.nguyen@phenikaa-uni.edu.vn</td>
-              <td>0901234567</td>
-              <td>Khoa Công nghệ Thông tin</td>
-              <td>Khoa học máy tính</td>
-              <td>Trí tuệ nhân tạo</td>
-              <td>Tiến sĩ</td>
-              <td>Phó Giáo sư</td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-warning">Sửa</button>
-                <button class="btn btn-sm btn-danger">Xóa</button>
-              </td>
-            </tr>
-            <!-- Thêm giảng viên khác tại đây -->
+          <tbody id="teacher-table-body">
+            <!-- dữ liệu sẽ được load ở đây -->
           </tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+// Gọi API lấy danh sách giảng viên
+async function fetchTeachers() {
+  try {
+    const res = await fetch("http://localhost:8000/api/teachers");
+    if (!res.ok) throw new Error("Không tải được danh sách");
+
+    const teachers = await res.json();
+    const tbody = document.getElementById("teacher-table-body");
+    tbody.innerHTML = "";
+
+    teachers.forEach(teacher => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${teacher.teacherCode || ""}</td>
+        <td>${teacher.lastName || ""}</td>
+        <td>${teacher.firstName || ""}</td>
+        <td class="text-center">${teacher.dob || ""}</td>
+        <td class="text-center">${teacher.gender || ""}</td>
+        <td>${teacher.email || ""}</td>
+        <td>${teacher.phone || ""}</td>
+        <td>${teacher.faculty || ""}</td>
+        <td>${teacher.department || ""}</td>
+        <td>${teacher.specialization || ""}</td>
+        <td>${teacher.degree || ""}</td>
+        <td>${teacher.academicRank || ""}</td>
+        <td class="text-center">
+          <img src="${teacher.avatar || "https://via.placeholder.com/50"}" 
+               class="rounded-circle" width="50" height="50" alt="Ảnh GV">
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-warning me-1" onclick="editTeacher(${teacher.teacherId})">Sửa</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTeacher(${teacher.teacherId})">Xóa</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    alert("Lỗi: " + err.message);
+  }
+}
+
+// Hàm xóa giảng viên
+async function deleteTeacher(id) {
+  if (!confirm("Bạn chắc muốn xóa?")) return;
+  try {
+    const res = await fetch(`http://localhost:8000/api/teachers/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Không xóa được");
+    fetchTeachers();
+  } catch (err) {
+    alert("Lỗi: " + err.message);
+  }
+}
+
+// Hàm sửa giảng viên
+function editTeacher(id) {
+  alert("Sửa giảng viên ID: " + id);
+}
+
+// Load khi mở trang
+document.addEventListener("DOMContentLoaded", fetchTeachers);
+</script>
 
 </body>
 </html>

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
-from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses
+
+from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses, semesters
 from fastapi.middleware.cors import CORSMiddleware
-# Tạo app
+
 app = FastAPI(
     title="QLDT API",
     description="Quản lý đào tạo - FastAPI backend",
@@ -10,7 +11,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # hoặc domain frontend
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,3 +30,4 @@ app.include_router(course_class.router, prefix="/api")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(course_class.router, prefix="/api")
 app.include_router(courses.router, prefix="/api")
+app.include_router(semesters.router, prefix="/api")
