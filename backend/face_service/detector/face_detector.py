@@ -2,9 +2,14 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 from typing import List, Tuple
+import os
 
-# Load YOLOv8n-face model (đường dẫn đến file .pt của bạn)
-model = YOLO("models_services/yolov8n-face.pt")
+# Lấy thư mục hiện tại của file face_detector.py
+BASE_DIR = os.path.dirname(__file__)
+MODEL_PATH = os.path.join(BASE_DIR, "models_services", "yolov8n-face.pt")
+
+model = YOLO(MODEL_PATH)
+
 
 
 def detect_faces(image: np.ndarray) -> List[Tuple[int, int, int, int]]:
