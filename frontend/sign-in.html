@@ -1,9 +1,28 @@
+<!--
+                        _ooOoo_
+                       o8888888o
+                       88" . "88
+                       (| -_- |)
+                       O\  =  /O
+                    ____/`---'\____
+                  .'  \\|     |//  `.
+                 /  \\|||  :  |||//  \
+                /  _||||| -:- |||||_  \
+                |   | \\\  -  /'| |   |
+                | \_|  `\`---'//  |_/ |
+                \  .-\__ `-. -'__/-.  /
+              ___`. .'  /--.--\  `. .'___
+           ."" '<  `.___\_<|>_/___.' _> \"".
+          | | :  `- \`. ;`. _/; .'/ /  .' ; |
+          \  \ `-.   \_\_`. _.'_/_/  -' _.' /
+===========`-.`___`-.__\ \___  /__.-'_.'_.-'================
+-->
 <!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
-    <title>Đăng nhập - Phenikaa University</title>
+    <title>Đăng nhập - Edunera</title>
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="styleguide.css" />
     <link rel="stylesheet" href="style.css" />
@@ -23,12 +42,12 @@
               />
               <form class="login-form" novalidate>
                 <div class="logo-container">
-                  <img
+                  <!-- <img
                   class="logo"
                   src="PTTK/Sec_Edunera_Logo_512.png"
                   alt="Logo"
                   />
-                </div>
+                  </div> -->
                 <div class="div-wrapper">
                   <div class="div">
                     <div class="rectangle-5"></div>
@@ -67,7 +86,7 @@
                   <a href="#" class="text-wrapper-9">Đổi mật khẩu</a>
                   <a href="#" class="text-wrapper-4">Quên mật khẩu?</a>
                 </nav>
-                <button type="submit" class="button">
+                <button type="submit" class="button ">
                   Đăng nhập
                 </button>
               </form>
@@ -106,7 +125,7 @@
 
           const username = document.getElementById("username").value;
           const password = document.getElementById("password").value;
-          const role = document.getElementById("role-select").value;
+          // const role = document.getElementById("role-select").value;
 
           try {
             const response = await fetch("http://127.0.0.1:8000/auth/login", {
@@ -114,7 +133,7 @@
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ username, password, role }),
+              body: JSON.stringify({ username, password }),
             });
 
             if (!response.ok) {
@@ -128,15 +147,15 @@
             localStorage.setItem("token", data.access_token);
 
             // Chuyển hướng theo role
-            if (role === "admin") {
+            // if (role === "admin") {
               window.location.href = "/frontend/Admin/navbar.html";
-            } else if (role === "student") {
-              window.location.href = "/frontend/Student/student_dashboard.html";
-            } else if (role === "teacher") {
-              window.location.href = "/frontend/Teacher/teacher_dashboard.html";
-            } else {
-              alert("Không tìm thấy trang cho vai trò này!");
-            }
+            // } else if (role === "student") {
+            //   window.location.href = "/frontend/Student/student_dashboard.html";
+            // } else if (role === "teacher") {
+            //   window.location.href = "/frontend/Teacher/teacher_dashboard.html";
+            // } else {
+            //   alert("Không tìm thấy trang cho vai trò này!");
+            // }
           } catch (err) {
             alert(err.message);
           }
