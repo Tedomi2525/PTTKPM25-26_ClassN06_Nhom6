@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, LargeBinary, TIMESTAMP, text
+# student_face.py
+from sqlalchemy import Column, Integer, Boolean, ForeignKey, LargeBinary, TIMESTAMP, text
 from sqlalchemy.orm import relationship
 from app.database import Base
-
 
 class StudentFace(Base):
     __tablename__ = "student_faces"
@@ -20,4 +20,4 @@ class StudentFace(Base):
     faiss_index = Column(Integer, nullable=True)
 
     # Quan hệ với bảng students
-    student = relationship("Student", back_populates="faces")
+    student = relationship("Student", back_populates="student_faces")

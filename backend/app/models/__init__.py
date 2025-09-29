@@ -10,7 +10,9 @@ from .program_course import ProgramCourse
 from .schedule import Schedule
 from .schedule_template import ScheduleTemplate
 from .student import Student
+from .student_faces import StudentFace
 from .period import Period
+from .enrollment import Enrollment
 
 __all__ = [
     "User",
@@ -23,6 +25,8 @@ __all__ = [
     "ProgramCourse",
     "Schedule",
     "ScheduleTemplate",
-    "Student", 
+    "Student",
+    "StudentFace",
     "Period",
+    "Enrollment",
 ]

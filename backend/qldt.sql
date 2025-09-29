@@ -85,6 +85,7 @@ CREATE TABLE students (
     status VARCHAR(50) CHECK (status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')),
     position VARCHAR(50),                              -- Chức vụ (VD: Sinh viên, Lớp trưởng)
     avatar VARCHAR(255),                               -- Link ảnh đại diện (lưu path hoặc URL)
+    faces BYTEA,                              -- Vector nhúng khuôn mặt
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

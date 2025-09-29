@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses, semesters
 from fastapi.middleware.cors import CORSMiddleware
+# Import models to ensure they are registered with SQLAlchemy
+import app.models
 
 app = FastAPI(
     title="QLDT API",
