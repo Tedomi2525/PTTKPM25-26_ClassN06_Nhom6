@@ -1,4 +1,4 @@
--- Drop tables in dependency order
+
 DROP TABLE IF EXISTS attendances;
 DROP TABLE IF EXISTS attendance_logs;
 DROP TABLE IF EXISTS student_faces;
@@ -413,8 +413,8 @@ CREATE TABLE schedules (
     day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
     period_start INT NOT NULL REFERENCES periods(period_id),
     period_end INT NOT NULL REFERENCES periods(period_id),
-    week_number INT CHECK(week_number BETWEEN 1 AND 20),  -- Tuần thứ mấy (1-10 cho học kỳ thường)
-    specific_date DATE,                                   -- Ngày cụ thể
+    week_number INT CHECK(week_number BETWEEN 1 AND 20),  
+    specific_date DATE,                                   
     semester_id INT REFERENCES semesters(semester_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -435,14 +435,16 @@ CREATE TABLE schedule_templates (
 CREATE TABLE student_faces (
     face_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
-    image_path TEXT NOT NULL,
-    embedding_vector JSONB NOT NULL,
-    is_primary BOOLEAN DEFAULT FALSE,
+    embedding_vector BYTEA NOT NULL,           -- Lưu vector nhị phân
+    is_primary BOOLEAN DEFAULT FALSE,          -- Đánh dấu ảnh chính
+    faiss_index INT,                            -- Vị trí vector trong FAISS index
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tạo index tối ưu cho truy vấn
 CREATE INDEX idx_student_faces_student_id ON student_faces(student_id);
-CREATE INDEX idx_student_faces_vector ON student_faces (embedding_vector);
+CREATE INDEX idx_student_faces_faiss_index ON student_faces(faiss_index);
 
 -- 12. ATTENDANCE_LOGS
 CREATE TABLE attendance_logs (
@@ -477,11 +479,11 @@ CREATE INDEX idx_attendances ON attendances(student_id, date);
 -- 14. PROGRAMS
 CREATE TABLE programs (
     program_id SERIAL PRIMARY KEY,
-    program_name VARCHAR(150) NOT NULL,  -- tên CTĐT
-    department VARCHAR(100),             -- khoa quản lý
-    start_year INT NOT NULL,             -- năm bắt đầu khóa
-    duration INT,                        -- số năm học của chương trình
-    current_semester VARCHAR(10),                  -- học kỳ hiện tại
+    program_name VARCHAR(150) NOT NULL,  
+    department VARCHAR(100),            
+    start_year INT NOT NULL,             
+    duration INT,                        
+    current_semester VARCHAR(10),                  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -495,8 +497,8 @@ CREATE TABLE program_courses (
     program_course_id SERIAL PRIMARY KEY,
     program_id INT NOT NULL REFERENCES programs(program_id) ON DELETE CASCADE,
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
-    semester_no VARCHAR(10) NOT NULL,               -- học kỳ dự kiến (1,2,3...)
-    is_required BOOLEAN DEFAULT TRUE,       -- bắt buộc hay tự chọn
+    semester_no VARCHAR(10) NOT NULL,              
+    is_required BOOLEAN DEFAULT TRUE,       
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(program_id, course_id, semester_no)

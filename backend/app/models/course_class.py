@@ -24,4 +24,9 @@ class CourseClass(Base):
     schedules = relationship("Schedule", back_populates="course_class")
     schedule_templates = relationship("ScheduleTemplate", back_populates="course_class")
     enrollments = relationship("Enrollment", back_populates="course_class")
+
+
+
+    from app.models.enrollment import Enrollment
     semester = relationship("Semester", back_populates="course_classes")
+

@@ -14,7 +14,7 @@ class Student(Base):
     dob = Column(Date)
     gender = Column(String(10))
     email = Column(String(100), unique=True)
-    phone = Column(String(20))
+    phone = Column(String(20))     
     
     class_name = Column("class", String(50))
     training_program = Column(String(50))
@@ -33,6 +33,8 @@ class Student(Base):
     # Relationships
     user = relationship("User", back_populates="student")
     enrollments = relationship("Enrollment", back_populates="student")
+    faces = relationship("StudentFace", back_populates="student", cascade="all, delete-orphan")
+
 
     __table_args__ = (
         CheckConstraint("gender IN ('Nam', 'Nữ', 'Khác')", name="check_gender"),
