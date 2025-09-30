@@ -10,7 +10,7 @@
     <input
       :id="id"
       :type="type"
-      :value="modelValue"
+      :value="modelValue || ''"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
       required
@@ -21,14 +21,17 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   id: string
   type?: string
-  modelValue: string
+  modelValue?: string
   label?: string
   placeholder?: string
   autocomplete?: string
-}>()
+}>(), {
+  type: 'text',
+  modelValue: ''
+})
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
