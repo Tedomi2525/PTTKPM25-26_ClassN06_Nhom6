@@ -24,11 +24,6 @@ export function useAuth() {
 
       router.push("/Admin/dashboard");
     } catch (err: unknown) {
-      // You'll need to emit an error or use a reactive error state
-      // Add this at the top of useAuth function:
-      // const loginError = ref("");
-      
-      // Then replace the alert with:
       loginError.value = "Sai thông tin đăng nhập";
     }
   };

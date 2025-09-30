@@ -22,8 +22,8 @@
       <div class="w-full max-w-md bg-white shadow-lg rounded-2xl p-8 space-y-6">
         <!-- Logo -->
         <div class="flex justify-center">
-          <!-- Nếu có logo thì bỏ comment -->
-          <img src="/images/LOGO_WITHTEXTINEN-2-1-e1740932740139-2048x722.png" alt="Logo" class="h-16" />
+          <!-- Logo của Edunera -->
+          <img src="/images/Sec_Edunera_Logo_512.png" alt="Edunera Logo" class="h-16" />
         </div>
         <p v-if="loginError" class="text-red-500 h-5">{{ loginError }}</p>
         <!-- Login Form -->
@@ -32,16 +32,14 @@
             <label for="username" class="block text-sm font-medium text-gray-700">
               Tên đăng nhập
             </label>
-            <input type="text" id="username" v-model="username" required autocomplete="username"
-              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#09f]" />
+            <InputField id="username" v-model="username" placeholder="Nhập tên đăng nhập" />
           </div>
 
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
               Mật khẩu
             </label>
-            <input type="password" id="password" v-model="password" required autocomplete="current-password"
-              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#09f]" />
+            <InputField id="password" type="password" v-model="password" placeholder="Nhập mật khẩu" />
           </div>
 
           <nav class="flex justify-between text-sm">
@@ -72,6 +70,11 @@ const { username, password, login, loginError } = useAuth();
 const handleLogin = async () => {
   await login();
 };
+
+definePageMeta({
+  layout: false
+})
+
 </script>
 
 

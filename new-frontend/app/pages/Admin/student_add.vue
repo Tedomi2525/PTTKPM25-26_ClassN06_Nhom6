@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto mt-8 px-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-      <div class="bg-blue-600 text-white px-6 py-3">
+      <div class="bg-[#09f] text-white px-6 py-3">
         <h4 class="text-lg font-semibold">Thêm Sinh Viên</h4>
       </div>
 
@@ -13,36 +13,35 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Họ và đệm</label>
-                <input v-model="form.first_name" type="text" placeholder="VD: Hoàng Minh"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.first_name" placeholder="VD: Hoàng Minh" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Tên</label>
-                <input v-model="form.last_name" type="text" placeholder="VD: Quân"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.last_name" placeholder="VD: Quân" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Số điện thoại</label>
-                <input v-model="form.phone" type="text" placeholder="VD: 0987654321"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.phone" placeholder="VD: 0987654321" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Ngày sinh</label>
-                <input v-model="form.dob" type="date"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.dob" type="date" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Giới tính</label>
-                <select v-model="form.gender"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
-                  <option value="">-- Chọn --</option>
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                  <option value="Khác">Khác</option>
-                </select>
+                <DropDown
+                  id="gender"
+                  placeholder="Chọn giới tính"
+                  v-model="form.gender"
+                  :options="[
+                    { label: 'Nam', value: 'Nam' },
+                    { label: 'Nữ', value: 'Nữ' },
+                    { label: 'Khác', value: 'Khác' }
+                  ]"
+                />
               </div>
             </div>
           </div>
@@ -53,63 +52,53 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Lớp</label>
-                <input v-model="form.class_name" type="text" placeholder="VD: K17-CNTT_4"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.class_name" placeholder="VD: K17-CNTT_4" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Khóa đào tạo</label>
-                <input v-model="form.training_program" type="text" placeholder="VD: DH_K17.40"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.training_program" placeholder="VD: DH_K17.40" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Niên khóa</label>
-                <input v-model="form.course_years" type="text" placeholder="VD: 2023-2027"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.course_years" placeholder="VD: 2023-2027" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Hệ đào tạo</label>
-                <select v-model="form.education_type"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
-                  <option value="">-- Chọn --</option>
-                  <option value="Đại học chính quy">Đại học chính quy</option>
-                  <option value="Liên thông">Liên thông</option>
-                  <option value="Cao đẳng">Cao đẳng</option>
-                </select>
+                <DropDown
+                  id="education_type"
+                  placeholder="Chọn hệ đào tạo"
+                  v-model="form.education_type"
+                  :options="[
+                    { label: 'Chính quy', value: 'Chính quy' },
+                    { label: 'Từ xa', value: 'Từ xa' }
+                  ]"
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Khoa quản lý</label>
-                <input v-model="form.faculty" type="text" placeholder="VD: Khoa Công nghệ Thông tin"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.faculty" placeholder="VD: Khoa Công nghệ Thông tin" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Ngành</label>
-                <input v-model="form.major" type="text" placeholder="VD: Công nghệ thông tin"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.major" placeholder="VD: Công nghệ thông tin" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
-                <label class="block text-sm font-medium mb-1">Trạng thái</label>
-                <select v-model="form.status"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
-                  <option value="Đang học">Đang học</option>
-                  <option value="Bảo lưu">Bảo lưu</option>
-                  <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
-                </select>
-              </div>
-              <div>
                 <label class="block text-sm font-medium mb-1">Chức vụ</label>
-                <input v-model="form.position" type="text" placeholder="VD: Sinh viên"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <InputField v-model="form.position" placeholder="VD: Sinh viên" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Ảnh đại diện</label>
-                <input type="file" @change="handleFileUpload"
-                  class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300" />
+                <ImageAddButton
+                  id="avatar"
+                  buttonText="Tải ảnh lên"
+                  @update:file="handleFileUpload"
+                />
               </div>
             </div>
           </div>
@@ -117,8 +106,7 @@
           <!-- NÚT -->
           <div class="flex justify-end space-x-2">
             <button type="reset" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Làm mới</button>
-            <button type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Lưu sinh viên</button>
+            <CButton type="submit">Lưu sinh viên</CButton>
           </div>
         </form>
       </div>
@@ -128,6 +116,7 @@
 
 <script setup>
 import { ref } from "vue";
+import DropDown from "~/components/DropDown.vue";
 
 const form = ref({
   first_name: "",
