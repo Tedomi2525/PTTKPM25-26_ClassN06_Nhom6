@@ -85,7 +85,3 @@ const editTeacher = (id) => {
 
 onMounted(fetchTeachers);
 </script>
-
-<style>
-/* Bạn có thể thêm style Tailwind tùy chỉnh nếu cần */
-</style>

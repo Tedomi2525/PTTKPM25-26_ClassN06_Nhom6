@@ -25,32 +25,32 @@
           <!-- Nếu có logo thì bỏ comment -->
           <img src="/images/LOGO_WITHTEXTINEN-2-1-e1740932740139-2048x722.png" alt="Logo" class="h-16" />
         </div>
-
+        <p v-if="loginError" class="text-red-500 h-5">{{ loginError }}</p>
         <!-- Login Form -->
         <form class="space-y-4" @submit.prevent="handleLogin">
           <div>
             <label for="username" class="block text-sm font-medium text-gray-700">
-              Tên đăng nhập *
+              Tên đăng nhập
             </label>
             <input type="text" id="username" v-model="username" required autocomplete="username"
-              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#09f]" />
           </div>
 
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
-              Mật khẩu *
+              Mật khẩu
             </label>
             <input type="password" id="password" v-model="password" required autocomplete="current-password"
-              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              class="mt-1 w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#09f]" />
           </div>
 
           <nav class="flex justify-between text-sm">
-            <a href="#" class="text-blue-500 hover:underline">Đổi mật khẩu</a>
-            <a href="#" class="text-blue-500 hover:underline">Quên mật khẩu?</a>
+            <a href="#" class="text-black hover:text-[#09f]">Đổi mật khẩu</a>
+            <a href="#" class="text-black hover:text-[#09f]">Quên mật khẩu?</a>
           </nav>
 
           <button type="submit"
-            class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition">
+            class="w-full py-3 bg-[#09f] hover:bg-blue-600 text-white font-bold rounded-lg transition cursor-pointer">
             Đăng nhập
           </button>
         </form>
@@ -65,33 +65,13 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useAuth } from "~/composables/useAuth";
 
-const username = ref("");
-const password = ref("");
-const router = useRouter(); // Sử dụng Nuxt Router
+const { username, password, login, loginError } = useAuth();
 
 const handleLogin = async () => {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: username.value, password: password.value }),
-    });
-
-    if (!response.ok) throw new Error("Sai tài khoản hoặc mật khẩu!");
-
-    const data = await response.json();
-    console.log("Đăng nhập thành công:", data);
-
-    localStorage.setItem("token", data.access_token);
-
-    // Chuyển hướng dùng Nuxt Router
-    router.push("/Admin/dashboard");
-  } catch (err) {
-    alert(err.message);
-  }
+  await login();
 };
 </script>
+
 
