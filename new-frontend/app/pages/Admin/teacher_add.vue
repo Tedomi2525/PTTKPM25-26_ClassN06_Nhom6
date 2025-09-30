@@ -122,15 +122,3 @@ const submitForm = async () => {
   }
 }
 </script>
-
-<style>
-.input {
-  @apply border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400;
-}
-.btn-primary {
-  @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700;
-}
-.btn-secondary {
-  @apply bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500;
-}
-</style>
