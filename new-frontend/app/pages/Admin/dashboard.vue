@@ -1,7 +1,29 @@
 <script setup>
+import { onMounted } from 'vue'
+
 definePageMeta({
   layout: "default"
 });
+
+const { isAuthenticated, validateToken } = useAuth()
+
+onMounted(async () => {
+  // Kiểm tra authentication
+  if (typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      await navigateTo('/')
+      return
+    }
+    
+    // Kiểm tra token hợp lệ
+    const isValid = await validateToken()
+    if (!isValid) {
+      await navigateTo('/')
+      return
+    }
+  }
+})
 </script>
 
 <template>

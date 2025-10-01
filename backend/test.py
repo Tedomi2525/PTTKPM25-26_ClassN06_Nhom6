@@ -30,5 +30,5 @@ else:
     print("❌ File không tồn tại tại:", full_path)
 
 # Đóng kết nối
-cur.close()
+cur.close() 
 conn.close()

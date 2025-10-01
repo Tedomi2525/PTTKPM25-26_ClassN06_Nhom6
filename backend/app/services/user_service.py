@@ -18,7 +18,11 @@ def search_users(db: Session, q: str):
     ).all()
     
 def create_user(db: Session, payload: UserCreate):
-    new_user = UserModel(**payload.dict())
+    # Hash password trước khi tạo user
+    user_data = payload.dict()
+    user_data['password'] = get_password_hash(user_data['password'])
+    
+    new_user = UserModel(**user_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

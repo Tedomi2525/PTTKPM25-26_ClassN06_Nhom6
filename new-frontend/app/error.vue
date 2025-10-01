@@ -19,7 +19,7 @@ const message = messages[errorCode] || "Đã xảy ra lỗi"
 </script>
 
 <template>
-  <div class="flex h-screen w-full flex-col items-center justify-center gap-6 bg-white text-center">
+  <div class="flex flex-col items-center justify-center h-screen w-full bg-white text-center">
     <!-- Hiển thị mã lỗi -->
     <FuzzyText
       :text="String(errorCode)"
@@ -45,9 +45,10 @@ const message = messages[errorCode] || "Đã xảy ra lỗi"
     <!-- Nút quay về trang chủ -->
     <NuxtLink
       to="/"
-      class="mt-4 inline-block rounded bg-[#09f] px-6 py-3 text-white hover:bg-blue-600 transition"
+      class="mt-6 px-6 py-3 bg-[#09f] text-white rounded-lg hover:bg-blue-600 transition"
     >
       Quay về trang chủ
     </NuxtLink>
   </div>
 </template>
+

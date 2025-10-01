@@ -63,13 +63,29 @@
 </template>
 
 <script setup>
+import { onMounted } from "vue";
 import { useAuth } from "~/composables/useAuth";
 
-const { username, password, login, loginError } = useAuth();
+const { username, password, login, loginError, validateToken } = useAuth();
 
 const handleLogin = async () => {
   await login();
 };
+
+// Kiểm tra nếu đã đăng nhập thì redirect
+onMounted(async () => {
+  if (typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Kiểm tra token hợp lệ
+      const isValid = await validateToken();
+      if (isValid) {
+        await navigateTo('/Admin/dashboard');
+        return;
+      }
+    }
+  }
+});
 
 definePageMeta({
   layout: false

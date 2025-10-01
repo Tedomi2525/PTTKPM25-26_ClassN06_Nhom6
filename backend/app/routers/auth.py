@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.auth import LoginRequest, Token, UserOut, UserPasswordUpdate
@@ -14,7 +14,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     return auth_service.login_service(db, request)
 
 @router.get("/me", response_model=UserOut)
-def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def read_users_me(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     return auth_service.get_current_user_service(db, token)
 
 @router.put("/change-password", response_model=UserOut)
