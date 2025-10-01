@@ -20,20 +20,24 @@ from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
 def generate_student_code(db: Session) -> str:
-    # Lấy student_code lớn nhất trong DB
+    year = datetime.now().year % 100  # lấy 2 số cuối của năm
+    prefix = f"SV{year}"
+
+    # Lấy student_code lớn nhất của năm hiện tại
     last_student = (
         db.query(StudentModel)
-        .order_by(StudentModel.student_id.desc())
+        .filter(StudentModel.student_code.like(f"{prefix}%"))
+        .order_by(StudentModel.student_code.desc())
         .first()
-    ) 
+    )
+
     if not last_student or not last_student.student_code:
         new_number = 1
     else:
-        # Bóc số từ student_code, ví dụ SV000123 -> 123
-        last_number = int(last_student.student_code.replace("SV", ""))
+        last_number = int(last_student.student_code[-6:])  # lấy 6 số cuối
         new_number = last_number + 1
 
-    return f"SV{new_number:06d}"  # padding 6 chữ số
+    return f"{prefix}{new_number:06d}"
 
 def get_students(db: Session):
     return db.query(StudentModel).all()

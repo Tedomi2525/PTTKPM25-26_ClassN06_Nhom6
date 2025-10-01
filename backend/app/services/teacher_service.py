@@ -18,20 +18,24 @@ from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
 def generate_teacher_code(db: Session) -> str:
-    # Lấy teacher_code lớn nhất trong DB
+    year = datetime.now().year % 100  # 2 số cuối của năm
+    prefix = f"GV{year}"
+
+    # Lấy teacher_code lớn nhất của năm hiện tại
     last_teacher = (
         db.query(TeacherModel)
-        .order_by(TeacherModel.teacher_id.desc())
+        .filter(TeacherModel.teacher_code.like(f"{prefix}%"))
+        .order_by(TeacherModel.teacher_code.desc())
         .first()
-    ) 
+    )
+
     if not last_teacher or not last_teacher.teacher_code:
         new_number = 1
     else:
-        # Bóc số từ teacher_code, ví dụ GV000123 -> 123
-        last_number = int(last_teacher.teacher_code.replace("GV", ""))
+        last_number = int(last_teacher.teacher_code[-6:])  # 6 số cuối
         new_number = last_number + 1
 
-    return f"GV{new_number:06d}"  # padding 6 chữ số
+    return f"{prefix}{new_number:06d}"
 
 def get_teachers(db: Session):
     return db.query(TeacherModel).all()
