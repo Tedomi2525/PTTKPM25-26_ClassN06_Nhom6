@@ -8,7 +8,7 @@ const { displayName, logout, validateToken, token, role } = useAuth()
 const router = useRouter()
 
 const isAdmin = computed(() => role.value === "admin")
-
+const isStudent = computed(() => role.value === "student")
 // toggle menu
 function toggleMenu() {
   open.value = !open.value
@@ -41,12 +41,18 @@ onMounted(() => {
   onUnmounted(() => document.removeEventListener("click", handler))
 })
 
-const menuItems = [
+const adminMenuItems = [
   { label: 'Dashboard', href: '/Admin/dashboard' },
-  { label: 'Sinh viên', href: '/Admin/students' },
-  { label: 'Giáo viên', href: '/Admin/teachers' },
+  { label: 'Sinh viên', href: '/Admin/student_list' },
+  { label: 'Giáo viên', href: '/Admin/teacher_list' },
   { label: 'Khóa học', href: '/Admin/courses' },
   { label: 'Điểm danh', href: '/Admin/attendance' }
+]
+
+const studentMenuItems = [
+  { label: 'Dashboard', href: '/Student/dashboard' },
+  { label: 'Khóa học của tôi', href: '/Student/my_courses' },
+  { label: 'Điểm danh', href: '/Student/attendance' }
 ]
 
 </script>
@@ -60,7 +66,8 @@ const menuItems = [
           <!-- Logo -->
           <NuxtLink to="/Admin/dashboard" class="text-xl font-bold">Hệ thống Quản lý</NuxtLink>
           <!-- Navigation Menu -->
-          <NavBarAdmin v-if="isAdmin" :items="menuItems" />
+          <NavBar v-if="isAdmin" :items="adminMenuItems" />
+          <NavBar v-if="isStudent" :items="studentMenuItems" />
           <!-- User Dropdown -->
           <div class="relative user-dropdown">
             <button @click="toggleMenu" class="px-3 py-1 rounded hover:text-gray-300">
