@@ -1,56 +1,36 @@
 <template>
-  <div class="container mx-auto p-4">
-    <div class="bg-white shadow-lg rounded-lg">
-      <div class="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-        <h2 class="text-xl font-bold">Danh Sách Sinh Viên</h2>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-blue-100 text-center">
-            <tr>
-              <th class="px-2 py-2">Mã SV</th>
-              <th class="px-2 py-2">Họ và đệm</th>
-              <th class="px-2 py-2">Tên</th>
-              <th class="px-2 py-2">Ngày sinh</th>
-              <th class="px-2 py-2">Giới tính</th>
-              <th class="px-2 py-2">Email</th>
-              <th class="px-2 py-2">SĐT</th>
-              <th class="px-2 py-2">Lớp</th>
-              <th class="px-2 py-2">Trạng thái</th>
-              <th class="px-2 py-2">Ảnh</th>
-              <th class="px-2 py-2">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="student in students" :key="student.studentId" class="text-center border-b">
-              <td class="px-2 py-1">{{ student.studentCode }}</td>
-              <td class="px-2 py-1">{{ student.lastName }}</td>
-              <td class="px-2 py-1">{{ student.firstName }}</td>
-              <td class="px-2 py-1">{{ student.dob }}</td>
-              <td class="px-2 py-1">{{ student.gender }}</td>
-              <td class="px-2 py-1">{{ student.email }}</td>
-              <td class="px-2 py-1">{{ student.phone }}</td>
-              <td class="px-2 py-1">{{ student.className }}</td>
-              <td :class="student.status === 'Đang học' ? 'text-green-500' : 'text-red-500'">{{ student.status }}</td>
-              <td class="px-2 py-1">
-                <img :src="student.avatar || 'https://via.placeholder.com/50'" class="w-12 h-12 rounded-full object-cover mx-auto" />
-              </td>
-              <td class="px-2 py-1">
-                <button @click="editStudent(student.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1">Sửa</button>
-                <button @click="deleteStudent(student.studentId)" class="bg-red-500 text-white px-2 py-1 rounded">Xóa</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <DataTable
+    title="Danh Sách Sinh Viên"
+    :data="students"
+    :columns="columns"
+    idKey="studentId"
+    :has-actions="true"
+  >
+    <!-- Tùy biến cột Hành động -->
+    <template #row-actions="{ row }">
+      <button @click="editStudent(row.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1">Sửa</button>
+      <button @click="deleteStudent(row.studentId)" class="bg-red-500 text-white px-2 py-1 rounded">Xóa</button>
+    </template>
+  </DataTable>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import DataTable from '@/components/DataTable.vue'
 
 const students = ref([])
+
+const columns = [
+  { label: "Mã SV", field: "studentCode" },
+  { label: "Họ và đệm", field: "lastName" },
+  { label: "Tên", field: "firstName" },
+  { label: "Ngày sinh", field: "dob" },
+  { label: "Giới tính", field: "gender" },
+  { label: "Email", field: "email" },
+  { label: "SĐT", field: "phone" },
+  { label: "Lớp", field: "className" },
+  { label: "Trạng thái", field: "status" }
+]
 
 async function fetchStudents() {
   try {
