@@ -72,5 +72,6 @@ def get_current_user_service(db: Session, token: str):
         "user_id": user.user_id,
         "username": user.username,
         "full_name": full_name,
+        "role": user.role,
         "disabled": False
     }

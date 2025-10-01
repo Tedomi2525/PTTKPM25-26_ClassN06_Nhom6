@@ -63,7 +63,7 @@ async function fetchStudents() {
 }
 
 async function deleteStudent(id) {
-  if (!confirm('Bạn chắc muốn xóa?')) return
+  if (!confirm('Xác nhận xóa?')) return
   try {
     const res = await fetch(`http://localhost:8000/api/students/${id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Không xóa được')

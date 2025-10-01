@@ -8,6 +8,7 @@ export function useAuth() {
   const loginError = ref("")
   const token = useCookie<string | null>("token")
   const fullNameCookie = useCookie("full_name") // chỉ lưu cookie
+  const role = ref(""); // thêm reactive cho role
   const displayName = ref("Admin")               // reactive cho template
 
   // Khởi tạo token từ localStorage nếu cookie trống
@@ -72,13 +73,16 @@ export function useAuth() {
     console.log("meData keys:", Object.keys(meData))
     
     const fullName = meData.fullName || meData.full_name  // hỗ trợ cả camelCase và snake_case
+    const userRole = meData.role || meData.user_role || "user"  // hỗ trợ cả camelCase và snake_case
     
     fullNameCookie.value = fullName  // lưu cookie
     displayName.value = fullName     // cập nhật display
+    role.value = userRole            // cập nhật role
 
     console.log("displayName.value:", displayName.value)
     console.log("fullNameCookie.value:", fullNameCookie.value)
     console.log("fullName extracted:", fullName)
+    console.log("role extracted:", userRole)
 
     router.push("/Admin/dashboard")
 
@@ -92,6 +96,7 @@ export function useAuth() {
     token.value = "";
     fullNameCookie.value = "";
     displayName.value = "Admin";
+    role.value = "";
     if (typeof window !== 'undefined') {
       localStorage.removeItem("token");
     }
@@ -109,9 +114,14 @@ export function useAuth() {
       
       if (res.ok) {
         const data = await res.json();
-        const fullName = data.fullName || data.full_name;  // hỗ trợ cả camelCase và snake_case
-        fullNameCookie.value = fullName;  // lưu cookie
-        displayName.value = fullName;     // cập nhật display
+        const fullName = data.fullName || data.full_name;
+        const userRole = data.role || data.user_role || "user";
+        
+        fullNameCookie.value = fullName;
+        displayName.value = fullName;
+        role.value = userRole;
+        
+        console.log("validateToken - role:", userRole);
         return true;
       }
       return false;
@@ -123,5 +133,5 @@ export function useAuth() {
 
   const isAuthenticated = () => !!token.value;
 
-  return { username, password, token, login, logout, isAuthenticated, loginError, displayName, fullNameCookie, validateToken };
+  return { username, password, token, login, logout, isAuthenticated, loginError, displayName, fullNameCookie, validateToken, role };
 }

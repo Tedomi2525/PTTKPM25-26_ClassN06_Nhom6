@@ -20,7 +20,7 @@ class UserOut(BaseModel):
     username: str = Field(..., max_length=100, description="Username")
     full_name: Optional[str] = Field(None, alias="fullName", max_length=100, description="Full name of the user")
     disabled: Optional[bool] = Field(None, description="Whether the user is disabled")
-    
+    role: str = Field(..., description="Role of the user (e.g., admin, teacher, student)")
     class Config:
         from_attributes = True
         populate_by_name = True
