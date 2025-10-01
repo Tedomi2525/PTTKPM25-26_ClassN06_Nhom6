@@ -1,4 +1,4 @@
--- Drop tables in dependency order
+
 DROP TABLE IF EXISTS attendances;
 DROP TABLE IF EXISTS attendance_logs;
 DROP TABLE IF EXISTS student_faces;
@@ -20,21 +20,12 @@ DROP TABLE IF EXISTS rooms;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
-    school_email VARCHAR(150) UNIQUE,
+    email VARCHAR(150) UNIQUE,
     password VARCHAR(512) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('admin','teacher','student')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO users (username, school_email, password, role)
-VALUES
-('admin1', 'admin1@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin2', 'admin2@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin3', 'admin3@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin4', 'admin4@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin5', 'admin5@example.com', '$2b$12$yWdfpKo...', 'admin'),
-('admin6', 'admin6@example.com', '$2b$12$yWdfpKo...', 'admin');
 
 -- 2. TEACHERS
 CREATE TABLE teachers (
@@ -94,6 +85,7 @@ CREATE TABLE students (
     status VARCHAR(50) CHECK (status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')),
     position VARCHAR(50),                              -- Chức vụ (VD: Sinh viên, Lớp trưởng)
     avatar VARCHAR(255),                               -- Link ảnh đại diện (lưu path hoặc URL)
+    faces BYTEA,                              -- Vector nhúng khuôn mặt
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -104,15 +96,15 @@ INSERT INTO students (
     class, training_program, course_years, education_type,
     faculty, major, status, position, avatar
 ) VALUES
-('23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
+('SV23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
  'K17-CNTT_4', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa Công nghệ Thông tin', 'Công nghệ thông tin', 'Đang học', 'Sinh viên', '/images/students/quan.jpg'),
  
-('23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
+('SV23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
  'K17-CNTT_2', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa CNTT', 'Hệ thống thông tin', 'Đang học', 'Lớp phó', '/images/students/lan.jpg'),
 
-('23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
+('SV23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
  'K17-CNTT_1', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
  'Khoa CNTT', 'Khoa học máy tính', 'Đang học', 'Sinh viên', '/images/students/huy.jpg');
 
@@ -343,7 +335,7 @@ CREATE TABLE rooms (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO rooms (name, capacity, camera_stream_url)
+INSERT INTO rooms (room_name, capacity, camera_stream_url)
 VALUES
   ('P101', 60, 'rtsp://camera1'),
   ('P102', 70, 'rtsp://camera2'),
@@ -422,8 +414,8 @@ CREATE TABLE schedules (
     day_of_week INT CHECK(day_of_week BETWEEN 1 AND 7),
     period_start INT NOT NULL REFERENCES periods(period_id),
     period_end INT NOT NULL REFERENCES periods(period_id),
-    week_number INT CHECK(week_number BETWEEN 1 AND 20),  -- Tuần thứ mấy (1-10 cho học kỳ thường)
-    specific_date DATE,                                   -- Ngày cụ thể
+    week_number INT CHECK(week_number BETWEEN 1 AND 20),  
+    specific_date DATE,                                   
     semester_id INT REFERENCES semesters(semester_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -444,14 +436,16 @@ CREATE TABLE schedule_templates (
 CREATE TABLE student_faces (
     face_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
-    image_path TEXT NOT NULL,
-    embedding_vector JSONB NOT NULL,
-    is_primary BOOLEAN DEFAULT FALSE,
+    embedding_vector BYTEA NOT NULL,           -- Lưu vector nhị phân
+    is_primary BOOLEAN DEFAULT FALSE,          -- Đánh dấu ảnh chính
+    faiss_index INT,                            -- Vị trí vector trong FAISS index
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tạo index tối ưu cho truy vấn
 CREATE INDEX idx_student_faces_student_id ON student_faces(student_id);
-CREATE INDEX idx_student_faces_vector ON student_faces (embedding_vector);
+CREATE INDEX idx_student_faces_faiss_index ON student_faces(faiss_index);
 
 -- 12. ATTENDANCE_LOGS
 CREATE TABLE attendance_logs (
@@ -486,11 +480,11 @@ CREATE INDEX idx_attendances ON attendances(student_id, date);
 -- 14. PROGRAMS
 CREATE TABLE programs (
     program_id SERIAL PRIMARY KEY,
-    program_name VARCHAR(150) NOT NULL,  -- tên CTĐT
-    department VARCHAR(100),             -- khoa quản lý
-    start_year INT NOT NULL,             -- năm bắt đầu khóa
-    duration INT,                        -- số năm học của chương trình
-    current_semester VARCHAR(10),                  -- học kỳ hiện tại
+    program_name VARCHAR(150) NOT NULL,  
+    department VARCHAR(100),            
+    start_year INT NOT NULL,             
+    duration INT,                        
+    current_semester VARCHAR(10),                  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -504,8 +498,8 @@ CREATE TABLE program_courses (
     program_course_id SERIAL PRIMARY KEY,
     program_id INT NOT NULL REFERENCES programs(program_id) ON DELETE CASCADE,
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
-    semester_no VARCHAR(10) NOT NULL,               -- học kỳ dự kiến (1,2,3...)
-    is_required BOOLEAN DEFAULT TRUE,       -- bắt buộc hay tự chọn
+    semester_no VARCHAR(10) NOT NULL,              
+    is_required BOOLEAN DEFAULT TRUE,       
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(program_id, course_id, semester_no)
@@ -523,5 +517,4 @@ INSERT INTO program_courses (program_id, course_id, semester_no, is_required) VA
 (1,57,'HK_3_3',TRUE),(1,58,'HK_3_3',TRUE),(1,59,'HK_3_3',TRUE),(1,60,'HK_3_3',TRUE),(1,61,'HK_3_3',TRUE),(1,62,'HK_3_3',TRUE),(1,63,'HK_3_3',TRUE),
 (1,64,'HK_1_4',TRUE),(1,65,'HK_1_4',TRUE),(1,66,'HK_1_4',TRUE),(1,67,'HK_1_4',TRUE),(1,68,'HK_1_4',TRUE),(1,69,'HK_1_4',TRUE),(1,70,'HK_1_4',TRUE),
 (1,71,'HK_2_4',TRUE),(1,72,'HK_2_4',TRUE),(1,73,'HK_2_4',TRUE),(1,74,'HK_2_4',TRUE),(1,75,'HK_2_4',TRUE),(1,76,'HK_2_4',TRUE),(1,77,'HK_2_4',TRUE),
-(1,78,'HK_3_4',TRUE),(1,79,'HK_3_4',TRUE),(1,80,'HK_3_4',TRUE),(1,81,'HK_3_4',TRUE),(1,82,'HK_3_4',TRUE),(1,83,'HK_3_4',TRUE),(1,84,'HK_3_4',TRUE),
-(1,85,'HK_1_1',TRUE),(1,86,'HK_1_1',TRUE),(1,87,'HK_1_1',TRUE),(1,88,'HK_1_1',TRUE),(1,89,'HK_1_1',TRUE);
+(1,78,'HK_3_4',TRUE),(1,79,'HK_3_4',TRUE),(1,80,'HK_3_4',TRUE),(1,81,'HK_3_4',TRUE),(1,82,'HK_3_4',TRUE),(1,83,'HK_3_4',TRUE),(1,84,'HK_3_4',TRUE);

@@ -36,14 +36,34 @@ class StudentBase(BaseModel):
     status: Optional[StatusEnum] = Field(None, alias="status", description="Student status")
     position: Optional[str] = Field(None, alias="position", max_length=50, description="Position")
     avatar: Optional[str] = Field(None, alias="avatar", max_length=255, description="Avatar URL")
+    
+    class Config:
+        populate_by_name = True
 
 class StudentCreate(StudentBase):
     pass
 
-class StudentUpdate(StudentBase):
-    student_code: Optional[str] = Field(None, alias="studentCode", max_length=20)
-    first_name: Optional[str] = Field(None, alias="firstName", max_length=50)
-    last_name: Optional[str] = Field(None, alias="lastName", max_length=100)
+class StudentUpdate(BaseModel):
+    student_code: Optional[str] = Field(None, alias="studentCode", max_length=20, description="Student code")
+    first_name: Optional[str] = Field(None, alias="firstName", max_length=50, description="Student first name")
+    last_name: Optional[str] = Field(None, alias="lastName", max_length=100, description="Student last name")
+    dob: Optional[date] = Field(None, alias="dob", description="Date of birth")
+    gender: Optional[GenderEnum] = Field(None, alias="gender", description="Gender")
+    email: Optional[EmailStr] = Field(None, alias="email", description="Email address")
+    phone: Optional[str] = Field(None, alias="phone", max_length=20, description="Phone number")
+    class_name: Optional[str] = Field(None, alias="className", max_length=50, description="Class name")
+    user_id: Optional[int] = Field(None, alias="userId", description="Associated user ID")
+    training_program: Optional[str] = Field(None, alias="trainingProgram", max_length=50, description="Training program")
+    course_years: Optional[str] = Field(None, alias="courseYears", max_length=20, description="Course years")
+    education_type: Optional[EducationTypeEnum] = Field(None, alias="educationType", description="Education type")
+    faculty: Optional[str] = Field(None, alias="faculty", max_length=100, description="Faculty")
+    major: Optional[str] = Field(None, alias="major", max_length=100, description="Major")
+    status: Optional[StatusEnum] = Field(None, alias="status", description="Student status")
+    position: Optional[str] = Field(None, alias="position", max_length=50, description="Position")
+    avatar: Optional[str] = Field(None, alias="avatar", max_length=255, description="Avatar URL")
+    
+    class Config:
+        populate_by_name = True
 
 class Student(StudentBase):
     student_id: int = Field(..., alias="studentId", description="Student ID")

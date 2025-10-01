@@ -7,14 +7,14 @@
 </head>
 <body class="bg-light">
 
-<div class="container mt-5">
+<div class="mx-auto mt-4" style="width:90%;">
   <div class="card shadow-lg">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-primary text-white rounded-top d-flex justify-content-between align-items-center">
       <h4 class="mb-0">Danh Sách Sinh Viên</h4>
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
+        <table class="table table-bordered table-hover table-sm align-middle">
           <thead class="table-primary text-center">
             <tr>
               <th>Mã SV</th>
@@ -23,6 +23,7 @@
               <th>Ngày sinh</th>
               <th>Giới tính</th>
               <th>Email</th>
+              <th>SĐT</th>
               <th>Lớp</th>
               <th>Khóa đào tạo</th>
               <th>Niên khóa</th>
@@ -35,38 +36,82 @@
               <th>Hành động</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Ví dụ 1 sinh viên -->
-            <tr>
-              <td class="text-center">23010315</td>
-              <td>Hoàng Minh</td>
-              <td>Quân</td>
-              <td class="text-center">2005-09-12</td>
-              <td class="text-center">Nam</td>
-              <td>quan.hm@phenikaa-uni.edu.vn</td>
-              <td>K17-CNTT_4</td>
-              <td>DH_K17.40</td>
-              <td>2023-2027</td>
-              <td>Đại học chính quy</td>
-              <td>Khoa Công nghệ Thông tin</td>
-              <td>Công nghệ thông tin</td>
-              <td class="text-success">Đang học</td>
-              <td>Sinh viên</td>
-              <td class="text-center">
-                <img src="https://via.placeholder.com/50" class="rounded-circle" alt="Ảnh SV">
-              </td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-warning">Sửa</button>
-                <button class="btn btn-sm btn-danger">Xóa</button>
-              </td>
-            </tr>
-            <!-- Thêm các sinh viên khác tại đây -->
+          <tbody id="student-table-body">
+            <!-- dữ liệu sẽ được load ở đây -->
           </tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+// Gọi API lấy danh sách sinh viên
+async function fetchStudents() {
+  try {
+    const res = await fetch("http://localhost:8000/api/students");
+    if (!res.ok) throw new Error("Không tải được danh sách");
+
+    const students = await res.json();
+    const tbody = document.getElementById("student-table-body");
+    tbody.innerHTML = "";
+
+    students.forEach(student => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${student.studentCode || ""}</td>
+        <td>${student.lastName || ""}</td>
+        <td>${student.firstName || ""}</td>
+        <td class="text-center">${student.dob || ""}</td>
+        <td class="text-center">${student.gender || ""}</td>
+        <td>${student.email || ""}</td>
+        <td>${student.phone || ""}</td>
+        <td>${student.className || ""}</td>
+        <td>${student.trainingProgram || ""}</td>
+        <td>${student.courseYears || ""}</td>
+        <td>${student.educationType || ""}</td>
+        <td>${student.faculty || ""}</td>
+        <td>${student.major || ""}</td>
+        <td class="text-center ${student.status === "Đang học" ? "text-success" : "text-danger"}">
+          ${student.status || ""}
+        </td>
+        <td>${student.position || ""}</td>
+        <td class="text-center">
+          <img src="${student.avatar || "https://via.placeholder.com/50"}" 
+               class="rounded-circle" width="50" height="50" alt="Ảnh SV">
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-warning me-1" onclick="editStudent(${student.studentId})">Sửa</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent(${student.studentId})">Xóa</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    alert("Lỗi: " + err.message);
+  }
+}
+
+// Hàm xóa sinh viên
+async function deleteStudent(id) {
+  if (!confirm("Bạn chắc muốn xóa?")) return;
+  try {
+    const res = await fetch(`http://localhost:8000/api/students/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Không xóa được");
+    fetchStudents();
+  } catch (err) {
+    alert("Lỗi: " + err.message);
+  }
+}
+
+// Hàm sửa sinh viên
+function editStudent(id) {
+  alert("Sửa sinh viên ID: " + id);
+}
+
+// Load ngay khi mở trang
+document.addEventListener("DOMContentLoaded", fetchStudents);
+</script>
 
 </body>
 </html>

@@ -1,3 +1,4 @@
+# student.py
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -15,7 +16,7 @@ class Student(Base):
     gender = Column(String(10))
     email = Column(String(100), unique=True)
     phone = Column(String(20))
-    
+
     class_name = Column("class", String(50))
     training_program = Column(String(50))
     course_years = Column(String(20))
@@ -24,7 +25,7 @@ class Student(Base):
     major = Column(String(100))
     position = Column(String(50))
     avatar = Column(String(255))
-    
+
     status = Column(String(50), default="Đang học")
 
     created_at = Column(DateTime, default=func.current_timestamp())
@@ -33,6 +34,7 @@ class Student(Base):
     # Relationships
     user = relationship("User", back_populates="student")
     enrollments = relationship("Enrollment", back_populates="student")
+    student_faces = relationship("StudentFace", back_populates="student", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("gender IN ('Nam', 'Nữ', 'Khác')", name="check_gender"),

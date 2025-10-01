@@ -41,17 +41,19 @@ def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Cannot delete teacher due to existing references")
     return {"detail": "Teacher deleted successfully"}
 
-
-@router.get("/teachers/schedule")
-def get_teacher_schedule(
-    teacher_id: int, 
+@router.get("/teachers/weekly-schedule")
+def get_teacher_weekly_schedule(
+    teacher_id: int,
+    sunday_date: str = Query(..., description="Ngày chủ nhật của tuần (DD/MM/YYYY hoặc YYYY-MM-DD)"),
     db: Session = Depends(get_db)
 ):
     """
-    Lấy toàn bộ lịch giảng dạy của giáo viên theo ID
+    Lấy lịch giảng dạy của giáo viên trong tuần cụ thể
+    - teacher_id: ID của giáo viên (required)
+    - sunday_date: Ngày chủ nhật của tuần, ví dụ: 21/09/2025 hoặc 2025-09-21
     """
     try:
-        result = teacher_service.get_teacher_schedule(db, teacher_id)
+        result = teacher_service.get_teacher_weekly_schedule(db, teacher_id, sunday_date)
         
         if result is None:
             raise HTTPException(status_code=404, detail="Teacher not found")
@@ -61,5 +63,7 @@ def get_teacher_schedule(
             "data": result
         }
         
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get teacher schedule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get teacher weekly schedule: {str(e)}")

@@ -7,7 +7,7 @@ class User(Base):
     __tablename__ = "users"
     user_id = Column(Integer, primary_key=True, index=True)
     username = Column(String(100), nullable=False)
-    school_email = Column(String(150))
+    email = Column(String(150))
     password = Column(String(255), nullable=False)
     role = Column(String(20), CheckConstraint("role IN ('admin','teacher','student')"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

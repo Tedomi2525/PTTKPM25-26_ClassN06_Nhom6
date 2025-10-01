@@ -5,20 +5,17 @@ from app.database import get_db
 from app.schemas.course_class import CourseClassCreate, CourseClassUpdate, CourseClassResponse
 from app.services import course_class_service
 
-router = APIRouter(
-    prefix="/course_classes",
-    tags=["course_classes"],
-)
+router = APIRouter()
 
-@router.post("/", response_model=CourseClassResponse)
+@router.post("/course_classes", response_model=CourseClassResponse)
 def create_course_class(course_class: CourseClassCreate, db: Session = Depends(get_db)):
     return course_class_service.create_course_class(db, course_class)
 
-@router.get("/", response_model=List[CourseClassResponse])
+@router.get("/course_classes", response_model=List[CourseClassResponse])
 def get_course_classes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return course_class_service.get_course_classes(db, skip=skip, limit=limit)
 
-@router.get("/{course_class_id}", response_model=CourseClassResponse)
+@router.get("/course_classes/{course_class_id}", response_model=CourseClassResponse)
 def get_course_class(course_class_id: int, db: Session = Depends(get_db)):
     db_course_class = course_class_service.get_course_class(db, course_class_id)
     if not db_course_class:
@@ -29,14 +26,14 @@ def get_course_class(course_class_id: int, db: Session = Depends(get_db)):
 def get_course_classes_by_course_id(course_id: int, db: Session = Depends(get_db)):
     return course_class_service.get_course_classes_by_course_id(db, course_id)
 
-@router.put("/{course_class_id}", response_model=CourseClassResponse)
+@router.put("/course_classes/{course_class_id}", response_model=CourseClassResponse)
 def update_course_class(course_class_id: int, course_class: CourseClassUpdate, db: Session = Depends(get_db)):
     db_course_class = course_class_service.update_course_class(db, course_class_id, course_class)
     if not db_course_class:
         raise HTTPException(status_code=404, detail="CourseClass not found")
     return db_course_class
 
-@router.delete("/{course_class_id}")
+@router.delete("/course_classes/{course_class_id}")
 def delete_course_class(course_class_id: int, db: Session = Depends(get_db)):
     db_course_class = course_class_service.delete_course_class(db, course_class_id)
     if not db_course_class:

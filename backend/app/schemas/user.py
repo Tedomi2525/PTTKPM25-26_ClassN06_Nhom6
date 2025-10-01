@@ -4,19 +4,19 @@ from typing import Optional
 
 class UserBase(BaseModel):
     username: str = Field(..., max_length=100, description="Username")
-    school_email: Optional[EmailStr] = Field(None, max_length=150, description="User school email",alias="schoolEmail")
+    email: Optional[EmailStr] = Field(None, alias="email", max_length=150, description="User email")
     role: str = Field(..., description="User role", pattern="^(admin|teacher|student)$")
+    
+    class Config:
+        populate_by_name = True
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=255, description="User password")
 
-class UserUpdate(UserBase):
-    password: Optional[str] = Field(None, min_length=8, max_length=255, description="User password")
-    
 class User(UserBase):
-    user_id: int = Field(..., alias="userId")
-    created_at: datetime = Field(..., alias="createdAt")
-    updated_at: datetime = Field(..., alias="updatedAt")
+    user_id: int = Field(..., alias="userId", description="User ID")
+    created_at: datetime = Field(..., alias="createdAt", description="Creation timestamp")
+    updated_at: datetime = Field(..., alias="updatedAt", description="Last update timestamp")
 
     class Config:
         from_attributes = True

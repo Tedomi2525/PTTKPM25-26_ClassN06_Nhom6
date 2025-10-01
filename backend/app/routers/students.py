@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.schemas.student import StudentCreate, StudentUpdate, Student as StudentSchema
 from app.database import SessionLocal, get_db
 from app.services import student_service
+from typing import Optional
 
 router = APIRouter()
 
@@ -41,3 +42,30 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=400, detail="Cannot delete student due to existing references")
     return {"detail": "Student deleted successfully"}
+
+@router.get("/students/weekly-schedule")
+def get_student_weekly_schedule(
+    student_id: int,
+    sunday_date: str = Query(..., description="Ngày chủ nhật của tuần (DD/MM/YYYY hoặc YYYY-MM-DD)"),
+    db: Session = Depends(get_db)
+):
+    """
+    Lấy lịch học của sinh viên trong tuần cụ thể
+    - student_id: ID của sinh viên (required)
+    - sunday_date: Ngày chủ nhật của tuần, ví dụ: 21/09/2025 hoặc 2025-09-21
+    """
+    try:
+        result = student_service.get_student_weekly_schedule(db, student_id, sunday_date)
+        
+        if result is None:
+            raise HTTPException(status_code=404, detail="Student not found")
+            
+        return {
+            "success": True,
+            "data": result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get student weekly schedule: {str(e)}")
