@@ -51,7 +51,7 @@ const adminMenuItems = [
 
 const studentMenuItems = [
   { label: 'Dashboard', href: '/Student/dashboard' },
-  { label: 'Khóa học của tôi', href: '/Student/my_courses' },
+  { label: 'Khóa học của tôi', href: '/Student/schedule' },
   { label: 'Điểm danh', href: '/Student/attendance' }
 ]
 
