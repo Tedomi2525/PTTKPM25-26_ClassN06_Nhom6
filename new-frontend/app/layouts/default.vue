@@ -43,15 +43,12 @@ onMounted(() => {
 
 const adminMenuItems = [
   { label: 'Dashboard', href: '/Admin/dashboard' },
-  { label: 'Sinh viên', href: '/Admin/student_list' },
-  { label: 'Giáo viên', href: '/Admin/teacher_list' },
-  { label: 'Khóa học', href: '/Admin/courses' },
+  { label: 'Thời khóa biểu', href: '/Admin/schedule' },
   { label: 'Điểm danh', href: '/Admin/attendance' }
 ]
 
 const studentMenuItems = [
-  { label: 'Dashboard', href: '/Student/dashboard' },
-  { label: 'Khóa học của tôi', href: '/Student/schedule' },
+  { label: 'Thời khóa biểu', href: '/Student/schedule' },
   { label: 'Điểm danh', href: '/Student/attendance' }
 ]
 

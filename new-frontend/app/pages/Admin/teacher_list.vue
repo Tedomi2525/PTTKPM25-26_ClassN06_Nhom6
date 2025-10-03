@@ -7,8 +7,8 @@
     :has-actions="true"
   >
     <template #row-actions="{ row }">
-      <button @click="editTeacher(row.teacherId)" class="bg-yellow-400 px-2 py-1 rounded mr-1">Sửa</button>
-      <button @click="deleteTeacher(row.teacherId)" class="bg-red-500 text-white px-2 py-1 rounded">Xóa</button>
+      <button @click="editTeacher(row.teacherId)" class="bg-yellow-400 px-2 py-1 rounded mr-1 cursor-pointer">Sửa</button>
+      <button @click="deleteTeacher(row.teacherId)" class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer">Xóa</button>
     </template>
   </DataTable>
 </template>

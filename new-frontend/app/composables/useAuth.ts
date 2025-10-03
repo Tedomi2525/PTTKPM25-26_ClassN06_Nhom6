@@ -84,7 +84,7 @@ export function useAuth() {
     console.log("fullName extracted:", fullName)
     console.log("role extracted:", userRole)
 
-    router.push("/Admin/dashboard")
+    router.push("/Home")
 
   } catch (err) {
     loginError.value = "Sai thông tin đăng nhập"

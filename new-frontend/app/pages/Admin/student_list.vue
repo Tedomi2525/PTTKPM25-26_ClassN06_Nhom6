@@ -8,8 +8,8 @@
   >
     <!-- Tùy biến cột Hành động -->
     <template #row-actions="{ row }">
-      <button @click="editStudent(row.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1">Sửa</button>
-      <button @click="deleteStudent(row.studentId)" class="bg-red-500 text-white px-2 py-1 rounded">Xóa</button>
+      <button @click="editStudent(row.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1 cursor-pointer">Sửa</button>
+      <button @click="deleteStudent(row.studentId)" class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer">Xóa</button>
     </template>
   </DataTable>
 </template>
