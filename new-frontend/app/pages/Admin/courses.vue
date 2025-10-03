@@ -51,7 +51,7 @@ async function fetchCourses() {
 async function deleteCourse(id) {
   if (!confirm("Xác nhận xóa học phần?")) return
   try {
-    const res = await fetch(`http://localhost:8000/api/courses/${id}`, { method: "DELETE" })
+    const res = await fetch(`http://localhost:8000/api/course/${id}`, { method: "DELETE" })
     if (!res.ok) throw new Error("Không xóa được học phần")
     fetchCourses()
   } catch (err) {
