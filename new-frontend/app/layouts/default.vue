@@ -85,8 +85,6 @@ const studentMenuItems = [
       </div>
     </div>
 
-
-
     <main>
       <slot />
     </main>
