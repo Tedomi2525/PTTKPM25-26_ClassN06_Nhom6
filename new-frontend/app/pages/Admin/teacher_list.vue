@@ -1,4 +1,13 @@
 <template>
+  <div class="p-6">
+      <RouterLink
+        to="/Admin/teacher_add"
+        class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-green-600 inline-block"
+      >
+        Thêm giảng viên
+      </RouterLink>
+    </div>
+
   <DataTable
     title="Danh Sách Giảng Viên"
     :data="teachers"

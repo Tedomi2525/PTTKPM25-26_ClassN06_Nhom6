@@ -1,4 +1,13 @@
 <template>
+    <div class="p-6">
+      <RouterLink
+        to="/Admin/student_add"
+        class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-green-600 inline-block"
+      >
+        Thêm sinh viên
+      </RouterLink>
+    </div>
+
   <DataTable
     title="Danh Sách Sinh Viên"
     :data="students"
@@ -6,6 +15,15 @@
     idKey="studentId"
     :has-actions="true"
   >
+    <template #title-right>
+    <RouterLink
+      to="/Admin/student_add"
+      class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
+    >
+      Thêm sinh viên
+    </RouterLink>
+    </template>
+
     <!-- Tùy biến cột Hành động -->
     <template #row-actions="{ row }">
       <button @click="editStudent(row.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1 cursor-pointer">Sửa</button>
