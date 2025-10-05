@@ -42,13 +42,25 @@ const message = messages[errorCode] || "Đã xảy ra lỗi"
       :hover-intensity="0.4"
     />
 
-    <!-- Nút quay về trang chủ -->
-    <NuxtLink
-      to="/"
-      class="mt-6 px-6 py-3 bg-[#09f] text-white rounded-lg hover:bg-blue-600 transition"
-    >
-      Quay về trang chủ
-    </NuxtLink>
+    <!-- Nút quay về trang trước và quay về trang chủ -->
+    <div class="mt-6 flex gap-4">
+      <!-- Nút quay về trang trước -->
+      <button
+        @click="$router.back()"
+        class="px-6 py-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+      >
+        Quay về trang trước
+      </button>
+
+      <!-- Nút quay về trang chủ -->
+      <NuxtLink
+        to="/"
+        class="px-6 py-3 bg-[#09f] text-white rounded-lg hover:bg-blue-600 transition"
+      >
+        Quay về trang chủ
+      </NuxtLink>
+    </div>
+
   </div>
 </template>
 

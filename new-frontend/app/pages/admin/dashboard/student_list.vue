@@ -1,11 +1,8 @@
 <template>
     <div class="p-6">
-      <RouterLink
-        to="/Admin/student_add"
-        class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-green-600 inline-block"
-      >
+      <CButton to="/Admin/dashboard/student_add">
         Thêm sinh viên
-      </RouterLink>
+      </CButton>
     </div>
 
   <DataTable
@@ -76,4 +73,8 @@ function editStudent(id) {
 }
 
 onMounted(fetchStudents)
+
+definePageMeta({
+  layout: 'dashboard'
+})
 </script>

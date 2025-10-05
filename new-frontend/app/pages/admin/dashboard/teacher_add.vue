@@ -1,4 +1,7 @@
 <template>
+  <div class="p-6">
+    <CButton type="back" variant="secondary">Trở lại</CButton>
+  </div>
   <div class="max-w-6xl mx-auto mt-8 px-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
       <div class="bg-[#09f] text-white px-6 py-3">
@@ -203,4 +206,8 @@ const handleSubmit = async () => {
     alert("Có lỗi xảy ra khi lưu giảng viên");
   }
 };
+
+definePageMeta({
+  layout: 'dashboard'
+})
 </script>

@@ -52,4 +52,8 @@ async function restoreCourse(id) {
 }
 
 onMounted(fetchDeletedCourses)
+
+definePageMeta({
+  layout: 'dashboard'
+})
 </script>
