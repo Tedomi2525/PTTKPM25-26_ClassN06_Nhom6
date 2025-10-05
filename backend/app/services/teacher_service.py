@@ -38,7 +38,7 @@ def generate_teacher_code(db: Session) -> str:
     return f"{prefix}{new_number:06d}"
 
 def get_teachers(db: Session):
-    return db.query(TeacherModel).all()
+    return db.query(TeacherModel).filter(TeacherModel.status == "active").all()
 
 
 def search_teachers(db: Session, q: str):
