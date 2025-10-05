@@ -1,32 +1,19 @@
 <template>
-    <div class="p-6">
-      <CButton to="/Admin/dashboard/student_add">
-        Thêm sinh viên
-      </CButton>
-    </div>
+  <div class="p-6 space-y-6">
+    <!-- Data Table with integrated Add button -->
+    <DataTable
+      title="Danh Sách Sinh Viên"
+      :data="students"
+      :columns="columns"
+      idKey="studentId"
+      :showAddButton="true"
+      addButtonTo="/Admin/dashboard/student_add"
+      addLabel="Thêm sinh viên"
+      @edit="editStudent"
+      @delete="deleteStudent"
+    />
 
-  <DataTable
-    title="Danh Sách Sinh Viên"
-    :data="students"
-    :columns="columns"
-    idKey="studentId"
-    :has-actions="true"
-  >
-    <template #title-right>
-    <RouterLink
-      to="/Admin/student_add"
-      class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
-    >
-      Thêm sinh viên
-    </RouterLink>
-    </template>
-
-    <!-- Tùy biến cột Hành động -->
-    <template #row-actions="{ row }">
-      <button @click="editStudent(row.studentId)" class="bg-yellow-400 px-2 py-1 rounded mr-1 cursor-pointer">Sửa</button>
-      <button @click="deleteStudent(row.studentId)" class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer">Xóa</button>
-    </template>
-  </DataTable>
+  </div>
 </template>
 
 <script setup>
@@ -57,20 +44,25 @@ async function fetchStudents() {
   }
 }
 
-async function deleteStudent(id) {
-  if (!confirm('Xác nhận xóa?')) return
+function editStudent(student) {
+  alert('Sửa sinh viên: ' + student.firstName + ' (' + student.studentId + ')')
+  // hoặc điều hướng tới trang sửa:
+  // router.push(`/Admin/dashboard/student_edit/${student.studentId}`)
+}
+
+async function deleteStudent(student) {
+  if (!confirm(`Xác nhận xóa sinh viên ${student.firstName}?`)) return
   try {
-    const res = await fetch(`http://localhost:8000/api/students/${id}`, { method: 'DELETE' })
+    const res = await fetch(`http://localhost:8000/api/students/${student.studentId}`, {
+      method: 'DELETE'
+    })
     if (!res.ok) throw new Error('Không xóa được')
-    fetchStudents()
+    await fetchStudents()
   } catch (err) {
     alert('Lỗi: ' + err.message)
   }
 }
 
-function editStudent(id) {
-  alert('Sửa sinh viên ID: ' + id)
-}
 
 onMounted(fetchStudents)
 

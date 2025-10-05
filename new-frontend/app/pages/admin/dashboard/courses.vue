@@ -63,4 +63,8 @@ async function hideCourse(course) {
 }
 
 onMounted(fetchCourses)
+
+definePageMeta({
+  layout: 'dashboard'
+})
 </script>

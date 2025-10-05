@@ -1,22 +1,18 @@
 <template>
-  <div class="p-6">
-      <CButton to="/Admin/dashboard/teacher_add">
-        Thêm giảng viên
-      </CButton>
-    </div>
-
-  <DataTable
-    title="Danh Sách Giảng Viên"
-    :data="teachers"
-    :columns="columns"
-    idKey="teacherId"
-    :has-actions="true"
-  >
-    <template #row-actions="{ row }">
-      <button @click="editTeacher(row.teacherId)" class="bg-yellow-400 px-2 py-1 rounded mr-1 cursor-pointer">Sửa</button>
-      <button @click="deleteTeacher(row.teacherId)" class="bg-red-500 text-white px-2 py-1 rounded cursor-pointer">Xóa</button>
-    </template>
-  </DataTable>
+  <div class="p-6 space-y-6">
+    <!-- Data Table with integrated Add button -->
+    <DataTable
+      title="Danh Sách Giảng Viên"
+      :data="teachers"
+      :columns="columns"
+      idKey="teacherId"
+      :showAddButton="true"
+      addButtonTo="/Admin/dashboard/teacher_add"
+      addLabel="Thêm giảng viên"
+      @edit="editTeacher"
+      @delete="deleteTeacher"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -40,18 +36,32 @@ const columns = [
 ]
 
 async function fetchTeachers() {
-  const res = await fetch('http://localhost:8000/api/teachers')
-  teachers.value = await res.json()
+  try {
+    const res = await fetch('http://localhost:8000/api/teachers')
+    if (!res.ok) throw new Error('Không tải được danh sách')
+    teachers.value = await res.json()
+  } catch (err) {
+    alert('Lỗi: ' + err.message)
+  }
 }
 
-async function deleteTeacher(id) {
-  if (!confirm('Xác nhận xóa?')) return
-  await fetch(`http://localhost:8000/api/teachers/${id}`, { method: 'DELETE' })
-  fetchTeachers()
+function editTeacher(teacher) {
+  alert('Sửa giảng viên: ' + teacher.firstName + ' (' + teacher.teacherId + ')')
+  // hoặc điều hướng tới trang sửa:
+  // router.push(`/Admin/dashboard/teacher_edit/${teacher.teacherId}`)
 }
 
-function editTeacher(id) {
-  alert('Sửa giảng viên ID: ' + id)
+async function deleteTeacher(teacher) {
+  if (!confirm(`Xác nhận xóa giảng viên ${teacher.firstName}?`)) return
+  try {
+    const res = await fetch(`http://localhost:8000/api/teachers/${teacher.teacherId}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('Không xóa được')
+    await fetchTeachers()
+  } catch (err) {
+    alert('Lỗi: ' + err.message)
+  }
 }
 
 onMounted(fetchTeachers)
