@@ -19,10 +19,12 @@ def search_teachers(q: str, db: Session = Depends(get_db)):
 def create_teacher(payload: TeacherCreate, db: Session = Depends(get_db)):
     try:
         return teacher_service.create_teacher(db, payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.put("/teachers/{teacher_id}", response_model=TeacherSchema)
 def update_teacher(teacher_id: int, payload: TeacherUpdate, db: Session = Depends

@@ -23,20 +23,40 @@ def generate_student_code(db: Session) -> str:
     year = datetime.now().year % 100  # lấy 2 số cuối của năm
     prefix = f"SV{year}"
 
-    # Lấy student_code lớn nhất của năm hiện tại
-    last_student = (
+    # Lấy student_code lớn nhất từ cả bảng students và users (username)
+    # Vì student_code sẽ được dùng làm username trong bảng users
+    max_from_students = (
         db.query(StudentModel)
         .filter(StudentModel.student_code.like(f"{prefix}%"))
         .order_by(StudentModel.student_code.desc())
         .first()
     )
 
-    if not last_student or not last_student.student_code:
-        new_number = 1
-    else:
-        last_number = int(last_student.student_code[-6:])  # lấy 6 số cuối
-        new_number = last_number + 1
+    max_from_users = (
+        db.query(UserModel)
+        .filter(UserModel.username.like(f"{prefix}%"))
+        .order_by(UserModel.username.desc())
+        .first()
+    )
 
+    # Tìm số lớn nhất từ cả hai bảng
+    max_number = 0
+    
+    if max_from_students and max_from_students.student_code:
+        try:
+            student_number = int(max_from_students.student_code[-6:])  # 6 số cuối
+            max_number = max(max_number, student_number)
+        except ValueError:
+            pass
+    
+    if max_from_users and max_from_users.username:
+        try:
+            user_number = int(max_from_users.username[-6:])  # 6 số cuối
+            max_number = max(max_number, user_number)
+        except ValueError:
+            pass
+
+    new_number = max_number + 1
     return f"{prefix}{new_number:06d}"
 
 def get_students(db: Session):
@@ -57,7 +77,13 @@ def create_student(db: Session, student_payload: StudentCreate):
         # 1. Sinh student_code
         student_code = generate_student_code(db)
 
-        # 2. Tạo user cho sinh viên
+        # 2. Kiểm tra email đã tồn tại chưa (chỉ khi có email)
+        if student_payload.email and student_payload.email.strip():
+            existing_student = db.query(StudentModel).filter(StudentModel.email == student_payload.email).first()
+            if existing_student:
+                raise ValueError(f"Email {student_payload.email} đã được sử dụng bởi sinh viên khác")
+
+        # 3. Tạo user cho sinh viên
         user_payload = UserCreate(
             username=student_code,
             email=f"{student_code}@edunera.edu",
@@ -71,15 +97,14 @@ def create_student(db: Session, student_payload: StudentCreate):
         db.commit()
         db.refresh(new_user)
 
-        # 3. Tạo student, gán user_id - xử lý các field đặc biệt
+        # 4. Tạo student, gán user_id - xử lý các field đặc biệt
         student_data = student_payload.model_dump(by_alias=False, exclude_unset=True)
         student_data["student_code"] = student_code
         student_data["user_id"] = new_user.user_id
-        student_data["email"] = new_user.email
+        # Sử dụng email từ input nếu có, nếu không thì dùng email mặc định
+        student_data["email"] = student_payload.email or user_payload.email
         
-        # Sinh email cho Student
-        if not student_data.get("email"):
-            student_data["email"] = f"{student_code}@edunera.edu"
+
 
         # Xử lý field class_name nếu có
         if "class_name" in student_data and student_data["class_name"] is None:
@@ -92,11 +117,24 @@ def create_student(db: Session, student_payload: StudentCreate):
 
         return new_student
     
+    except IntegrityError as e:
+        db.rollback()
+        error_str = str(e).lower()
+        if "unique constraint" in error_str:
+            if "users_username_key" in error_str:
+                raise ValueError("Mã sinh viên (username) đã tồn tại, vui lòng thử lại")
+            elif "students_student_code_key" in error_str:
+                raise ValueError("Mã sinh viên đã tồn tại, vui lòng thử lại")
+            elif "students_email_key" in error_str or "users_email_key" in error_str:
+                raise ValueError("Email đã được sử dụng")
+            else:
+                raise ValueError(f"Vi phạm ràng buộc duy nhất: {str(e)}")
+        elif "check constraint" in error_str:
+            if "gender_check" in error_str:
+                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam' hoặc 'Nữ'")
+        raise ValueError(f"Lỗi dữ liệu: {str(e)}")
     except Exception as e:
         db.rollback()
-        print(f"Error creating student: {e}")
-        print(f"Student payload: {student_payload}")
-        print(f"Student data: {student_data if 'student_data' in locals() else 'Not created yet'}")
         raise e
     
 def update_student(db: Session, student_id: int, payload: StudentUpdate):
@@ -104,7 +142,12 @@ def update_student(db: Session, student_id: int, payload: StudentUpdate):
     if not student:
         return None
 
-    for key, value in payload.dict(exclude_unset=True, by_alias=False).items():
+    # Pydantic v2 compatibility: use model_dump instead of dict
+    update_data = payload.model_dump(exclude_unset=True, by_alias=False)
+    
+
+
+    for key, value in update_data.items():
         setattr(student, key, value)
 
     try:
@@ -113,12 +156,17 @@ def update_student(db: Session, student_id: int, payload: StudentUpdate):
         return student
     except IntegrityError as e:
         db.rollback()
-        print(f"Integrity error updating student: {e}")
-        return None
+        error_str = str(e).lower()
+        if "unique constraint" in error_str:
+            if "email" in error_str:
+                raise ValueError("Email đã được sử dụng")
+        elif "check constraint" in error_str:
+            if "gender_check" in error_str:
+                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam' hoặc 'Nữ'")
+        raise ValueError(f"Lỗi cập nhật dữ liệu: {str(e)}")
     except Exception as e:
         db.rollback()
-        print(f"Error updating student: {e}")
-        return None
+        raise e
     
 def delete_student(db: Session, student_id: int):
     student = db.query(StudentModel).filter(StudentModel.student_id == student_id).first()

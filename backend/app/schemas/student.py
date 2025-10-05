@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import date, datetime
 from typing import Optional
 from enum import Enum
@@ -41,7 +41,37 @@ class StudentBase(BaseModel):
         populate_by_name = True
 
 class StudentCreate(StudentBase):
-    pass
+    @field_validator('gender', mode='before')
+    @classmethod
+    def validate_gender(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        
+        # Gender mapping for different input formats
+        gender_mapping = {
+            "1": "Nam",
+            "2": "Nữ", 
+            "0": "Nam",  # fallback
+            "male": "Nam",
+            "female": "Nữ",
+            "nam": "Nam",
+            "nữ": "Nữ",
+            "khác": "Khác",
+            "other": "Khác"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return gender_mapping.get(str_value, v)
+    
+    @field_validator('class_name', 'training_program', 'course_years', 'faculty', 'major', 'position', mode='before')
+    @classmethod
+    def validate_string_fields(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
 
 class StudentUpdate(BaseModel):
     student_code: Optional[str] = Field(None, alias="studentCode", max_length=20, description="Student code")
@@ -61,6 +91,38 @@ class StudentUpdate(BaseModel):
     status: Optional[StatusEnum] = Field(None, alias="status", description="Student status")
     position: Optional[str] = Field(None, alias="position", max_length=50, description="Position")
     avatar: Optional[str] = Field(None, alias="avatar", max_length=255, description="Avatar URL")
+    
+    @field_validator('gender', mode='before')
+    @classmethod
+    def validate_gender(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        
+        # Gender mapping for different input formats
+        gender_mapping = {
+            "1": "Nam",
+            "2": "Nữ", 
+            "0": "Nam",  # fallback
+            "male": "Nam",
+            "female": "Nữ",
+            "nam": "Nam",
+            "nữ": "Nữ",
+            "khác": "Khác",
+            "other": "Khác"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return gender_mapping.get(str_value, v)
+    
+    @field_validator('class_name', 'training_program', 'course_years', 'faculty', 'major', 'position', mode='before')
+    @classmethod
+    def validate_string_fields(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
     
     class Config:
         populate_by_name = True
