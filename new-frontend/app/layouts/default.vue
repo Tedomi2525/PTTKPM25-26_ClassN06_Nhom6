@@ -74,7 +74,7 @@ watch(
 <template>
   <div class="bg-gray-100 min-h-screen">
     <!-- HEADER / NAVBAR -->
-    <div class="bg-[#09f] text-white">
+    <div class="bg-[#09f] text-white  fixed w-full flex flex-col z-10">
       <div class="max-w-[80%] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
           <!-- Logo -->
@@ -115,7 +115,7 @@ watch(
       
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1">
+    <main class="flex-1 pt-20">
       <slot />
     </main>
   </div>
