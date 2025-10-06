@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="p-4 space-y-6">
     <!-- Data Table with integrated Add button -->
     <DataTable
       title="Danh Sách Sinh Viên"

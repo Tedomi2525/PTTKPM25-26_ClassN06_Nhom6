@@ -34,7 +34,8 @@
       </div>
 
       <!-- Desktop Table -->
-      <div class="hidden lg:block w-full">
+    <div class="hidden lg:block w-full overflow-x-auto border-t border-b border-gray-200">
+      <div class="min-w-max">
         <table class="w-full border-separate border-spacing-0">
           <thead class="bg-gray-200">
             <tr>
@@ -52,7 +53,7 @@
                       <span v-if="sortOrder === 'asc'">↑</span>
                       <span v-else>↓</span>
                     </template>
-                    <template v-else">⇅</template>
+                    <template v-else>⇅</template>
                   </span>
                 </div>
               </th>
@@ -87,6 +88,7 @@
           </tbody>
         </table>
       </div>
+    </div>
 
       <!-- Mobile Cards -->
       <div class="lg:hidden space-y-4 p-6">
