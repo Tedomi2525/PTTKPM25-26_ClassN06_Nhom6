@@ -22,10 +22,10 @@
             isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           ]"
         >
-          <h2 class="text-lg font-semibold px-4 py-3  border-gray-700 tracking-wide">
+          <h2 class="text-lg font-semibold px-4 py-3 border-b border-gray-700 tracking-wide">
             Quản lý Dashboard
           </h2>
-          <hr class="border-gray-300 w-[90%] mx-auto" />
+
           <ul class="flex-1 mt-2 space-y-1 px-2">
             <li v-for="sub in dashboardSubMenu" :key="sub.label">
               <NuxtLink
@@ -77,6 +77,7 @@ const dashboardSubMenu = [
   { label: "Sinh viên", href: "/Admin/dashboard/student_list", match: "/Admin/dashboard/student" },
   { label: "Giảng viên", href: "/Admin/dashboard/teacher_list", match: "/Admin/dashboard/teacher" },
   { label: "Khoá học", href: "/Admin/dashboard/courses", match: "/Admin/dashboard/course" },
+  { label: "Chương trình học", href: "/program/programs", match: "/program/programs" },
 ]
 
 function toggleMobileSidebar() {

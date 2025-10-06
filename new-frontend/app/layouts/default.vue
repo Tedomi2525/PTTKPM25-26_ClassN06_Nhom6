@@ -49,7 +49,8 @@ const adminMenuItems = [
 
 const studentMenuItems = [
   { label: 'Thời khóa biểu', href: '/Student/schedule' },
-  { label: 'Điểm danh', href: '/Student/attendance' },
+  // { label: 'Điểm danh', href: '/Student/attendance' },
+  { label: 'Đăng kí học', href: '/Student/enrollment' }
 ]
 
 const selectedMenu = ref<string | null>(null)
