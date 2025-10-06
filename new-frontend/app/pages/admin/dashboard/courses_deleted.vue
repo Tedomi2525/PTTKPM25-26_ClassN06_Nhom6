@@ -2,7 +2,7 @@
   <div>
     <div class="flex justify-between items-center mb-4">
       <button 
-        @click="$router.push('/Admin/courses')" 
+        @click="$router.push('/admin/dashboard/courses')" 
         class="bg-blue-500 text-white px-3 py-2 rounded"
       >
         Quay lại danh sách chính
