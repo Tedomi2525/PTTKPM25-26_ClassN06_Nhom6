@@ -9,7 +9,6 @@ class CourseClass(Base):
     course_class_id = Column(Integer, primary_key=True, autoincrement=True)
     course_id = Column(Integer, ForeignKey("courses.course_id", ondelete="CASCADE"), nullable=False)
     teacher_id = Column(Integer, ForeignKey("teachers.teacher_id", ondelete="SET NULL"), nullable=False)
-    semester_id = Column(Integer, ForeignKey("semesters.semester_id", ondelete="CASCADE"), nullable=False)
 
     section = Column(String(20))
     max_students = Column(Integer, CheckConstraint('max_students > 0'))
@@ -24,9 +23,4 @@ class CourseClass(Base):
     schedules = relationship("Schedule", back_populates="course_class")
     schedule_templates = relationship("ScheduleTemplate", back_populates="course_class")
     enrollments = relationship("Enrollment", back_populates="course_class")
-
-
-
-    from app.models.enrollment import Enrollment
-    semester = relationship("Semester", back_populates="course_classes")
 
