@@ -1,9 +1,8 @@
 <template>
-  <!-- Dùng lại layout mặc định -->
   <NuxtLayout name="default">
     <template #default>
-      <div class="flex min-h-[calc(100vh-64px)] relative">
-        <!-- Mobile Menu Button -->
+      <div class="flex min-h-[calc(100vh-64px)] relative overflow-x-hidden">
+        
         <button
           @click="toggleMobileSidebar"
           class="lg:hidden fixed top-20 left-4 z-20 bg-gray-800 text-white p-2 rounded-md shadow-lg hover:bg-gray-700 transition-colors"
@@ -14,18 +13,17 @@
           </svg>
         </button>
 
-        <!-- Sidebar riêng cho Dashboard -->
         <aside
-          class="w-64 fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white  shadow-lg flex flex-col z-10 transition-transform duration-300 ease-in-out"
+          class="w-64 fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white  shadow-lg flex flex-col z-10 transition-transform duration-300 ease-in-out"
           :class="[
             'lg:translate-x-0',
             isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           ]"
         >
-          <h2 class="text-lg font-semibold px-4 py-3 border-b border-gray-700 tracking-wide">
-            Quản lý Dashboard
+          <h2 class="text-lg font-semibold px-4 py-3 tracking-wide text-black">
+            Quản lý
           </h2>
-
+          <hr class="w-[95%] mx-auto border-gray-800" />
           <ul class="flex-1 mt-2 space-y-1 px-2">
             <li v-for="sub in dashboardSubMenu" :key="sub.label">
               <NuxtLink
@@ -43,19 +41,17 @@
             </li>
           </ul>
 
-          <div class="p-3 border-t border-gray-700 text-sm text-gray-400 text-center">
+          <div class="p-3 text-sm text-gray-400 text-center">
             © 2025 Admin Panel
           </div>
         </aside>
 
-        <!-- Overlay for mobile -->
         <div
           v-if="isMobileSidebarOpen"
           @click="closeMobileSidebar"
           class="fixed inset-0 bg-black bg-opacity-50 z-5 lg:hidden"
         ></div>
 
-        <!-- Phần nội dung chính -->
         <main class="flex-1 lg:ml-64 bg-gray-50 min-h-[calc(100vh-64px)]">
           <div class="w-full">
             <slot/>

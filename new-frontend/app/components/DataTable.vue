@@ -1,10 +1,11 @@
 <template>
-  <div class="w-full max-w-none mx-auto px-6">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
-      <!-- Header -->
+  <div class="w-full mx-auto px-4 sm:px-6">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200 max-w-full">
+      
       <div class="flex flex-wrap justify-between items-center bg-gray-50 border-b border-gray-200 px-6 py-4 gap-2">
         <h2 class="text-xl font-semibold text-gray-800">{{ title }}</h2>
         <div class="flex gap-2 flex-wrap">
+          
           <CButton 
             v-if="showAddButton"
             :to="addButtonTo"
@@ -16,7 +17,7 @@
           <CButton 
             variant="edit" 
             :disabled="!selectedRow" 
-            @edit="handleEdit"
+            @click="handleEdit" 
           >
             {{ editLabel }}
           </CButton>
@@ -25,7 +26,7 @@
             v-if="!hideDeleteButton"
             variant="delete" 
             :disabled="!selectedRow" 
-            @delete="handleDelete"
+            @click="handleDelete" 
           >
             {{ deleteLabel }}
           </CButton>
@@ -33,9 +34,7 @@
         </div>
       </div>
 
-      <!-- Desktop Table -->
-    <div class="hidden lg:block w-full overflow-x-auto border-t border-b border-gray-200">
-      <div class="min-w-max">
+      <div class="hidden lg:block overflow-x-auto border-t border-b border-gray-200 max-w-full">
         <table class="w-full border-separate border-spacing-0">
           <thead class="bg-gray-200">
             <tr>
@@ -43,8 +42,9 @@
                 v-for="(col, index) in columns"
                 :key="index"
                 @click="sortBy(col.field)"
-                class="px-4 py-4 text-sm font-semibold text-gray-700 text-left cursor-pointer select-none border-b border-gray-200 hover:bg-gray-300 transition-colors"
+                class="px-3 py-3 text-xs sm:text-sm font-semibold text-gray-700 text-left cursor-pointer select-none border-b border-gray-200 hover:bg-gray-300 transition-colors"
                 :class="getColumnWidth(col.field)"
+                :style="getColumnStyle(col.field)"
               >
                 <div class="flex items-center gap-1">
                   <span class="truncate">{{ col.label }}</span>
@@ -77,8 +77,9 @@
               <td
                 v-for="(col, index) in columns"
                 :key="index"
-                class="px-4 py-3 text-left"
+                class="px-3 py-2 text-left text-xs sm:text-sm"
                 :class="getColumnWidth(col.field)"
+                :style="getColumnStyle(col.field)"
               >
                 <div class="truncate" :title="row[col.field]">
                   {{ row[col.field] }}
@@ -88,9 +89,7 @@
           </tbody>
         </table>
       </div>
-    </div>
 
-      <!-- Mobile Cards -->
       <div class="lg:hidden space-y-4 p-6">
         <div
           v-for="(row, idx) in sortedData"
@@ -109,7 +108,6 @@
               <span class="text-gray-900 text-base text-right">{{ row[col.field] }}</span>
             </div>
             
-            <!-- Expandable details -->
             <div v-if="expandedRows[row[idKey]]" class="pt-3 border-t border-gray-200">
               <div v-for="(col, index) in secondaryColumns" :key="index" class="flex justify-between py-1">
                 <span class="font-medium text-gray-600 text-base">{{ col.label }}:</span>
@@ -132,6 +130,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+// Giả định bạn đã import hoặc định nghĩa CButton ở đâu đó, ví dụ:
+// import CButton from './CButton.vue' 
 
 const props = defineProps({
   title: { type: String, default: 'Danh sách' },
@@ -165,26 +165,48 @@ const handleDelete = () => {
   }
 }
 
-// Define column widths for better responsiveness
+// Hàm xác định chiều rộng cột với max-width
 const getColumnWidth = (field) => {
   const widths = {
-    teacherCode: 'w-20',
-    studentCode: 'w-20', 
-    lastName: 'w-24',
-    firstName: 'w-20',
-    dob: 'w-24',
-    gender: 'w-16',
-    email: 'w-32',
-    phone: 'w-24',
-    faculty: 'w-24',
-    department: 'w-24',
-    specialization: 'w-28',
-    degree: 'w-20',
-    academicRank: 'w-20',
-    className: 'w-20',
-    status: 'w-20'
+    teacherCode: 'min-w-[100px]',
+    studentCode: 'min-w-[100px]',
+    lastName: 'min-w-[120px]',
+    firstName: 'min-w-[100px]',
+    dob: 'min-w-[110px]',
+    gender: 'min-w-[80px]',
+    email: 'min-w-[180px]',
+    phone: 'min-w-[120px]',
+    faculty: 'min-w-[150px]',
+    department: 'min-w-[150px]',
+    specialization: 'min-w-[150px]',
+    degree: 'min-w-[100px]',
+    academicRank: 'min-w-[120px]',
+    className: 'min-w-[100px]',
+    status: 'min-w-[100px]'
   }
-  return widths[field] || 'w-24'
+  return widths[field] || 'min-w-[120px]'
+}
+
+// Hàm xác định style cho cột với max-width
+const getColumnStyle = (field) => {
+  const maxWidths = {
+    teacherCode: '120px',
+    studentCode: '120px',
+    lastName: '150px',
+    firstName: '120px',
+    dob: '130px',
+    gender: '100px',
+    email: '220px',
+    phone: '140px',
+    faculty: '180px',
+    department: '180px',
+    specialization: '180px',
+    degree: '120px',
+    academicRank: '140px',
+    className: '120px',
+    status: '120px'
+  }
+  return { maxWidth: maxWidths[field] || '150px' }
 }
 
 // Priority columns for mobile (most important info)
@@ -234,3 +256,34 @@ const sortedData = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+/* Custom scrollbar for better UX */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Ensure table doesn't overflow container */
+table {
+  table-layout: auto;
+}
+</style>

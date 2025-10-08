@@ -8,5 +8,5 @@ __pycache__/
 **/.pyo
 **/.pyd
 **/.env
-
+/node_modules
 /backend/face_service/embedding/models_services/*
