@@ -22,7 +22,7 @@
           </div>
           <div>
             <h5 class="text-blue-600 font-semibold mb-4">Thông tin cá nhân</h5>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="firstName" class="block text-sm font-medium mb-1">Họ và đệm *</label>
                 <InputField id="firstName" v-model="form.firstName" placeholder="VD: Đàm Anh" required />
@@ -30,6 +30,13 @@
               <div>
                 <label for="lastName" class="block text-sm font-medium mb-1">Tên *</label>
                 <InputField id="lastName" v-model="form.lastName" placeholder="VD: Pháp" required />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label for="email" class="block text-sm font-medium mb-1">Email *</label>
+                <InputField id="email" v-model="form.email" placeholder="VD: phapdang@email.com" type="email" required />
               </div>
               <div>
                 <label for="phone" class="block text-sm font-medium mb-1">Số điện thoại *</label>
@@ -157,6 +164,7 @@ const router = useRouter();
 const form = ref({
   firstName: "", 
   lastName: "", 
+  email: "",
   phone: "",
   dob: "",
   gender: "",
@@ -176,18 +184,36 @@ const errorMessage = ref(null);
 const validationErrors = ref(null);
 
 const handleFileUpload = (fileObject) => {
-  // Giả định component ImageAddButton emit ra file object
-  form.value.avatar = fileObject; 
+  // Giả định component ImageAddButton emit ra file object hoặc File
+  if (fileObject instanceof File) {
+    form.value.avatar = fileObject;
+  } else if (fileObject && fileObject.file instanceof File) {
+    form.value.avatar = fileObject.file;
+  } else {
+    form.value.avatar = fileObject;
+  }
+  console.log('Avatar file selected:', form.value.avatar);
 };
 
 const resetForm = () => {
   // Đặt lại các trường về giá trị mặc định/rỗng
-  Object.keys(form.value).forEach((key) => {
-    form.value[key] = (key === 'userId') ? 0 : 
-                       (key === 'status') ? 'Đang học' : 
-                       (key === 'educationType') ? '' : 
-                       null;
-  });
+  form.value = {
+    firstName: "", 
+    lastName: "", 
+    email: "",
+    phone: "",
+    dob: "",
+    gender: "",
+    className: "",
+    trainingProgram: "",
+    courseYears: "",
+    educationType: "",
+    faculty: "",
+    major: "",
+    status: "Đang học",
+    position: "",
+    avatar: null,
+  };
 };
 
 
@@ -203,9 +229,10 @@ const handleSubmit = async () => {
   // Lặp qua các trường form
   for (const key in form.value) {
     if (key === 'avatar' && form.value[key] instanceof File) {
-      formData.append(key, form.value[key]);
+      formData.append('avatar', form.value[key]); // Use 'avatar' as the field name (backend expects this)
       usesFormData = true;
-    } else if (key !== 'avatar' && form.value[key] !== null) {
+      console.log('Added avatar file to FormData:', form.value[key].name);
+    } else if (key !== 'avatar' && form.value[key] !== null && form.value[key] !== '') {
       // Đảm bảo DOB được gửi ở định dạng string 'YYYY-MM-DD'
       if (key === 'dob' && form.value[key]) {
          formData.append(key, new Date(form.value[key]).toISOString().split('T')[0]);
@@ -241,6 +268,14 @@ const handleSubmit = async () => {
   }
   
   try {
+    console.log('Sending request with FormData:', usesFormData ? 'Yes' : 'No');
+    if (usesFormData) {
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+    }
+    
     const response = await fetch("http://localhost:8000/api/students", fetchOptions);
 
     if (response.status === 422) {
@@ -257,9 +292,19 @@ const handleSubmit = async () => {
     }
 
     const data = await response.json();
-    alert("Thêm sinh viên thành công! Mã SV: " + (data.studentCode || data.id));
+    
+    let successMessage = "Thêm sinh viên thành công! Mã SV: " + (data.studentCode || data.id);
+    if (data.avatar) {
+      successMessage += "\nẢnh đại diện đã được lưu: " + data.avatar;
+    }
+    
+    alert(successMessage);
 
-    router.push('/Admin/dashboard/student_list');
+    // Reset form after successful submission
+    resetForm();
+    
+    // Navigate to student list
+    router.push('/admin/dashboard/student_list');
     
   } catch (err) {
     console.error(err);

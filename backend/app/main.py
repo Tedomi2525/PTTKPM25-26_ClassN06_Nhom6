@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses, semesters
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,3 +35,11 @@ app.include_router(auth.router, prefix="/auth")
 app.include_router(course_class.router, prefix="/api")
 app.include_router(courses.router, prefix="/api")
 app.include_router(semesters.router, prefix="/api")
+
+# Create static directories if they don't exist
+STATIC_DIR = "static"
+AVATARS_DIR = os.path.join(STATIC_DIR, "avatars")
+os.makedirs(AVATARS_DIR, exist_ok=True)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

@@ -19,45 +19,48 @@ from app.schemas.user import UserCreate
 
 from app.core.security import get_password_hash
 
-def generate_student_code(db: Session) -> str:
-    year = datetime.now().year % 100  # lấy 2 số cuối của năm
-    prefix = f"SV{year}"
+# ==============================================================================
+# UTILITY FUNCTIONS
+# (Logic generate_student_code giữ nguyên)
+# ==============================================================================
 
-    # Lấy student_code lớn nhất từ cả bảng students và users (username)
-    # Vì student_code sẽ được dùng làm username trong bảng users
+def generate_student_code(db: Session) -> str:
+    year = datetime.now().year % 100 
+    prefix = f"SV{year}"
     max_from_students = (
         db.query(StudentModel)
         .filter(StudentModel.student_code.like(f"{prefix}%"))
         .order_by(StudentModel.student_code.desc())
         .first()
     )
-
     max_from_users = (
         db.query(UserModel)
         .filter(UserModel.username.like(f"{prefix}%"))
         .order_by(UserModel.username.desc())
         .first()
     )
-
-    # Tìm số lớn nhất từ cả hai bảng
     max_number = 0
-    
     if max_from_students and max_from_students.student_code:
         try:
-            student_number = int(max_from_students.student_code[-6:])  # 6 số cuối
+            student_number = int(max_from_students.student_code[-6:])
             max_number = max(max_number, student_number)
         except ValueError:
             pass
-    
     if max_from_users and max_from_users.username:
         try:
-            user_number = int(max_from_users.username[-6:])  # 6 số cuối
+            user_number = int(max_from_users.username[-6:])
             max_number = max(max_number, user_number)
         except ValueError:
             pass
-
     new_number = max_number + 1
     return f"{prefix}{new_number:06d}"
+
+# ==============================================================================
+# CRUD OPERATIONS
+# ==============================================================================
+
+def get_student(db: Session, student_id: int) -> Optional[StudentModel]:
+    return db.query(StudentModel).filter(StudentModel.student_id == student_id).first()
 
 def get_students(db: Session):
     return db.query(StudentModel).all()
@@ -77,7 +80,7 @@ def create_student(db: Session, student_payload: StudentCreate):
         # 1. Sinh student_code
         student_code = generate_student_code(db)
 
-        # 2. Kiểm tra email đã tồn tại chưa (chỉ khi có email)
+        # 2. Kiểm tra email
         if student_payload.email and student_payload.email.strip():
             existing_student = db.query(StudentModel).filter(StudentModel.email == student_payload.email).first()
             if existing_student:
@@ -86,7 +89,7 @@ def create_student(db: Session, student_payload: StudentCreate):
         # 3. Tạo user cho sinh viên
         user_payload = UserCreate(
             username=student_code,
-            email=f"{student_code}@edunera.edu",
+            email=student_payload.email or f"{student_code}@edunera.edu",
             password=get_password_hash(f"{student_code}@"),
             role="student"
         )
@@ -97,16 +100,17 @@ def create_student(db: Session, student_payload: StudentCreate):
         db.commit()
         db.refresh(new_user)
 
-        # 4. Tạo student, gán user_id - xử lý các field đặc biệt
+        # 4. Tạo student, gán user_id và AVATAR URL
         student_data = student_payload.model_dump(by_alias=False, exclude_unset=True)
         student_data["student_code"] = student_code
         student_data["user_id"] = new_user.user_id
-        # Sử dụng email từ input nếu có, nếu không thì dùng email mặc định
         student_data["email"] = student_payload.email or user_payload.email
         
-
-
-        # Xử lý field class_name nếu có
+        # Xử lý trường avatar: đã được chuẩn hóa là URL string từ endpoint
+        if not student_data.get("avatar"):
+            student_data.pop("avatar", None)
+        
+        # Xử lý field class_name
         if "class_name" in student_data and student_data["class_name"] is None:
             student_data.pop("class_name")
 
@@ -131,10 +135,11 @@ def create_student(db: Session, student_payload: StudentCreate):
                 raise ValueError(f"Vi phạm ràng buộc duy nhất: {str(e)}")
         elif "check constraint" in error_str:
             if "gender_check" in error_str:
-                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam' hoặc 'Nữ'")
+                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam', 'Nữ' hoặc 'Khác'")
         raise ValueError(f"Lỗi dữ liệu: {str(e)}")
     except Exception as e:
         db.rollback()
+        print(f"Lỗi tạo sinh viên không mong đợi: {str(e)}")
         raise e
     
 def update_student(db: Session, student_id: int, payload: StudentUpdate):
@@ -142,11 +147,8 @@ def update_student(db: Session, student_id: int, payload: StudentUpdate):
     if not student:
         return None
 
-    # Pydantic v2 compatibility: use model_dump instead of dict
     update_data = payload.model_dump(exclude_unset=True, by_alias=False)
     
-
-
     for key, value in update_data.items():
         setattr(student, key, value)
 
@@ -162,53 +164,39 @@ def update_student(db: Session, student_id: int, payload: StudentUpdate):
                 raise ValueError("Email đã được sử dụng")
         elif "check constraint" in error_str:
             if "gender_check" in error_str:
-                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam' hoặc 'Nữ'")
+                raise ValueError("Giá trị giới tính không hợp lệ. Chỉ chấp nhận 'Nam', 'Nữ' hoặc 'Khác'")
         raise ValueError(f"Lỗi cập nhật dữ liệu: {str(e)}")
     except Exception as e:
         db.rollback()
         raise e
     
-def delete_student(db: Session, student_id: int):
+def delete_student(db: Session, student_id: int) -> bool:
     student = db.query(StudentModel).filter(StudentModel.student_id == student_id).first()
+    
     if not student:
-        return None
+        raise ValueError(f"Student with ID {student_id} not found.") 
     
     try:
-        # Lấy thông tin user liên quan trước khi xóa student
         user = db.query(UserModel).filter(UserModel.user_id == student.user_id).first()
-        
-        # Xóa student trước (do có foreign key constraint)
         db.delete(student)
-        
-        # Xóa user nếu tồn tại
         if user:
             db.delete(user)
-            
         db.commit()
         return True
     except IntegrityError as e:
         db.rollback()
-        print(f"IntegrityError when deleting student {student_id}: {str(e)}")
-        return False
+        raise ValueError(f"Cannot delete student {student_id} because of related records (e.g., Enrollment).") 
     except Exception as e:
         db.rollback()
-        print(f"Error when deleting student {student_id}: {str(e)}")
-        return False
+        raise Exception(f"Unexpected error during deletion of student {student_id}: {str(e)}")
 
 def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
-    """
-    Lấy lịch học của sinh viên trong tuần cụ thể
-    Args:
-        student_id: ID của sinh viên
-        sunday_date: Ngày chủ nhật của tuần (format: DD/MM/YYYY hoặc YYYY-MM-DD)
-    """
-    # Kiểm tra sinh viên có tồn tại không
+    # Logic lịch học (giữ nguyên)
     student = db.query(StudentModel).filter(StudentModel.student_id == student_id).first()
     if not student:
         return None
     
     try:
-        # Parse ngày Chủ nhật
         if '/' in sunday_date:
             sunday = datetime.strptime(sunday_date, "%d/%m/%Y").date()
         else:
@@ -216,10 +204,8 @@ def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
     except ValueError:
         raise ValueError("Invalid date format. Use DD/MM/YYYY or YYYY-MM-DD")
     
-    # Tính ngày cuối tuần (thứ 7)
     saturday = sunday + timedelta(days=6)
     
-    # Query lấy lịch trong tuần qua enrollment
     query = db.query(Schedule).join(
         CourseClass, Schedule.course_class_id == CourseClass.course_class_id
     ).join(
@@ -238,14 +224,14 @@ def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
         Schedule.specific_date <= saturday
     )
     
-    # Order by day, period để dễ xem
     schedules = query.order_by(
         Schedule.specific_date,
         Schedule.day_of_week,
         Schedule.period_start
     ).all()
     
-    # Nếu lịch trống thì trả về rỗng
+    # ... (Phần formatting dữ liệu trả về giữ nguyên)
+    
     if not schedules:
         return {
             "student": {
@@ -265,22 +251,18 @@ def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
             "schedules": []
         }
     
-    # Format dữ liệu trả về
     result = []
     for schedule in schedules:
-        # Lấy thông tin period end
         period_end = db.query(Period).filter(Period.period_id == schedule.period_end).first()
-        
-        # Map day_of_week to Vietnamese
         day_names = {
-            1: "Chủ nhật",
-            2: "Thứ 2", 
-            3: "Thứ 3",
-            4: "Thứ 4",
-            5: "Thứ 5",
-            6: "Thứ 6",
-            7: "Thứ 7"
+            1: "Chủ nhật", 2: "Thứ 2", 3: "Thứ 3", 4: "Thứ 4", 5: "Thứ 5", 6: "Thứ 6", 7: "Thứ 7"
         }
+        
+        def get_period_time(period_id, attr):
+            period = db.query(Period).filter(Period.period_id == period_id).first()
+            if period and getattr(period, attr):
+                return getattr(period, attr).strftime("%H:%M")
+            return None
         
         schedule_info = {
             "schedule_id": schedule.schedule_id,
@@ -312,13 +294,13 @@ def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
             "time": {
                 "period_start": {
                     "period_id": schedule.period_start,
-                    "start_time": db.query(Period).filter(Period.period_id == schedule.period_start).first().start_time.strftime("%H:%M") if db.query(Period).filter(Period.period_id == schedule.period_start).first().start_time else None,
-                    "end_time": db.query(Period).filter(Period.period_id == schedule.period_start).first().end_time.strftime("%H:%M") if db.query(Period).filter(Period.period_id == schedule.period_start).first().end_time else None
+                    "start_time": get_period_time(schedule.period_start, 'start_time'),
+                    "end_time": get_period_time(schedule.period_start, 'end_time')
                 },
                 "period_end": {
                     "period_id": schedule.period_end,
-                    "start_time": period_end.start_time.strftime("%H:%M") if period_end and period_end.start_time else None,
-                    "end_time": period_end.end_time.strftime("%H:%M") if period_end and period_end.end_time else None
+                    "start_time": get_period_time(schedule.period_end, 'start_time'),
+                    "end_time": get_period_time(schedule.period_end, 'end_time')
                 }
             },
             "semester": {
