@@ -22,7 +22,12 @@ def get_course_classes_by_course_id(db: Session, course_id: int):
     return db.query(CourseClass).filter(CourseClass.course_id == course_id).all()
 
 def get_course_classes(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(CourseClass).offset(skip).limit(limit).all()
+    return db.query(CourseClass)\
+        .join(CourseClass.course)\
+        .join(CourseClass.teacher)\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
 
 def update_course_class(db: Session, course_class_id: int, course_class: CourseClassUpdate):
     db_course_class = get_course_class(db, course_class_id)
