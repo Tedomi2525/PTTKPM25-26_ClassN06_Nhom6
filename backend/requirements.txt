@@ -5,3 +5,5 @@ email-validator
 passlib[bcrypt]
 python-jose[cryptography]
 pydantic-settings
+alembic
+psycopg2-binary
