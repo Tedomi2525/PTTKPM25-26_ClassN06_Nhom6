@@ -17,7 +17,7 @@
           <CButton 
             variant="edit" 
             :disabled="!selectedRow" 
-            @click="handleEdit" 
+            @edit="handleEdit" 
           >
             {{ editLabel }}
           </CButton>
@@ -26,7 +26,7 @@
             v-if="!hideDeleteButton"
             variant="delete" 
             :disabled="!selectedRow" 
-            @click="handleDelete" 
+            @delete="handleDelete" 
           >
             {{ deleteLabel }}
           </CButton>
@@ -165,7 +165,7 @@ const handleDelete = () => {
   }
 }
 
-// Hàm xác định chiều rộng cột với max-width
+// Hàm xác định chiều rộng cột với min-width
 const getColumnWidth = (field) => {
   const widths = {
     teacherCode: 'min-w-[100px]',
@@ -173,12 +173,12 @@ const getColumnWidth = (field) => {
     lastName: 'min-w-[120px]',
     firstName: 'min-w-[100px]',
     dob: 'min-w-[110px]',
-    gender: 'min-w-[80px]',
-    email: 'min-w-[180px]',
-    phone: 'min-w-[120px]',
-    faculty: 'min-w-[150px]',
-    department: 'min-w-[150px]',
-    specialization: 'min-w-[150px]',
+    gender: 'min-w-[60px]',
+    email: 'min-w-[120px]',
+    phone: 'min-w-[80px]',
+    faculty: 'min-w-[110px]',
+    department: 'min-w-[130px]',
+    specialization: 'min-w-[130px]',
     degree: 'min-w-[100px]',
     academicRank: 'min-w-[120px]',
     className: 'min-w-[100px]',
@@ -195,14 +195,14 @@ const getColumnStyle = (field) => {
     lastName: '150px',
     firstName: '120px',
     dob: '130px',
-    gender: '100px',
-    email: '220px',
-    phone: '140px',
-    faculty: '180px',
-    department: '180px',
-    specialization: '180px',
+    gender: '80px',
+    email: '120px',
+    phone: '120px',
+    faculty: '130px',
+    department: '140px',
+    specialization: '140px',
     degree: '120px',
-    academicRank: '140px',
+    academicRank: '120px',
     className: '120px',
     status: '120px'
   }

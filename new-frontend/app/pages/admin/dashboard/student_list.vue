@@ -1,6 +1,5 @@
 <template>
   <div class="p-4 space-y-6">
-    <!-- Data Table with integrated Add button -->
     <DataTable
       title="Danh Sách Sinh Viên"
       :data="students"
@@ -18,8 +17,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import DataTable from '@/components/DataTable.vue'
 
+const router = useRouter() // Thêm useRouter để sử dụng navigateTo
 const students = ref([])
 
 const columns = [
@@ -45,21 +46,39 @@ async function fetchStudents() {
 }
 
 function editStudent(student) {
-  alert('Sửa sinh viên: ' + student.firstName + ' (' + student.studentId + ')')
-  // hoặc điều hướng tới trang sửa:
-  // router.push(`/Admin/dashboard/student_edit/${student.studentId}`)
+  // Sử dụng router.push thay cho navigateTo nếu bạn đã import useRouter
+  router.push(`/Admin/dashboard/student_edit/${student.studentId}`)
 }
 
 async function deleteStudent(student) {
-  if (!confirm(`Xác nhận xóa sinh viên ${student.firstName}?`)) return
+  if (!student || !student.studentId) {
+    alert('Không tìm thấy ID sinh viên để xóa.')
+    return
+  }
+  
+  if (!confirm(`Xác nhận xóa sinh viên ${student.firstName} ${student.lastName}?`)) return
+  
   try {
     const res = await fetch(`http://localhost:8000/api/students/${student.studentId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
-    if (!res.ok) throw new Error('Không xóa được')
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(errorData.detail || `HTTP ${res.status}: ${res.statusText}`)
+    }
+    
+    if (res.status !== 204) {
+      await res.json()
+    }
+
+    alert('Xóa sinh viên thành công!')
     await fetchStudents()
   } catch (err) {
-    alert('Lỗi: ' + err.message)
+    alert('Lỗi khi xóa sinh viên: ' + err.message)
   }
 }
 

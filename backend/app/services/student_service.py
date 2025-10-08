@@ -172,12 +172,27 @@ def delete_student(db: Session, student_id: int):
     student = db.query(StudentModel).filter(StudentModel.student_id == student_id).first()
     if not student:
         return None
+    
     try:
+        # Lấy thông tin user liên quan trước khi xóa student
+        user = db.query(UserModel).filter(UserModel.user_id == student.user_id).first()
+        
+        # Xóa student trước (do có foreign key constraint)
         db.delete(student)
+        
+        # Xóa user nếu tồn tại
+        if user:
+            db.delete(user)
+            
         db.commit()
         return True
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
+        print(f"IntegrityError when deleting student {student_id}: {str(e)}")
+        return False
+    except Exception as e:
+        db.rollback()
+        print(f"Error when deleting student {student_id}: {str(e)}")
         return False
 
 def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):

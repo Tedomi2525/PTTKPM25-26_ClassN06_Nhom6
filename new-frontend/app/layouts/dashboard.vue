@@ -1,58 +1,84 @@
 <template>
   <NuxtLayout name="default">
     <template #default>
-      <div class="flex min-h-[calc(100vh-64px)] relative overflow-x-hidden">
+      <div class="flex min-h-[calc(100vh-64px)]">
         
-        <button
-          @click="toggleMobileSidebar"
-          class="lg:hidden fixed top-20 left-4 z-20 bg-gray-800 text-white p-2 rounded-md shadow-lg hover:bg-gray-700 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path v-if="!isMobileSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-
         <aside
-          class="w-64 fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white  shadow-lg flex flex-col z-10 transition-transform duration-300 ease-in-out"
-          :class="[
-            'lg:translate-x-0',
-            isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          ]"
+          class="h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white shadow-lg flex flex-col z-10 transition-all duration-300 ease-in-out"
+          :class="{
+            'w-64': !isAsideCollapsed,
+            'w-20': isAsideCollapsed,
+            'flex-shrink-0': true
+          }"
         >
-          <h2 class="text-lg font-semibold px-4 py-3 tracking-wide text-black">
-            Quản lý
-          </h2>
-          <hr class="w-[95%] mx-auto border-gray-800" />
+          <div class="flex items-center px-4 py-3 border-b border-gray-200"
+               :class="{ 'justify-between': !isAsideCollapsed, 'justify-center': isAsideCollapsed }">
+            <h2 v-if="!isAsideCollapsed" class="text-lg font-semibold tracking-wide text-black truncate">
+              Quản lý
+            </h2>
+            <button 
+              @click="toggleAside" 
+              class="p-2 rounded-full hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+              :class="{ 'ml-auto': !isAsideCollapsed, 'mx-auto': isAsideCollapsed }"
+              aria-label="Toggle sidebar"
+            >
+              <svg class="w-6 h-6 transform transition-transform duration-300 ease-in-out" 
+                   :class="{ 'rotate-180': isAsideCollapsed }" 
+                   fill="none" 
+                   stroke="currentColor" 
+                   viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <hr class="w-[95%] mx-auto border-gray-200" /> 
+          
           <ul class="flex-1 mt-2 space-y-1 px-2">
             <li v-for="sub in dashboardSubMenu" :key="sub.label">
               <NuxtLink
                 :to="sub.href"
-                @click="closeMobileSidebar"
-                class="block px-4 py-2.5 rounded-lg transition-all duration-200"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
                 :class="[
                   route.path.startsWith(sub.match)
                     ? 'bg-[#09f] text-white font-medium shadow-sm'
-                    : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                    : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900',
+                  { 'justify-center': isAsideCollapsed, 'w-full': isAsideCollapsed }
                 ]"
               >
-                {{ sub.label }}
+                <span class="flex-shrink-0">
+                  <img v-if="sub.label === 'Sinh viên'" src="/images/student-50.png" alt="Sinh viên" class="w-6 h-6 object-contain" />
+                  <img v-else-if="sub.label === 'Giảng viên'" src="/images/icons8-lecturer-50.png" alt="Giảng viên" class="w-6 h-6 object-contain" />
+                  <svg v-else-if="sub.label === 'Giảng viên'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1 0-3 .4-3 1.5v3h6v-3c0-1.1-2-1.5-3-1.5zM3 10h1m8-5v1m4 0h1M3 21v-4h18v4H3z"/>
+                  </svg>
+                  <svg v-else-if="sub.label === 'Khoá học' || sub.label === 'Chương trình học'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.794 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.794 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.206 18 16.5 18s-3.332.477-4.5 1.253"/>
+                  </svg>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                  </svg>
+                </span>
+                <span v-if="!isAsideCollapsed" class="truncate">
+                  {{ sub.label }}
+                </span>
               </NuxtLink>
             </li>
           </ul>
 
-          <div class="p-3 text-sm text-gray-400 text-center">
+          <div v-if="!isAsideCollapsed" class="p-3 text-sm text-gray-400 text-center">
             © 2025 Admin Panel
+          </div>
+          <div v-else class="p-3 text-sm text-gray-400 text-center truncate">
+             ©
           </div>
         </aside>
 
-        <div
-          v-if="isMobileSidebarOpen"
-          @click="closeMobileSidebar"
-          class="fixed inset-0 bg-black bg-opacity-50 z-5 lg:hidden"
-        ></div>
-
-        <main class="flex-1 lg:ml-64 bg-gray-50 min-h-[calc(100vh-64px)]">
+        <main 
+          class="flex-1 bg-gray-50 min-h-[calc(100vh-64px)] transition-all duration-300 ease-in-out"
+          :class="{ 'ml-0': isAsideCollapsed, '': !isAsideCollapsed }"
+          style="margin-left: 0 !important;"
+        >
           <div class="w-full">
             <slot/>
           </div>
@@ -63,11 +89,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue"
+import { ref } from "vue"
 import { useRoute } from "vue-router"
 
 const route = useRoute()
-const isMobileSidebarOpen = ref(false)
+
+const isAsideCollapsed = ref(false) // Trạng thái ẩn/hiện của aside
 
 const dashboardSubMenu = [
   { label: "Sinh viên", href: "/Admin/dashboard/student_list", match: "/Admin/dashboard/student" },
@@ -76,26 +103,7 @@ const dashboardSubMenu = [
   { label: "Chương trình học", href: "/program/programs", match: "/program/programs" },
 ]
 
-function toggleMobileSidebar() {
-  isMobileSidebarOpen.value = !isMobileSidebarOpen.value
+function toggleAside() {
+  isAsideCollapsed.value = !isAsideCollapsed.value
 }
-
-function closeMobileSidebar() {
-  isMobileSidebarOpen.value = false
-}
-
-// Đóng sidebar khi resize về desktop
-function handleResize() {
-  if (window.innerWidth >= 1024) { // lg breakpoint
-    isMobileSidebarOpen.value = false
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
 </script>
