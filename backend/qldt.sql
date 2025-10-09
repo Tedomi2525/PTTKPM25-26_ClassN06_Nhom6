@@ -314,6 +314,9 @@ INSERT INTO course_classes (course_id, teacher_id, section, max_students, min_st
 (88,1,'N01',60,15),(88,2,'N02',60,15),
 (89,2,'N01',60,15),(89,3,'N02',60,15);
 
+ALTER TABLE course_classes
+ADD COLUMN current_students INT DEFAULT 0 NOT NULL
+CHECK (current_students >= 0 AND current_students <= max_students);
 
 -- 6. ENROLLMENTS
 CREATE TABLE enrollments (

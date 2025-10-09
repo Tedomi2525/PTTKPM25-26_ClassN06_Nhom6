@@ -6,11 +6,12 @@
           v-for="(item, index) in items"
           :key="index"
           :to="item.href"
-          :class="[
+          @click="$emit('menu-click', item)"
+          :class="[ 
             'px-3 py-3 text-sm font-medium border-b-4 transition-colors duration-200',
-            route.path === item.href
+            route.path === item.href || route.path.startsWith(item.href + '/')
               ? 'text-white border-white'
-              : 'text-gray-300 hover:text-white border-transparent hover:border-gray-300'
+              : 'text-gray-300 hover:text-white border-transparent hover:border-white'
           ]"
         >
           {{ item.label }}
@@ -31,4 +32,7 @@ defineProps({
     default: () => []
   }
 })
+
+// khai báo sự kiện
+defineEmits(["menu-click"])
 </script>

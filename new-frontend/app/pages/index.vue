@@ -80,7 +80,7 @@ onMounted(async () => {
       // Kiểm tra token hợp lệ
       const isValid = await validateToken();
       if (isValid) {
-        await navigateTo('/Admin/dashboard');
+        await navigateTo('/Home');
         return;
       }
     }

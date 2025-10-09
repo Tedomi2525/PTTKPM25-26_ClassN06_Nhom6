@@ -13,5 +13,4 @@ class Semester(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
-    schedules = relationship("Schedule", back_populates="semester")  
-    course_classes = relationship("CourseClass", back_populates="semester")
+    schedules = relationship("Schedule", back_populates="semester")

@@ -21,24 +21,44 @@ def generate_teacher_code(db: Session) -> str:
     year = datetime.now().year % 100  # 2 số cuối của năm
     prefix = f"GV{year}"
 
-    # Lấy teacher_code lớn nhất của năm hiện tại
-    last_teacher = (
+    # Lấy teacher_code lớn nhất từ cả bảng teachers và users (username)
+    # Vì teacher_code sẽ được dùng làm username trong bảng users
+    max_from_teachers = (
         db.query(TeacherModel)
         .filter(TeacherModel.teacher_code.like(f"{prefix}%"))
         .order_by(TeacherModel.teacher_code.desc())
         .first()
     )
 
-    if not last_teacher or not last_teacher.teacher_code:
-        new_number = 1
-    else:
-        last_number = int(last_teacher.teacher_code[-6:])  # 6 số cuối
-        new_number = last_number + 1
+    max_from_users = (
+        db.query(UserModel)
+        .filter(UserModel.username.like(f"{prefix}%"))
+        .order_by(UserModel.username.desc())
+        .first()
+    )
 
+    # Tìm số lớn nhất từ cả hai bảng
+    max_number = 0
+    
+    if max_from_teachers and max_from_teachers.teacher_code:
+        try:
+            teacher_number = int(max_from_teachers.teacher_code[-6:])  # 6 số cuối
+            max_number = max(max_number, teacher_number)
+        except ValueError:
+            pass
+    
+    if max_from_users and max_from_users.username:
+        try:
+            user_number = int(max_from_users.username[-6:])  # 6 số cuối
+            max_number = max(max_number, user_number)
+        except ValueError:
+            pass
+
+    new_number = max_number + 1
     return f"{prefix}{new_number:06d}"
 
 def get_teachers(db: Session):
-    return db.query(TeacherModel).all()
+    return db.query(TeacherModel).filter(TeacherModel.status == "active").all()
 
 
 def search_teachers(db: Session, q: str):
@@ -53,35 +73,61 @@ def search_teachers(db: Session, q: str):
 
 
 def create_teacher(db: Session, teacher_payload: TeacherCreate):
-    # 1. Sinh teacher_code
-    teacher_code = generate_teacher_code(db)
+    try:
+        # 1. Sinh teacher_code
+        teacher_code = generate_teacher_code(db)
 
-    # 2. Tạo user trước
-    user_payload = UserCreate(
-        username=teacher_code,
-        email=f"{teacher_code}@edunera.edu",
-        password=get_password_hash(f"{teacher_code}@"),
-        role="teacher"
-    )
+        # 2. Kiểm tra email đã tồn tại chưa (chỉ khi có email)
+        if teacher_payload.email and teacher_payload.email.strip():
+            existing_teacher = db.query(TeacherModel).filter(TeacherModel.email == teacher_payload.email).first()
+            if existing_teacher:
+                raise ValueError(f"Email {teacher_payload.email} đã được sử dụng bởi giáo viên khác")
 
-    # dict(by_alias=False) để lấy đúng field trong model
-    new_user = UserModel(**user_payload.dict(by_alias=False))
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        # 3. Tạo user trước
+        user_payload = UserCreate(
+            username=teacher_code,
+            email=f"{teacher_code}@edunera.edu",
+            password=get_password_hash(f"{teacher_code}@"),
+            role="teacher"
+        )
 
-    # 3. Tạo teacher, gán user_id
-    teacher_data = teacher_payload.dict(by_alias=False)
-    teacher_data["teacher_code"] = teacher_code
-    teacher_data["user_id"] = new_user.user_id
-    teacher_data["email"] = user_payload.email
+        # model_dump(by_alias=False) để lấy đúng field trong model (Pydantic v2)
+        new_user = UserModel(**user_payload.model_dump(by_alias=False))
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    new_teacher = TeacherModel(**teacher_data)
-    db.add(new_teacher)
-    db.commit()
-    db.refresh(new_teacher)
+        # 4. Tạo teacher, gán user_id
+        teacher_data = teacher_payload.model_dump(by_alias=False)
+        teacher_data["teacher_code"] = teacher_code
+        teacher_data["user_id"] = new_user.user_id
+        # Sử dụng email từ input nếu có, nếu không thì dùng email mặc định
+        teacher_data["email"] = teacher_payload.email or user_payload.email
+        
 
-    return new_teacher
+
+        new_teacher = TeacherModel(**teacher_data)
+        db.add(new_teacher)
+        db.commit()
+        db.refresh(new_teacher)
+
+        return new_teacher
+    except IntegrityError as e:
+        db.rollback()
+        error_str = str(e).lower()
+        if "unique constraint" in error_str:
+            if "users_username_key" in error_str:
+                raise ValueError("Mã giáo viên (username) đã tồn tại, vui lòng thử lại")
+            elif "teachers_teacher_code_key" in error_str:
+                raise ValueError("Mã giáo viên đã tồn tại, vui lòng thử lại")
+            elif "teachers_email_key" in error_str or "users_email_key" in error_str:
+                raise ValueError("Email đã được sử dụng")
+            else:
+                raise ValueError(f"Vi phạm ràng buộc duy nhất: {str(e)}")
+        raise ValueError(f"Lỗi dữ liệu: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
 def update_teacher(db: Session, teacher_id: int, payload: TeacherUpdate):
@@ -89,7 +135,7 @@ def update_teacher(db: Session, teacher_id: int, payload: TeacherUpdate):
     if not teacher:
         return None
 
-    for key, value in payload.dict(exclude_unset=True, by_alias=False).items():
+    for key, value in payload.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(teacher, key, value)
 
     db.commit()

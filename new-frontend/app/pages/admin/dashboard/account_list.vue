@@ -98,4 +98,9 @@
 import { ref } from "vue";
 
 const active = ref("student"); // mặc định hiển thị bảng sinh viên
+
+
+definePageMeta({
+  layout: 'dashboard'
+})
 </script>

@@ -16,4 +16,3 @@ class Course(Base):
 
     # Relationships
     course_classes = relationship("CourseClass", back_populates="course")
-

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import date, datetime
 from typing import Optional
 
@@ -21,7 +21,49 @@ class TeacherBase(BaseModel):
         populate_by_name = True
 
 class TeacherCreate(TeacherBase):
-    pass
+    @field_validator('gender', mode='before')
+    @classmethod
+    def validate_gender(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        
+        # Gender mapping for different input formats
+        gender_mapping = {
+            "1": "Nam",
+            "2": "Nữ", 
+            "0": "Nam",  # fallback
+            "male": "Nam",
+            "female": "Nữ",
+            "nam": "Nam",
+            "nữ": "Nữ"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original
+        return gender_mapping.get(str_value, v)
+    
+    @field_validator('degree', mode='before')
+    @classmethod
+    def validate_degree(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
+    
+    @field_validator('academic_rank', mode='before')
+    @classmethod
+    def validate_academic_rank(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
+    
+    @field_validator('department', 'faculty', 'specialization', mode='before')
+    @classmethod
+    def validate_string_fields(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
 
 class TeacherUpdate(BaseModel):
     first_name: Optional[str] = Field(None, alias="firstName", description="Teacher first name")
@@ -37,6 +79,43 @@ class TeacherUpdate(BaseModel):
     academic_rank: Optional[str] = Field(None, alias="academicRank", description="Academic rank")
     status: Optional[str] = Field(None, description="Status of the teacher, e.g., active or inactive")
     teacher_code: Optional[str] = Field(None, alias="teacherCode", description="Teacher code")
+    
+    @field_validator('gender', mode='before')
+    @classmethod
+    def validate_gender(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        
+        # Gender mapping for different input formats
+        gender_mapping = {
+            "1": "Nam",
+            "2": "Nữ", 
+            "0": "Nam",  # fallback
+            "male": "Nam",
+            "female": "Nữ",
+            "nam": "Nam",
+            "nữ": "Nữ"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original
+        return gender_mapping.get(str_value, v)
+    
+    @field_validator('degree', mode='before')
+    @classmethod
+    def validate_degree(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
+    
+    @field_validator('academic_rank', mode='before')
+    @classmethod
+    def validate_academic_rank(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        return v.strip()
     
     class Config:
         populate_by_name = True
