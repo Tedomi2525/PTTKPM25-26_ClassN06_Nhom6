@@ -10,3 +10,4 @@ __pycache__/
 **/.env
 /node_modules
 /backend/face_service/embedding/models_services/*
+static/
