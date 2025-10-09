@@ -35,20 +35,17 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label for="email" class="block text-sm font-medium mb-1">Email *</label>
-                <InputField id="email" v-model="form.email" placeholder="VD: phapdang@email.com" type="email" required />
-              </div>
-              <div>
                 <label for="phone" class="block text-sm font-medium mb-1">Số điện thoại *</label>
                 <InputField id="phone" v-model="form.phone" placeholder="VD: 0987654321" type="tel" required />
               </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label for="dob" class="block text-sm font-medium mb-1">Ngày sinh *</label>
                 <InputField id="dob" v-model="form.dob" type="date" required />
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+
               <div>
                 <label for="gender" class="block text-sm font-medium mb-1">Giới tính *</label>
                 <DropDown
@@ -164,7 +161,6 @@ const router = useRouter();
 const form = ref({
   firstName: "", 
   lastName: "", 
-  email: "",
   phone: "",
   dob: "",
   gender: "",

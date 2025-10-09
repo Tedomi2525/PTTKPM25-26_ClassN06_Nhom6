@@ -26,97 +26,43 @@ def get_students(db: Session = Depends(get_db)):
 def search_students(q: str, db: Session = Depends(get_db)):
     return student_service.search_students(db, q)
 
-# ==============================================================================
-# ENDPOINT THÊM SINH VIÊN (HỖ TRỢ FILE UPLOAD)
-# ==============================================================================
 @router.post("/students", response_model=StudentSchema, status_code=201)
 async def create_student_with_avatar(
-    # Data Fields (Form) - Sử dụng alias để khớp với tên trường trong StudentBase (ví dụ: firstName -> first_name)
-    firstName: Annotated[str, Form(..., alias="firstName")],
-    lastName: Annotated[str, Form(..., alias="lastName")],
-    dob: Annotated[str, Form(..., alias="dob")], # Nhận string, Pydantic sẽ chuyển thành date
-    gender: Annotated[str, Form(..., alias="gender")],
-    email: Annotated[str, Form(..., alias="email")],
-    phone: Annotated[str, Form(..., alias="phone")],
-    
-    # Optional Data Fields
-    studentCode: Annotated[Optional[str], Form(alias="studentCode")] = None,
-    className: Annotated[Optional[str], Form(alias="className")] = None,
-    userId: Annotated[Optional[int], Form(alias="userId")] = 0,
-    trainingProgram: Annotated[Optional[str], Form(alias="trainingProgram")] = None,
-    courseYears: Annotated[Optional[str], Form(alias="courseYears")] = None,
-    educationType: Annotated[Optional[str], Form(alias="educationType")] = None,
-    faculty: Annotated[Optional[str], Form(alias="faculty")] = None,
-    major: Annotated[Optional[str], Form(alias="major")] = None,
-    status: Annotated[Optional[str], Form(alias="status")] = None,
-    position: Annotated[Optional[str], Form(alias="position")] = None,
-    
-    # File Field
-    avatar_file: Annotated[Optional[UploadFile], File(alias="avatar")] = None, # Đổi tên biến để tránh xung đột
+    form_data: Annotated[StudentCreate, Depends(StudentCreate.as_form)],
     db: Session = Depends(get_db)
 ):
     avatar_url = None
-    
-    # 1. LƯU FILE ẢNH VÀO FOLDER TRÊN SERVER
-    if avatar_file and avatar_file.filename:
+
+    # Lưu file avatar (nếu có)
+    if form_data.avatar_file and form_data.avatar_file.filename:
         try:
-            file_extension = os.path.splitext(avatar_file.filename)[1]
-            unique_filename = f"{uuid.uuid4().hex}{file_extension}"
-            file_path = os.path.join(UPLOAD_DIR, unique_filename)
-            
+            ext = os.path.splitext(form_data.avatar_file.filename)[1]
+            unique_name = f"{uuid.uuid4().hex}{ext}"
+            file_path = os.path.join(UPLOAD_DIR, unique_name)
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
+
             with open(file_path, "wb") as buffer:
-                # Sao chép nội dung file từ upload buffer vào file vật lý
-                shutil.copyfileobj(avatar_file.file, buffer)
-            
-            # Tạo đường dẫn URL công khai để lưu vào DB
-            avatar_url = f"/static/avatars/{unique_filename}"
-            
+                shutil.copyfileobj(form_data.avatar_file.file, buffer)
+
+            avatar_url = f"/static/avatars/{unique_name}"
         except Exception as e:
             print(f"Error saving avatar file: {e}")
             raise HTTPException(status_code=500, detail="Lỗi khi lưu tệp ảnh trên server.")
-    
-    # 2. TẠO DICT DỮ LIỆU ĐỂ KHỞI TẠO STUDENTCREATE
-    student_payload_dict = {
-        "studentCode": studentCode,
-        "firstName": firstName,
-        "lastName": lastName,
-        "dob": dob,
-        "gender": gender,
-        "email": email,
-        "phone": phone,
-        "className": className,
-        "userId": userId,
-        "trainingProgram": trainingProgram,
-        "courseYears": courseYears,
-        "educationType": educationType,
-        "faculty": faculty,
-        "major": major,
-        "status": status,
-        "position": position,
-        "avatar": avatar_url # Đường dẫn string đã được lưu
-    }
-    
-    try:
-        # Pydantic sẽ xử lý ánh xạ alias (camelCase -> snake_case) và validation
-        # Ví dụ: "firstName" được ánh xạ thành first_name
-        student_payload = StudentCreate(**student_payload_dict)
-    except Exception as e:
-        # Lỗi Pydantic validation (422)
-        print(f"Pydantic Validation Error: {e}")
-        raise HTTPException(status_code=422, detail=f"Lỗi validation dữ liệu: {str(e)}")
 
-    # 3. GỌI SERVICE LAYER
+    # Cập nhật avatar_url nếu có
+    data_dict = form_data.model_dump()
+    data_dict["avatar"] = avatar_url or data_dict.get("avatar")
+    data_dict.pop("avatar_file", None)
+
     try:
-        return student_service.create_student(db, student_payload)
+        student_obj = StudentCreate(**data_dict)
+        return student_service.create_student(db, student_obj)
     except ValueError as e:
-        # Lỗi nghiệp vụ (Email đã tồn tại, check constraint)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         print(f"Error in create_student endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server nội bộ: {str(e)}")
-# ==============================================================================
-
-
+    
 @router.put("/students/{student_id}", response_model=StudentSchema)
 def update_student(student_id: int, payload: StudentUpdate, db: Session = Depends(get_db)):
     student = student_service.update_student(db, student_id, payload)
