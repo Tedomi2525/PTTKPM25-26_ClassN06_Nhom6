@@ -62,7 +62,9 @@ async def create_student_with_avatar(
     except Exception as e:
         print(f"Error in create_student endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server nội bộ: {str(e)}")
-    
+# ==============================================================================
+
+
 @router.put("/students/{student_id}", response_model=StudentSchema)
 def update_student(student_id: int, payload: StudentUpdate, db: Session = Depends(get_db)):
     student = student_service.update_student(db, student_id, payload)

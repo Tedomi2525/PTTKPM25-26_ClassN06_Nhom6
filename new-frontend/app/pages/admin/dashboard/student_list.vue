@@ -46,8 +46,8 @@ async function fetchStudents() {
 }
 
 function editStudent(student) {
-  // Sử dụng router.push thay cho navigateTo nếu bạn đã import useRouter
-  router.push(`/Admin/dashboard/student_edit/${student.studentId}`)
+  localStorage.setItem('editStudentId', student.studentId)
+  router.push('/Admin/dashboard/student_edit')
 }
 
 async function deleteStudent(student) {
