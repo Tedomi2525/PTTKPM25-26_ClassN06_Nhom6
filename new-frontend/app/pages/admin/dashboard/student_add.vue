@@ -118,8 +118,8 @@
                   v-model="form.status"
                   :options="[
                     { label: 'Đang học', value: 'Đang học' },
-                    { label: 'Tạm dừng', value: 'Tạm dừng' },
-                    { label: 'Tốt nghiệp', value: 'Tốt nghiệp' }
+                    { label: 'Bảo lưu', value: 'Bảo lưu' },
+                    { label: 'Đã tốt nghiệp', value: 'Đã tốt nghiệp' }
                   ]"
                 />
               </div>
@@ -146,21 +146,19 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref } from "vue";
-import DropDown from "~/components/DropDown.vue";
-import { useRouter } from "vue-router"; 
+import { useRouter } from "vue-router";
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: "dashboard",
 });
 
 const router = useRouter();
 
 const form = ref({
-  firstName: "", 
-  lastName: "", 
+  firstName: "",
+  lastName: "",
   phone: "",
   dob: "",
   gender: "",
@@ -172,31 +170,34 @@ const form = ref({
   major: "",
   status: "Đang học",
   position: "",
-  avatar: null,
+  avatar: null, // dùng để chứa File object hoặc null
 });
 
 const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
 
+// =======================================================
+// HANDLE FILE UPLOAD
+// =======================================================
 const handleFileUpload = (fileObject) => {
-  // Giả định component ImageAddButton emit ra file object hoặc File
   if (fileObject instanceof File) {
     form.value.avatar = fileObject;
   } else if (fileObject && fileObject.file instanceof File) {
     form.value.avatar = fileObject.file;
   } else {
-    form.value.avatar = fileObject;
+    form.value.avatar = null;
   }
-  console.log('Avatar file selected:', form.value.avatar);
+  console.log("Avatar selected:", form.value.avatar);
 };
 
+// =======================================================
+// RESET FORM
+// =======================================================
 const resetForm = () => {
-  // Đặt lại các trường về giá trị mặc định/rỗng
   form.value = {
-    firstName: "", 
-    lastName: "", 
-    email: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     dob: "",
     gender: "",
@@ -212,99 +213,62 @@ const resetForm = () => {
   };
 };
 
-
+// =======================================================
+// SUBMIT FORM
+// =======================================================
 const handleSubmit = async () => {
   errorMessage.value = null;
   validationErrors.value = null;
   isSubmitting.value = true;
-  
-  // 1. Chuẩn bị FormData (Dùng cho API hỗ trợ upload File và dữ liệu cùng lúc)
-  const formData = new FormData();
-  let usesFormData = false;
 
-  // Lặp qua các trường form
-  for (const key in form.value) {
-    if (key === 'avatar' && form.value[key] instanceof File) {
-      formData.append('avatar', form.value[key]); // Use 'avatar' as the field name (backend expects this)
-      usesFormData = true;
-      console.log('Added avatar file to FormData:', form.value[key].name);
-    } else if (key !== 'avatar' && form.value[key] !== null && form.value[key] !== '') {
-      // Đảm bảo DOB được gửi ở định dạng string 'YYYY-MM-DD'
-      if (key === 'dob' && form.value[key]) {
-         formData.append(key, new Date(form.value[key]).toISOString().split('T')[0]);
-      } else {
-         formData.append(key, form.value[key]);
-      }
-    }
-  }
-
-  // Chọn phương thức gửi: FormData (nếu có file) hoặc JSON (nếu không có file hoặc API chỉ nhận JSON)
-  const fetchOptions = {
-    method: "POST",
-  };
-
-  if (usesFormData) {
-    fetchOptions.body = formData;
-    // Không cần set 'Content-Type': 'multipart/form-data', trình duyệt tự làm
-  } else {
-    // Nếu API chỉ nhận JSON, ngay cả khi có file (avatar là URL string), ta cần gửi JSON
-    const payload = { ...form.value };
-    if (payload.avatar instanceof File) {
-      // Loại bỏ File nếu API không hỗ trợ Form-data hoặc File chưa được upload
-      delete payload.avatar;
-    }
-    
-    // Đảm bảo DOB ở định dạng 'YYYY-MM-DD'
-    if (payload.dob) {
-        payload.dob = new Date(payload.dob).toISOString().split('T')[0];
-    }
-    
-    fetchOptions.headers = { "Content-Type": "application/json" };
-    fetchOptions.body = JSON.stringify(payload);
-  }
-  
   try {
-    console.log('Sending request with FormData:', usesFormData ? 'Yes' : 'No');
-    if (usesFormData) {
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-    }
-    
-    const response = await fetch("http://localhost:8000/api/students", fetchOptions);
+    // 🔹 Tạo FormData (chỉ dùng multipart form)
+    const formData = new FormData();
 
-    if (response.status === 422) {
-      const errorData = await response.json();
-      errorMessage.value = 'Dữ liệu nhập vào không hợp lệ. Vui lòng kiểm tra các trường bị lỗi.';
-      if (errorData.errors) {
-        validationErrors.value = errorData.errors;
+    for (const [key, value] of Object.entries(form.value)) {
+      if (key === "avatar") {
+        if (value instanceof File) {
+          formData.append("avatar_file", value); // backend nhận avatar_file
+        }
+      } else if (value !== null && value !== "") {
+        if (key === "dob" && value) {
+          const date = new Date(value);
+          if (!isNaN(date)) {
+            formData.append("dob", date.toISOString().split("T")[0]);
+          }
+        } else {
+          formData.append(key, value);
+        }
       }
-      return; 
     }
+
+    console.log("📤 Sending FormData:");
+    for (const [key, val] of formData.entries()) {
+      console.log(`  ${key}:`, val);
+    }
+
+    const response = await fetch("http://localhost:8000/api/students", {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
-      throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Server response:", errorData);
+      throw new Error(
+        errorData.detail?.[0]?.msg || `HTTP ${response.status} - ${response.statusText}`
+      );
     }
 
     const data = await response.json();
-    
-    let successMessage = "Thêm sinh viên thành công! Mã SV: " + (data.studentCode || data.id);
-    if (data.avatar) {
-      successMessage += "\nẢnh đại diện đã được lưu: " + data.avatar;
-    }
-    
-    alert(successMessage);
 
-    // Reset form after successful submission
+    alert(`✅ Thêm sinh viên thành công!\nMã SV: ${data.studentCode || "N/A"}`);
+
     resetForm();
-    
-    // Navigate to student list
-    router.push('/admin/dashboard/student_list');
-    
+    router.push("/admin/dashboard/student_list");
   } catch (err) {
-    console.error(err);
-    errorMessage.value = err.message || "Có lỗi xảy ra khi lưu sinh viên";
+    console.error("❌ Error submitting form:", err);
+    errorMessage.value = err.message || "Có lỗi xảy ra khi lưu sinh viên.";
   } finally {
     isSubmitting.value = false;
   }

@@ -38,6 +38,4 @@ class Student(Base):
 
     __table_args__ = (
         CheckConstraint("gender IN ('Nam', 'Nữ', 'Khác')", name="check_gender"),
-        CheckConstraint("education_type IN ('Đại học chính quy', 'Liên thông', 'Cao đẳng')", name="check_education_type"),
-        CheckConstraint("status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')", name="check_status"),
     )

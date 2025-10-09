@@ -51,20 +51,11 @@ CREATE TABLE teachers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO teachers (
-    teacher_code, first_name, last_name, dob, gender, email, phone, 
-    department, faculty, specialization, degree, academic_rank
-) VALUES
-  ('GV2301', 'An', 'Nguyen Van', '1980-05-10', 'Nam', 'an.nguyen@univ.edu', '0912345678',
-   'Công nghệ thông tin', 'Khoa học máy tính', 'Trí tuệ nhân tạo', 'Tiến sĩ', 'Giảng viên'),
-
-  ('GV2302', 'Binh', 'Tran Thi', '1975-09-21', 'Nữ', 'binh.tran@univ.edu', '0987654321',
-   'Kinh tế', 'Tài chính - Ngân hàng', 'Kế toán', 'Thạc sĩ', 'Phó Giáo sư'),
-
-  ('GV2303', 'Cuong', 'Le Van', '1982-12-01', 'Nam', 'cuong.le@univ.edu', '0905123456',
-   'Toán ứng dụng', 'Xác suất - Thống kê', 'Toán tính toán', 'Tiến sĩ', 'Giáo sư');
-
+INSERT INTO teachers (teacher_code, first_name, last_name, dob, gender, email, phone, department, faculty, specialization, degree, academic_rank)
+VALUES
+('GV2301', 'Nguyễn Văn', 'A', '1980-01-01', 'Nam', 'nguyen.a@univ.edu', '0912345678', 'Công nghệ thông tin', 'Khoa học máy tính', 'Trí tuệ nhân tạo', 'Tiến sĩ', 'Giảng viên'),
+('GV2302', 'Trần Thị', 'B', '1985-02-02', 'Nữ', 'tran.b@univ.edu', '0912345679', 'Kinh tế', 'Khoa kinh tế', 'Kinh tế học', 'Thạc sĩ', 'Giảng viên'),
+('GV2303', 'Lê Văn', 'C', '1990-03-03', 'Nam', 'le.c@univ.edu', '0912345680', 'Toán ứng dụng', 'Khoa toán', 'Toán học', 'Cử nhân', 'Giảng viên');
 -- 3. STUDENTS
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,                     -- Mã tự tăng
@@ -72,41 +63,24 @@ CREATE TABLE students (
     first_name VARCHAR(50) NOT NULL,                   -- Tên
     last_name VARCHAR(100) NOT NULL,                   -- Họ và đệm
     dob DATE,                                          -- Ngày sinh
-    gender VARCHAR(10) CHECK (gender IN ('Nam', 'Nữ', 'Khác')),
+    gender VARCHAR(10),                                -- Giới tính (Nam, Nữ, Khác)
     email VARCHAR(100) UNIQUE,                         -- Email
     phone VARCHAR(20),                                 -- Số điện thoại
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     class VARCHAR(50),                                 -- Lớp (VD: K17-CNTT_4)
     training_program VARCHAR(50),                      -- Khóa đào tạo (VD: DH_K17.40)
     course_years VARCHAR(20),                          -- Niên khóa (VD: 2023-2027)
-    education_type VARCHAR(50) CHECK (education_type IN ('Đại học chính quy', 'Liên thông', 'Cao đẳng')),
+    education_type VARCHAR(50),                        -- Loại hình đào tạo (chính quy, liên thông, v.v.)
     faculty VARCHAR(100),                              -- Khoa quản lý
     major VARCHAR(100),                                -- Ngành học
-    status VARCHAR(50) CHECK (status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')),
+    status VARCHAR(50),                                -- Trạng thái (Đang học, Bảo lưu, Đã tốt nghiệp)
     position VARCHAR(50),                              -- Chức vụ (VD: Sinh viên, Lớp trưởng)
-    avatar VARCHAR(255),                               -- Link ảnh đại diện (lưu path hoặc URL)
-    faces BYTEA,                              -- Vector nhúng khuôn mặt
+    avatar VARCHAR(255),                               -- Link ảnh đại diện (path hoặc URL)
+    faces BYTEA,                                       -- Vector nhúng khuôn mặt
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO students (
-    student_code, first_name, last_name, dob, gender, email, phone,
-    class, training_program, course_years, education_type,
-    faculty, major, status, position, avatar
-) VALUES
-('SV23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
- 'K17-CNTT_4', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa Công nghệ Thông tin', 'Công nghệ thông tin', 'Đang học', 'Sinh viên', '/images/students/quan.jpg'),
- 
-('SV23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
- 'K17-CNTT_2', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa CNTT', 'Hệ thống thông tin', 'Đang học', 'Lớp phó', '/images/students/lan.jpg'),
-
-('SV23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
- 'K17-CNTT_1', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa CNTT', 'Khoa học máy tính', 'Đang học', 'Sinh viên', '/images/students/huy.jpg');
 
 -- 4. COURSES
 CREATE TABLE courses (

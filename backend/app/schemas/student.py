@@ -6,29 +6,6 @@ from typing import Optional
 from fastapi import UploadFile, File, Form
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-
-# ==============================================================================
-# ENUMERATIONS
-# ==============================================================================
-
-class GenderEnum(str, Enum):
-    MALE = "Nam"
-    FEMALE = "Nữ"
-    OTHER = "Khác"
-
-
-class EducationTypeEnum(str, Enum):
-    REGULAR = "Đại học chính quy"
-    TRANSFER = "Liên thông"
-    COLLEGE = "Cao đẳng"
-
-
-class StatusEnum(str, Enum):
-    STUDYING = "Đang học"
-    ON_LEAVE = "Bảo lưu"
-    GRADUATED = "Đã tốt nghiệp"
-
-
 # ==============================================================================
 # BASE SCHEMA
 # ==============================================================================
@@ -38,17 +15,17 @@ class StudentBase(BaseModel):
     first_name: str = Field(..., alias="firstName", max_length=50)
     last_name: str = Field(..., alias="lastName", max_length=100)
     dob: Optional[date] = Field(None, alias="dob")
-    gender: Optional[GenderEnum] = Field(None, alias="gender")
+    gender: Optional[str] = Field(None, alias="gender")
     email: Optional[str] = Field(None, alias="email")
     phone: Optional[str] = Field(None, alias="phone", max_length=20)
     class_name: Optional[str] = Field(None, alias="className", max_length=50)
     user_id: Optional[int] = Field(None, alias="userId")
     training_program: Optional[str] = Field(None, alias="trainingProgram", max_length=50)
     course_years: Optional[str] = Field(None, alias="courseYears", max_length=20)
-    education_type: Optional[EducationTypeEnum] = Field(None, alias="educationType")
+    education_type: Optional[str] = Field(None, alias="educationType")
     faculty: Optional[str] = Field(None, alias="faculty", max_length=100)
     major: Optional[str] = Field(None, alias="major", max_length=100)
-    status: Optional[StatusEnum] = Field(None, alias="status")
+    status: Optional[str] = Field(None, alias="status")
     position: Optional[str] = Field(None, alias="position", max_length=50)
     avatar: Optional[str] = Field(None, alias="avatar", max_length=255)
 
@@ -109,42 +86,6 @@ class StudentCreate(StudentBase):
         if not v or str(v).strip().lower() in ['string', 'null', 'undefined']:
             return None
         return v
-
-    @field_validator('gender', mode='before')
-    @classmethod
-    def validate_gender(cls, v):
-        if not v or str(v).strip().lower() in ['string', 'null', 'undefined']:
-            return None
-        gender_mapping = {
-            "1": "Nam", "2": "Nữ",
-            "0": "Nam", "male": "Nam", "female": "Nữ",
-            "nam": "Nam", "nữ": "Nữ",
-            "khác": "Khác", "other": "Khác"
-        }
-        str_value = str(v).lower().strip()
-        return gender_mapping.get(str_value, v)
-
-    @field_validator('education_type', mode='before')
-    @classmethod
-    def validate_education_type(cls, v):
-        if not v or str(v).strip().lower() in ['string', 'null', 'undefined']:
-            return None
-        mapping = {
-            "1": "Đại học chính quy", "2": "Liên thông", "3": "Cao đẳng",
-            "regular": "Đại học chính quy", "transfer": "Liên thông", "college": "Cao đẳng"
-        }
-        return mapping.get(str(v).lower().strip(), v)
-
-    @field_validator('status', mode='before')
-    @classmethod
-    def validate_status(cls, v):
-        if not v or str(v).strip().lower() in ['string', 'null', 'undefined']:
-            return None
-        mapping = {
-            "1": "Đang học", "2": "Bảo lưu", "3": "Đã tốt nghiệp",
-            "studying": "Đang học", "on_leave": "Bảo lưu", "graduated": "Đã tốt nghiệp"
-        }
-        return mapping.get(str(v).lower().strip(), v)
 
     @field_validator('class_name', 'training_program', 'course_years', 'faculty', 'major', 'position', 'avatar', mode='before')
     @classmethod
