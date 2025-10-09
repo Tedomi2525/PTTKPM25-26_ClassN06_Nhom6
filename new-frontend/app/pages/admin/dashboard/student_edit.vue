@@ -160,22 +160,20 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import DropDown from "~/components/DropDown.vue";
-import { useRouter, useRoute } from "vue-router"; 
+import { useRoute, useRouter } from "vue-router";
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: "dashboard",
 });
 
 const router = useRouter();
 const route = useRoute();
 
-// 🟩 ID sinh viên cần sửa
-const studentId = ref(route.query.id || localStorage.getItem('editStudentId'));
+const studentId = route.query.id || localStorage.getItem("editStudentId");
 
 const form = ref({
-  firstName: "", 
-  lastName: "", 
+  firstName: "",
+  lastName: "",
   phone: "",
   dob: "",
   gender: "",
@@ -194,87 +192,92 @@ const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
 
-// 🟦 Lấy dữ liệu sinh viên theo ID
+// 🟦 Lấy dữ liệu sinh viên khi mở trang
 onMounted(async () => {
-  if (!studentId.value) {
-    alert('Không tìm thấy ID sinh viên để sửa!');
-    router.push('/Admin/dashboard/student_list');
+  if (!studentId) {
+    alert("Không tìm thấy ID sinh viên!");
+    router.push("/admin/dashboard/student_list");
     return;
   }
 
   try {
-    const res = await fetch(`http://localhost:8000/api/students/${studentId.value}`);
-    if (!res.ok) throw new Error('Không thể tải dữ liệu sinh viên');
+    const res = await fetch(`http://localhost:8000/api/students/${studentId}`);
+    if (!res.ok) throw new Error("Không thể tải dữ liệu sinh viên");
     const data = await res.json();
+
+    if (data.dob) data.dob = data.dob.split("T")[0]; // lấy đúng định dạng yyyy-mm-dd
+
     Object.assign(form.value, data);
   } catch (err) {
     errorMessage.value = err.message;
   }
 });
 
+// 🟧 Upload ảnh
 const handleFileUpload = (fileObject) => {
-  form.value.avatar = fileObject; 
+  if (fileObject instanceof File) form.value.avatar = fileObject;
 };
 
+// 🟩 Reset form
 const resetForm = () => {
-  Object.keys(form.value).forEach((key) => {
-    form.value[key] = "";
-  });
-  form.value.status = "Đang học";
+  form.value = {
+    firstName: "",
+    lastName: "",
+    phone: "",
+    dob: "",
+    gender: "",
+    className: "",
+    trainingProgram: "",
+    courseYears: "",
+    educationType: "",
+    faculty: "",
+    major: "",
+    status: "Đang học",
+    position: "",
+    avatar: null,
+  };
 };
 
-// 🟩 Gửi yêu cầu cập nhật sinh viên
+// 🟩 Cập nhật sinh viên
 const handleSubmit = async () => {
   errorMessage.value = null;
   validationErrors.value = null;
   isSubmitting.value = true;
-  
-  const formData = new FormData();
-  let usesFormData = false;
-
-  for (const key in form.value) {
-    if (key === 'avatar' && form.value[key] instanceof File) {
-      formData.append(key, form.value[key]);
-      usesFormData = true;
-    } else if (form.value[key] !== null) {
-      if (key === 'dob' && form.value[key]) {
-        formData.append(key, new Date(form.value[key]).toISOString().split('T')[0]);
-      } else {
-        formData.append(key, form.value[key]);
-      }
-    }
-  }
-
-  const fetchOptions = { method: "PUT" };
-
-  if (usesFormData) {
-    fetchOptions.body = formData;
-  } else {
-    const payload = { ...form.value };
-    if (payload.avatar instanceof File) delete payload.avatar;
-    if (payload.dob) payload.dob = new Date(payload.dob).toISOString().split('T')[0];
-    fetchOptions.headers = { "Content-Type": "application/json" };
-    fetchOptions.body = JSON.stringify(payload);
-  }
 
   try {
-    const response = await fetch(`http://localhost:8000/api/students/${studentId.value}`, fetchOptions);
-
-    if (response.status === 422) {
-      const errorData = await response.json();
-      errorMessage.value = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
-      validationErrors.value = errorData.errors;
-      return; 
+    // Đảm bảo định dạng ngày đúng yyyy-mm-dd
+    const cleanData = { ...form.value };
+    if (cleanData.dob) {
+      cleanData.dob = new Date(cleanData.dob).toISOString().split("T")[0];
     }
 
-    if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
+    const res = await fetch(`http://localhost:8000/api/students/${studentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(cleanData),
+    });
 
-    alert("Cập nhật sinh viên thành công!");
-    router.push('/Admin/dashboard/student_list');
+    if (res.status === 422) {
+      const errData = await res.json();
+      errorMessage.value = "Dữ liệu nhập vào không hợp lệ.";
+      validationErrors.value = errData.detail;
+      return;
+    }
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+    }
+
+    alert("✅ Cập nhật sinh viên thành công!");
+    router.push("/admin/dashboard/student_list");
   } catch (err) {
-    errorMessage.value = err.message || "Có lỗi xảy ra khi cập nhật sinh viên";
+    errorMessage.value = err.message || "Có lỗi khi cập nhật sinh viên.";
   } finally {
     isSubmitting.value = false;
   }
 };
+
 </script>
+  

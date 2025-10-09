@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
 from typing import Optional
 
+from app import models
 from app.models.student import Student as StudentModel
 from app.models.user import User as UserModel
 from app.models.enrollment import Enrollment
@@ -23,6 +24,9 @@ from app.core.security import get_password_hash
 # UTILITY FUNCTIONS
 # (Logic generate_student_code giữ nguyên)
 # ==============================================================================
+def get_student_by_id(db, student_id: int):
+    student = db.query(models.Student).filter(models.Student.student_id == student_id).first()
+    return student
 
 def generate_student_code(db: Session) -> str:
     year = datetime.now().year % 100 

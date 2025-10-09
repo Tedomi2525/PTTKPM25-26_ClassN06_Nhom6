@@ -65,8 +65,8 @@ async def create_student_with_avatar(
 # ==============================================================================
 
 @router.get("/students/{student_id}", response_model=StudentSchema)
-def update_student(student_id: int, payload: StudentUpdate, db: Session = Depends(get_db)):
-    student = student_service.update_student(db, student_id, payload)
+def get_student(student_id: int, db: Session = Depends(get_db)):
+    student = student_service.get_student_by_id(db, student_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
