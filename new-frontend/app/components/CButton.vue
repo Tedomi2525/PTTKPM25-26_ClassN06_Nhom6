@@ -24,7 +24,7 @@ const router = useRouter()
 
 const props = defineProps<{
   type?: "button" | "submit" | "reset" | "back" | "edit" | "delete"
-  variant?: "primary" | "secondary" | "danger" | "gray" | "edit" | "delete"
+  variant?: "primary" | "secondary" | "danger" | "gray" | "edit" | "delete" | "register"
   to?: string
   disabled?: boolean
 }>()
@@ -54,6 +54,7 @@ const buttonClass = computed(() => {
     gray: "bg-gray-300 text-black hover:bg-gray-400",
     edit: "bg-yellow-400 text-black hover:bg-yellow-500",
     delete: "bg-red-500 text-white hover:bg-red-600",
+    register: "bg-white text-[#23336a] border border-[#23336a] hover:bg-[#23336a] hover:text-white",
   }
 
   const disabledClass = props.disabled 

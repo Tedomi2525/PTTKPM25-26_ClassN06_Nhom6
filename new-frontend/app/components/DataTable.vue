@@ -13,9 +13,19 @@
           >
             {{ addLabel }}
           </CButton>
+
+          <CButton
+            v-if="showRegisterButton"
+            :to="registerTo"
+            variant="register"
+            @click="handleRegister"
+          >
+            {{ registerLabel }}
+          </CButton>
           
           <CButton 
             variant="edit" 
+            v-if="!registerMode"
             :disabled="!selectedRow" 
             @edit="handleEdit" 
           >
@@ -23,7 +33,7 @@
           </CButton>
 
           <CButton 
-            v-if="!hideDeleteButton"
+            v-if="!registerMode && !hideDeleteButton"
             variant="delete" 
             :disabled="!selectedRow" 
             @delete="handleDelete" 
@@ -130,6 +140,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import CButton from './CButton.vue'
 // Giả định bạn đã import hoặc định nghĩa CButton ở đâu đó, ví dụ:
 // import CButton from './CButton.vue' 
 
@@ -144,6 +155,14 @@ const props = defineProps({
   addLabel: { type: String, default: 'Thêm' },
   showAddButton: { type: Boolean, default: false },
   addButtonTo: { type: String, default: '' }
+  ,
+  // register button props
+  showRegisterButton: { type: Boolean, default: false },
+  registerLabel: { type: String, default: 'Đăng ký' },
+  registerTo: { type: String, default: '' }
+  ,
+  // when true: replace edit/delete with a single register button
+  registerMode: { type: Boolean, default: false }
 })
 
 const selectedRow = ref(null)
@@ -152,6 +171,12 @@ const sortOrder = ref('asc')
 const expandedRows = ref({})
 
 const emit = defineEmits(['edit', 'delete'])
+
+// emit register event when register button clicked
+const handleRegister = () => {
+  // emit the currently selected row so parent knows which to register
+  emit('register', selectedRow.value)
+}
 
 const handleEdit = () => {
   if (selectedRow.value) {

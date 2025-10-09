@@ -1,6 +1,5 @@
 <template>
   <div class="p-6 space-y-6">
-
     <!-- Bảng danh sách lớp học phần -->
     <DataTable
       title="Danh Sách Lớp Học Phần"
@@ -8,17 +7,11 @@
       :columns="columns"
       idKey="courseClassId"
       :showAddButton="false"
-    >
-      <!-- Custom action slot -->
-      <template #actions="{ row }">
-        <button
-          class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
-          @click="enroll(row)"
-        >
-          Đăng ký
-        </button>
-      </template>
-    </DataTable>
+      :registerMode="true"
+      :showRegisterButton="true"
+      registerLabel="Đăng ký"
+      @register="enroll"
+    />
   </div>
 </template>
 
@@ -28,35 +21,69 @@ import DataTable from '@/components/DataTable.vue'
 
 const courseClasses = ref([])
 
-// 🔹 Cột hiển thị
+// 🧩 Cấu hình cột hiển thị trong bảng
 const columns = [
-  { label: "Mã Lớp", field: "courseId" },
-  { label: "Môn học", field: "Name" },
-  { label: "Giảng viên", field: "firstName" },
-  { label: "Học kỳ", field: "semester_name" },
+  { label: "Môn học", field: "courseName" },
+  { label: "Giảng viên", field: "teacherName" },
   { label: "Sĩ số tối đa", field: "maxStudents" },
   { label: "Sĩ số tối thiểu", field: "minStudents" },
-  { label: "Lớp", field: "section" },
-  { label: "Hành động", field: "actions" } 
+  { label: "Lớp", field: "section" }
 ]
 
-// 🔹 Fetch danh sách lớp học phần
+// 🧩 Lấy danh sách lớp học phần từ API
 async function fetchCourseClasses() {
   try {
     const res = await fetch('http://localhost:8000/api/course_classes')
     if (!res.ok) throw new Error('Không tải được danh sách học phần')
     const data = await res.json()
-    courseClasses.value = data
+
+    // Làm phẳng dữ liệu để dễ hiển thị trong bảng
+    courseClasses.value = data.map(item => ({
+      ...item,
+      courseName: item.course?.name || 'Không có tên môn học',
+      teacherName: item.teacher
+        ? `${item.teacher.lastName} ${item.teacher.firstName}`
+        : 'Không rõ giảng viên'
+    }))
   } catch (err) {
     alert('Lỗi: ' + err.message)
   }
 }
 
-// 🔹 Hàm đăng ký học phần
+// 🧩 Hàm đăng ký học phần
+async function enroll(row) {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/enrollments', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        student_id: Number(student_id), 
+        course_class_id: row.courseClassId
+      })
+    })
+
+    if (!response.ok) {
+      const err = await response.json()
+      console.error('Lỗi đăng ký:', err)
+      alert('⚠️ Đăng ký thất bại!')
+      return
+    }
+
+    const result = await response.json()
+    alert(`✅ Đăng ký thành công!\nMã đăng ký: ${result.enrollmentId}`)
+  } catch (error) {
+    console.error(error)
+    alert('❌ Lỗi kết nối server!')
+  }
+}
 
 onMounted(fetchCourseClasses)
 
-definePageMeta({ 
-    title: 'Đăng ký học phần'
+// 🧩 Tiêu đề trang
+definePageMeta({
+  title: 'Đăng ký học phần'
 })
 </script>
