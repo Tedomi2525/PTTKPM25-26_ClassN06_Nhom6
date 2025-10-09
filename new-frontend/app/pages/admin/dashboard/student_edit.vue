@@ -1,30 +1,39 @@
 <template>
-  <div class="px-4">
+  <div class="max-w-6xl mx-auto mt-4 px-4">
     <CButton type="back" variant="secondary" @click="$router.back()">Trở lại</CButton>
   </div>
-  <div class="max-w-6xl mx-auto mt-8 px-4">
+
+  <div class="max-w-6xl mx-auto mt-4 px-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-      <div class="bg-[#09f] text-white px-6 py-3">
+      <div class="bg-[#09f] border-b border-[#09f] rounded-t-lg text-white px-6 py-3">
         <h4 class="text-lg font-semibold">Sửa Sinh Viên</h4>
       </div>
 
       <div class="p-6">
         <form @submit.prevent="handleSubmit" class="space-y-6">
           
-          <div v-if="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-              <p class="font-bold">Lỗi gửi dữ liệu!</p>
-              <p>{{ errorMessage }}</p>
-              <ul v-if="validationErrors" class="mt-2 list-disc list-inside text-sm">
-                  <li v-for="(errors, field) in validationErrors" :key="field">
-                      **{{ field }}**: {{ errors.join(', ') }}
-                  </li>
-              </ul>
+          <!-- Thông báo lỗi -->
+          <div
+            v-if="errorMessage"
+            class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"
+            role="alert"
+          >
+            <p class="font-bold">Lỗi gửi dữ liệu!</p>
+            <p>{{ errorMessage }}</p>
+            <ul
+              v-if="validationErrors"
+              class="mt-2 list-disc list-inside text-sm"
+            >
+              <li v-for="(errors, field) in validationErrors" :key="field">
+                **{{ field }}**: {{ errors.join(', ') }}
+              </li>
+            </ul>
           </div>
 
           <!-- Thông tin cá nhân -->
           <div>
             <h5 class="text-blue-600 font-semibold mb-4">Thông tin cá nhân</h5>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="firstName" class="block text-sm font-medium mb-1">Họ và đệm *</label>
                 <InputField id="firstName" v-model="form.firstName" placeholder="VD: Đàm Anh" required />
@@ -33,17 +42,20 @@
                 <label for="lastName" class="block text-sm font-medium mb-1">Tên *</label>
                 <InputField id="lastName" v-model="form.lastName" placeholder="VD: Pháp" required />
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <label for="phone" class="block text-sm font-medium mb-1">Số điện thoại *</label>
                 <InputField id="phone" v-model="form.phone" placeholder="VD: 0987654321" type="tel" required />
               </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label for="dob" class="block text-sm font-medium mb-1">Ngày sinh *</label>
                 <InputField id="dob" v-model="form.dob" type="date" required />
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label for="gender" class="block text-sm font-medium mb-1">Giới tính *</label>
                 <DropDown
@@ -61,9 +73,10 @@
             </div>
           </div>
 
-          <!-- Thông tin đào tạo & quản lý -->
+          <!-- Thông tin đào tạo -->
           <div>
             <h5 class="text-blue-600 font-semibold mb-4">Thông tin đào tạo & quản lý</h5>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label for="className" class="block text-sm font-medium mb-1">Lớp</label>
@@ -115,8 +128,8 @@
                   v-model="form.status"
                   :options="[
                     { label: 'Đang học', value: 'Đang học' },
-                    { label: 'Tạm dừng', value: 'Tạm dừng' },
-                    { label: 'Tốt nghiệp', value: 'Tốt nghiệp' }
+                    { label: 'Bảo lưu', value: 'Bảo lưu' },
+                    { label: 'Đã tốt nghiệp', value: 'Đã tốt nghiệp' }
                   ]"
                 />
               </div>
@@ -124,25 +137,26 @@
                 <label for="avatar" class="block text-sm font-medium mb-1">Ảnh đại diện</label>
                 <ImageAddButton
                   id="avatar"
-                  buttonText="Thay ảnh"
+                  buttonText="Cập nhật ảnh"
                   @update:file="handleFileUpload"
                 />
               </div>
             </div>
           </div>
 
+          <!-- Nút thao tác -->
           <div class="flex justify-end space-x-2">
             <CButton type="reset" variant="secondary" @click="resetForm">Đặt lại</CButton>
             <CButton type="submit" variant="primary" :disabled="isSubmitting">
               {{ isSubmitting ? 'Đang lưu...' : 'Cập nhật sinh viên' }}
             </CButton>
           </div>
+
         </form>
       </div>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -155,6 +169,9 @@ definePageMeta({
 
 const router = useRouter();
 const route = useRoute();
+
+// 🟩 ID sinh viên cần sửa
+const studentId = ref(route.query.id || localStorage.getItem('editStudentId'));
 
 const form = ref({
   firstName: "", 
@@ -176,26 +193,24 @@ const form = ref({
 const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
-const studentId = route.query.id;
 
 // 🟦 Lấy dữ liệu sinh viên theo ID
 onMounted(async () => {
-  const studentId = localStorage.getItem('editStudentId')
-  if (!studentId) {
-    alert('Không tìm thấy ID sinh viên để sửa!')
-    router.push('/Admin/dashboard/student_list')
-    return
+  if (!studentId.value) {
+    alert('Không tìm thấy ID sinh viên để sửa!');
+    router.push('/Admin/dashboard/student_list');
+    return;
   }
 
   try {
-    const res = await fetch(`http://localhost:8000/api/students/${studentId}`)
-    if (!res.ok) throw new Error('Không thể tải dữ liệu sinh viên')
-    const data = await res.json()
-    Object.assign(form.value, data)
+    const res = await fetch(`http://localhost:8000/api/students/${studentId.value}`);
+    if (!res.ok) throw new Error('Không thể tải dữ liệu sinh viên');
+    const data = await res.json();
+    Object.assign(form.value, data);
   } catch (err) {
-    errorMessage.value = err.message
+    errorMessage.value = err.message;
   }
-})
+});
 
 const handleFileUpload = (fileObject) => {
   form.value.avatar = fileObject; 
@@ -230,9 +245,7 @@ const handleSubmit = async () => {
     }
   }
 
-  const fetchOptions = {
-    method: "PUT",
-  };
+  const fetchOptions = { method: "PUT" };
 
   if (usesFormData) {
     fetchOptions.body = formData;
@@ -240,13 +253,12 @@ const handleSubmit = async () => {
     const payload = { ...form.value };
     if (payload.avatar instanceof File) delete payload.avatar;
     if (payload.dob) payload.dob = new Date(payload.dob).toISOString().split('T')[0];
-
     fetchOptions.headers = { "Content-Type": "application/json" };
     fetchOptions.body = JSON.stringify(payload);
   }
-  
+
   try {
-    const response = await fetch(`http://localhost:8000/api/students/${studentId}`, fetchOptions);
+    const response = await fetch(`http://localhost:8000/api/students/${studentId.value}`, fetchOptions);
 
     if (response.status === 422) {
       const errorData = await response.json();
@@ -255,13 +267,10 @@ const handleSubmit = async () => {
       return; 
     }
 
-    if (!response.ok) {
-      throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
 
     alert("Cập nhật sinh viên thành công!");
     router.push('/Admin/dashboard/student_list');
-    
   } catch (err) {
     errorMessage.value = err.message || "Có lỗi xảy ra khi cập nhật sinh viên";
   } finally {

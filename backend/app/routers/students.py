@@ -64,6 +64,12 @@ async def create_student_with_avatar(
         raise HTTPException(status_code=500, detail=f"Lỗi server nội bộ: {str(e)}")
 # ==============================================================================
 
+@router.get("/students/{student_id}", response_model=StudentSchema)
+def update_student(student_id: int, payload: StudentUpdate, db: Session = Depends(get_db)):
+    student = student_service.update_student(db, student_id, payload)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
 
 @router.put("/students/{student_id}", response_model=StudentSchema)
 def update_student(student_id: int, payload: StudentUpdate, db: Session = Depends(get_db)):
