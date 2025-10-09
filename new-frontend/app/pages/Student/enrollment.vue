@@ -53,30 +53,36 @@ async function fetchCourseClasses() {
 // 🧩 Hàm đăng ký học phần
 async function enroll(row) {
   try {
+    const studentId = localStorage.getItem("studentId"); // 👈 lấy ID sinh viên
+    if (!studentId) {
+      alert("⚠️ Không tìm thấy mã sinh viên. Vui lòng đăng nhập lại!");
+      return;
+    }
+
     const response = await fetch('http://127.0.0.1:8000/api/enrollments', {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        student_id: Number(student_id), 
-        course_class_id: row.courseClassId
+        studentId: Number(studentId),
+        courseClassId: row.courseClassId
       })
-    })
+    });
+
+    const result = await response.json();
 
     if (!response.ok) {
-      const err = await response.json()
-      console.error('Lỗi đăng ký:', err)
-      alert('⚠️ Đăng ký thất bại!')
-      return
+      console.error('Lỗi đăng ký:', result);
+      alert(`⚠️ Đăng ký thất bại!\nChi tiết: ${result.detail?.[0]?.msg || 'Không rõ lỗi'}`);
+      return;
     }
 
-    const result = await response.json()
-    alert(`✅ Đăng ký thành công!\nMã đăng ký: ${result.enrollmentId}`)
+    alert(`✅ Đăng ký thành công!\nMã đăng ký: ${result.enrollmentId}`);
   } catch (error) {
-    console.error(error)
-    alert('❌ Lỗi kết nối server!')
+    console.error('Chi tiết lỗi:', error);
+    alert('❌ Lỗi kết nối đến server: ' + error.message);
   }
 }
 
