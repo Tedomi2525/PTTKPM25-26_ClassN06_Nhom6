@@ -5,22 +5,18 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Import your models here
+# Import models and config
 from app.database import Base
 from app.core.config import settings
 
-# Import all models to ensure they are registered with SQLAlchemy
-from app.models import (
-    user, teacher, student, course, course_class, enrollment,
-    room, period, semester, schedule, schedule_template,
-    student_faces, attendance, program, program_course
-)
+# Import all models để Alembic detect được
+from app.models import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Set the sqlalchemy.url from settings
+# Set database URL from settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Interpret the config file for Python logging.
@@ -70,7 +66,7 @@ def run_migrations_online() -> None:
 
     """
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
+        config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

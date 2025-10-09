@@ -55,10 +55,21 @@ class StudentBase(BaseModel):
 # ==============================================================================
 
 class StudentCreate(StudentBase):
+    @field_validator('dob', mode='before')
+    @classmethod
+    def validate_dob(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        return v
+    
     @field_validator('gender', mode='before')
     @classmethod
     def validate_gender(cls, v):
         if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
             return None
         
         # Gender mapping for different input formats
@@ -75,6 +86,69 @@ class StudentCreate(StudentBase):
         # Return mapped value if found, otherwise return original (let enum validation handle it)
         return gender_mapping.get(str_value, v)
     
+    @field_validator('email', mode='before')
+    @classmethod
+    def validate_email(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        return v
+    
+    @field_validator('education_type', mode='before')
+    @classmethod
+    def validate_education_type(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        
+        # Education type mapping for different input formats
+        education_mapping = {
+            "1": "Đại học chính quy",
+            "2": "Liên thông", 
+            "3": "Cao đẳng",
+            "đại học chính quy": "Đại học chính quy",
+            "liên thông": "Liên thông",
+            "cao đẳng": "Cao đẳng",
+            "regular": "Đại học chính quy",
+            "transfer": "Liên thông",
+            "college": "Cao đẳng"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return education_mapping.get(str_value, v)
+    
+    @field_validator('status', mode='before')
+    @classmethod
+    def validate_status(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        
+        # Status mapping for different input formats
+        status_mapping = {
+            "1": "Đang học",
+            "2": "Bảo lưu", 
+            "3": "Đã tốt nghiệp",
+            "đang học": "Đang học",
+            "bảo lưu": "Bảo lưu",
+            "đã tốt nghiệp": "Đã tốt nghiệp",
+            "studying": "Đang học",
+            "on_leave": "Bảo lưu",
+            "graduated": "Đã tốt nghiệp"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return status_mapping.get(str_value, v)
+    
     @field_validator(
         'class_name', 'training_program', 'course_years', 
         'faculty', 'major', 'position', 'avatar', # Thêm 'avatar' vào đây để loại bỏ chuỗi rỗng
@@ -84,6 +158,9 @@ class StudentCreate(StudentBase):
     def validate_string_fields(cls, v):
         # Nếu là None hoặc chuỗi rỗng, trả về None
         if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        # Nếu là string với giá trị placeholder, trả về None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
             return None
         # Nếu là string, loại bỏ khoảng trắng và trả về
         if isinstance(v, str):
@@ -115,10 +192,21 @@ class StudentUpdate(BaseModel):
     position: Optional[str] = Field(None, alias="position", max_length=50, description="Position")
     avatar: Optional[str] = Field(None, alias="avatar", max_length=255, description="Avatar URL")
     
+    @field_validator('dob', mode='before')
+    @classmethod
+    def validate_dob(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        return v
+    
     @field_validator('gender', mode='before')
     @classmethod
     def validate_gender(cls, v):
         if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
             return None
         
         gender_mapping = {
@@ -131,6 +219,69 @@ class StudentUpdate(BaseModel):
         str_value = str(v).lower().strip()
         return gender_mapping.get(str_value, v)
     
+    @field_validator('email', mode='before')
+    @classmethod
+    def validate_email(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        return v
+    
+    @field_validator('education_type', mode='before')
+    @classmethod
+    def validate_education_type(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        
+        # Education type mapping for different input formats
+        education_mapping = {
+            "1": "Đại học chính quy",
+            "2": "Liên thông", 
+            "3": "Cao đẳng",
+            "đại học chính quy": "Đại học chính quy",
+            "liên thông": "Liên thông",
+            "cao đẳng": "Cao đẳng",
+            "regular": "Đại học chính quy",
+            "transfer": "Liên thông",
+            "college": "Cao đẳng"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return education_mapping.get(str_value, v)
+    
+    @field_validator('status', mode='before')
+    @classmethod
+    def validate_status(cls, v):
+        if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
+            return None
+        
+        # Status mapping for different input formats
+        status_mapping = {
+            "1": "Đang học",
+            "2": "Bảo lưu", 
+            "3": "Đã tốt nghiệp",
+            "đang học": "Đang học",
+            "bảo lưu": "Bảo lưu",
+            "đã tốt nghiệp": "Đã tốt nghiệp",
+            "studying": "Đang học",
+            "on_leave": "Bảo lưu",
+            "graduated": "Đã tốt nghiệp"
+        }
+        
+        # Convert to string and normalize
+        str_value = str(v).lower().strip()
+        
+        # Return mapped value if found, otherwise return original (let enum validation handle it)
+        return status_mapping.get(str_value, v)
+    
     @field_validator(
         'class_name', 'training_program', 'course_years', 
         'faculty', 'major', 'position', 'avatar',
@@ -139,6 +290,8 @@ class StudentUpdate(BaseModel):
     @classmethod
     def validate_string_fields(cls, v):
         if v is None or (isinstance(v, str) and v.strip() == ''):
+            return None
+        if isinstance(v, str) and v.strip().lower() in ['string', 'null', 'undefined']:
             return None
         if isinstance(v, str):
             return v.strip()
