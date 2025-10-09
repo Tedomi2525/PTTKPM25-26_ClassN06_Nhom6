@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 space-y-6">
+    <div class="max-w-6xl mx-auto mt-8 px-4">
     <DataTable
       title="Danh Sách Sinh Viên"
       :data="students"

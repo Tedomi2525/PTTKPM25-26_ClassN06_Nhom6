@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="max-w-6xl mx-auto mt-8 px-4">
     <!-- Data Table with integrated Add button -->
     <DataTable
       title="Danh Sách Giảng Viên"

@@ -1,15 +1,13 @@
 <template>
-  <div class="p-6">
-    <CButton type="back" variant="secondary">Trở lại</CButton>
+  <div class="max-w-6xl mx-auto mt-4 px-4">
+        <CButton type="back" variant="secondary" @click="$router.back()">Trở lại</CButton>
   </div>
+  <div class="max-w-6xl mx-auto mt-4 px-4">
 
-  <div class="max-w-5xl mx-auto mt-8 px-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-      <!-- Header -->
-      <div class="bg-blue-600 text-white px-6 py-3">
+      <div class="bg-[#09f] border-b border-[#09f] rounded-t-lg text-white px-6 py-3">
         <h4 class="text-lg font-semibold">Thêm Giảng Viên</h4>
       </div>
-
       <!-- Body -->
       <div class="p-6">
         <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -113,15 +111,11 @@
           </div>
 
           <!-- NÚT -->
-          <div class="flex justify-end space-x-2 mt-8">
-            <button
-              type="reset"
-              class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              @click="resetForm"
-            >
-              Làm mới
-            </button>
-            <CButton type="submit">Lưu giảng viên</CButton>
+          <div class="flex justify-end space-x-2">
+            <CButton type="reset" variant="secondary" @click="resetForm">Hủy bỏ</CButton>
+            <CButton type="submit" variant="primary" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Đang lưu...' : 'Lưu giảng viên' }}
+            </CButton>
           </div>
         </form>
       </div>
@@ -135,6 +129,9 @@ import DropDown from "~/components/DropDown.vue";
 import { useAuth } from "~/composables/useAuth"; // 👈 thêm dòng này
 
 const { token } = useAuth(); // 👈 lấy token hiện tại
+const isSubmitting = ref(false);
+const errorMessage = ref(null);
+const validationErrors = ref(null);
 
 const form = ref({
   firstName: "",
@@ -158,6 +155,7 @@ const resetForm = () => {
 };
 
 const handleSubmit = async () => {
+  isSubmitting.value = true;
   try {
     console.log("Payload gửi đi:", JSON.stringify(form.value, null, 2));
     console.log("Token dùng để gửi:", token.value);
