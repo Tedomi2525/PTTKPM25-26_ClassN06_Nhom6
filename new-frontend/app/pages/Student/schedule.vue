@@ -1,20 +1,20 @@
 <template>
   <div class="container mx-auto mt-4">
     <div class="grid grid-cols-4 gap-6 items-start">
-      <!-- Lịch chính -->
-      <div class="col-span-3 bg-white rounded-lg">
+      <!-- 📅 Lịch học chính -->
+      <div class="col-span-3 bg-white rounded-lg shadow p-3">
         <FullCalendar ref="calendarRef" :options="calendarOptions" />
       </div>
 
-      <!-- Lịch nhỏ -->
+      <!-- 🗓️ Lịch chọn ngày -->
       <div
         id="datepicker"
-        class="bg-blue-100 rounded-lg shadow max-h-[300px] max-w-[310px] flex flex-col items-center"
+        class="bg-blue-100 rounded-lg shadow max-h-[320px] max-w-[310px] flex flex-col items-center"
       >
         <div
           class="w-full bg-blue-900 text-white font-semibold text-sm text-center px-3 py-2 rounded-t-lg border-b border-white/20"
         >
-          Chọn ngày
+          Chọn ngày (chủ nhật của tuần)
         </div>
         <div id="calendarPicker" class="scale-90 origin-top"></div>
       </div>
@@ -24,18 +24,19 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import axios from "axios";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import viLocale from "@fullcalendar/core/locales/vi";
-
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js";
 
 const calendarRef = ref(null);
 
-const calendarOptions = {
+// 🧩 Tuỳ chỉnh lịch hiển thị
+const calendarOptions = ref({
   plugins: [timeGridPlugin, interactionPlugin],
   initialView: "timeGridWeek",
   locale: viLocale,
@@ -66,43 +67,70 @@ const calendarOptions = {
              </div>`,
     };
   },
-  events: [
-    {
-      title: "Phân tích & thiết kế hệ thống\nTiết 1-2\nPhòng A6-07\nGV: Cô Mai",
-      start: "2025-09-08T06:45:00",
-      end: "2025-09-08T09:25:00",
-      color: "#1e88e5",
-    },
-    {
-      title: "An toàn & bảo mật\nTiết 1-2\nPhòng A8-104\nGV: Thầy Ngữ",
-      start: "2025-09-10T06:45:00",
-      end: "2025-09-10T09:25:00",
-      color: "#fb8c00",
-    },
-    {
-      title: "Điện toán đám mây\nTiết 1-2\nPhòng A6-02\nGV: Thầy Phạm",
-      start: "2025-09-11T06:45:00",
-      end: "2025-09-11T09:25:00",
-      color: "#e53935",
-    },
-    {
-      title: "Tiếng Anh 2\nTiết 7-8\nPhòng A2-201\nGV: Cô Hằng",
-      start: "2025-09-09T13:00:00",
-      end: "2025-09-09T14:40:00",
-      color: "#43a047",
-    },
-  ],
+  events: [],
+});
+
+// 🧠 Hàm gọi API lấy lịch học sinh viên
+const loadStudentSchedule = async (studentId, sundayDate) => {
+  try {
+    const res = await axios.get(
+      "http://localhost:8000/api/students/weekly-schedule",
+      {
+        params: {
+          student_id: studentId,
+          sunday_date: sundayDate, // dạng 05/10/2025 hoặc 2025-10-05 đều được
+        },
+      }
+    );
+
+    if (res.data.success) {
+      const schedules = res.data.data.schedules || [];
+
+      // 🗓️ Chuyển đổi dữ liệu API thành event cho FullCalendar
+      calendarOptions.value.events = schedules.map((item) => ({
+        title: `${item.course_name} (${item.room_name})`,
+        start: item.start_time,
+        end: item.end_time,
+        backgroundColor: "#2563eb",
+        borderColor: "#1e40af",
+        textColor: "#fff",
+      }));
+    } else {
+      console.warn("Không có lịch học cho tuần này.");
+      calendarOptions.value.events = [];
+    }
+  } catch (err) {
+    console.error("❌ Lỗi khi tải lịch học:", err);
+  }
 };
 
-onMounted(() => {
+const initDatePicker = (studentId) => {
   flatpickr("#calendarPicker", {
-    inline: true,
     locale: vn,
-    onChange: (selectedDates) => {
-      if (selectedDates.length > 0 && calendarRef.value) {
-        calendarRef.value.getApi().gotoDate(selectedDates[0]);
+    inline: true,
+    dateFormat: "d/m/Y",
+    onChange: async (selectedDates) => {
+      if (selectedDates.length > 0) {
+        const selected = selectedDates[0];
+        const sundayDate = selected.toLocaleDateString("vi-VN"); // 05/10/2025
+        await loadStudentSchedule(studentId, sundayDate);
+
+        // Di chuyển lịch chính tới ngày được chọn
+        if (calendarRef.value) {
+          const api = calendarRef.value.getApi();
+          api.gotoDate(selected);
+        }
       }
     },
   });
+};
+
+// 🚀 Khi component được mount
+onMounted(async () => {
+  const studentId = 5;
+  const sundayDate = "05/10/2025";
+
+  await loadStudentSchedule(studentId, sundayDate);
+  initDatePicker(studentId);
 });
 </script>

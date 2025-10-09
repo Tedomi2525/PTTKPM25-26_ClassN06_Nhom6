@@ -31,8 +31,8 @@ const courseClasses = ref([])
 // 🔹 Cột hiển thị
 const columns = [
   { label: "Mã Lớp", field: "courseId" },
-  { label: "Môn học", field: "" },
-  { label: "Giảng viên", field: "teacher_name" },
+  { label: "Môn học", field: "Name" },
+  { label: "Giảng viên", field: "firstName" },
   { label: "Học kỳ", field: "semester_name" },
   { label: "Sĩ số tối đa", field: "maxStudents" },
   { label: "Sĩ số tối thiểu", field: "minStudents" },
