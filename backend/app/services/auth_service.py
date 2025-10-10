@@ -59,21 +59,25 @@ def get_current_user_service(db: Session, token: str):
         raise credentials_exception
 
     student = db.query(Student).filter(Student.user_id == user.user_id).first()
+    teacher = db.query(Teacher).filter(Teacher.user_id == user.user_id).first()
+
     if student:
         full_name = f"{student.first_name} {student.last_name}".strip()
+        school_id = student.student_id
+    elif teacher:
+        full_name = f"{teacher.first_name} {teacher.last_name}".strip()
+        school_id = teacher.teacher_id
     else:
-        teacher = db.query(Teacher).filter(Teacher.user_id == user.user_id).first()
-        if teacher:
-            full_name = f"{teacher.first_name} {teacher.last_name}".strip()
-        else:
-            full_name = user.username
-
+        full_name = user.username
+        school_id = None
+    print("school_id:", school_id)  # 👈 thêm dòng này để kiểm tra giá trị của school_id
     return {
         "user_id": user.user_id,
         "student_id": student.student_id if student else None,
-        "teacher_id": teacher.teacher_id if not student and teacher else None,
+        "teacher_id": teacher.teacher_id if teacher else None,
         "username": user.username,
         "full_name": full_name,
         "role": user.role,
+        "school_id": school_id,   # 👈 thêm dòng này
         "disabled": False
     }

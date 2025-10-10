@@ -18,9 +18,15 @@ class Token(BaseModel):
 class UserOut(BaseModel):
     user_id: int = Field(..., description="User ID")
     username: str = Field(..., max_length=100, description="Username")
-    full_name: Optional[str] = Field(None, alias="fullName", max_length=100, description="Full name of the user")
+    full_name: Optional[str] = Field(
+        None, alias="fullName", max_length=100, description="Full name of the user"
+    )
     disabled: Optional[bool] = Field(None, description="Whether the user is disabled")
     role: str = Field(..., description="Role of the user (e.g., admin, teacher, student)")
+    school_id: Optional[int] = Field(
+        None, alias="schoolId", description="School ID (student_id or teacher_id)"
+    )  # ✅ thêm dòng này
+
     class Config:
         from_attributes = True
         populate_by_name = True
