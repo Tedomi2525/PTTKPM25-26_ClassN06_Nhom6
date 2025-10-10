@@ -73,11 +73,9 @@ def get_current_user_service(db: Session, token: str):
     print("school_id:", school_id)  # 👈 thêm dòng này để kiểm tra giá trị của school_id
     return {
         "user_id": user.user_id,
-        "student_id": student.student_id if student else None,
-        "teacher_id": teacher.teacher_id if teacher else None,
         "username": user.username,
         "full_name": full_name,
         "role": user.role,
-        "school_id": school_id,   # 👈 thêm dòng này
+        "school_id": school_id,
         "disabled": False
     }

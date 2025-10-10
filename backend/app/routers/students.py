@@ -91,7 +91,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("/students/weekly-schedule")
+@router.get("/students/{student_id}/schedule")
 def get_student_weekly_schedule(
     student_id: int,
     sunday_date: str = Query(..., description="Ngày chủ nhật của tuần (DD/MM/YYYY hoặc YYYY-MM-DD)"),

@@ -14,7 +14,7 @@
         <div
           class="w-full bg-blue-900 text-white font-semibold text-sm text-center px-3 py-2 rounded-t-lg border-b border-white/20"
         >
-          Chọn ngày (chủ nhật của tuần)
+          Chọn ngày trong tuần
         </div>
         <div id="calendarPicker" class="scale-90 origin-top"></div>
       </div>
@@ -32,6 +32,9 @@ import viLocale from "@fullcalendar/core/locales/vi";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js";
+import { useAuth } from "@/composables/useAuth"; // import composable auth
+
+const { schoolId } = useAuth(); // 👈 reactive schoolId / studentId
 
 const calendarRef = ref(null);
 
@@ -53,12 +56,12 @@ const calendarOptions = ref({
     hour12: false,
   },
   dayHeaderContent: (arg) => {
-    let date = arg.date;
-    let d = String(date.getDate()).padStart(2, "0");
-    let m = String(date.getMonth() + 1).padStart(2, "0");
-    let y = date.getFullYear();
-    let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    let thu = weekdays[date.getDay()];
+    const date = arg.date;
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const thu = weekdays[date.getDay()];
 
     return {
       html: `<div class="text-center">
@@ -70,65 +73,124 @@ const calendarOptions = ref({
   events: [],
 });
 
-// 🧠 Hàm gọi API lấy lịch học sinh viên
+// 🔹 Hàm chuyển ngày sang format YYYY-MM-DD
+const formatDateToYYYYMMDD = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+// 🔹 Hàm tìm ngày Chủ nhật của tuần chứa ngày được chọn
+const getSundayOfWeek = (date) => {
+  const day = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const diff = date.getDate() - day; // Số ngày cần trừ để về Chủ nhật
+  const sunday = new Date(date.setDate(diff));
+  return sunday;
+};
+
 const loadStudentSchedule = async (studentId, sundayDate) => {
+  if (!studentId) {
+    console.warn("❌ Student ID không hợp lệ");
+    return;
+  }
+
   try {
+    console.log(`🔄 Đang tải lịch học cho sinh viên ${studentId}, tuần bắt đầu: ${sundayDate}`);
+    
     const res = await axios.get(
-      "http://localhost:8000/api/students/weekly-schedule",
-      {
-        params: {
-          student_id: studentId,
-          sunday_date: sundayDate, // dạng 05/10/2025 hoặc 2025-10-05 đều được
-        },
-      }
+      `http://localhost:8000/api/students/${studentId}/schedule`,
+      { params: { sunday_date: sundayDate } }
     );
 
     if (res.data.success) {
-      const schedules = res.data.data.schedules || [];
+      console.log("✅ Lịch học tải về:", res.data);
 
-      // 🗓️ Chuyển đổi dữ liệu API thành event cho FullCalendar
-      calendarOptions.value.events = schedules.map((item) => ({
-        title: `${item.course_name} (${item.room_name})`,
-        start: item.start_time,
-        end: item.end_time,
-        backgroundColor: "#2563eb",
-        borderColor: "#1e40af",
-        textColor: "#fff",
-      }));
+      const schedules = res.data.data.schedules || [];
+      
+      if (schedules.length === 0) {
+        console.log("📭 Không có lịch học cho tuần này");
+        calendarOptions.value.events = [];
+        return;
+      }
+
+      calendarOptions.value.events = schedules.map((item) => {
+        // 🔹 Chuyển đổi từ DD/MM/YYYY sang YYYY-MM-DD cho FullCalendar
+        const [day, month, year] = item.specific_date.split('/');
+        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        
+        console.log(`📚 Môn học: ${item.course.course_name} - Ngày: ${item.specific_date} -> ${isoDate}`);
+        
+        return {
+          title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
+          start: `${isoDate}T${item.time.period_start.start_time}`,
+          end: `${isoDate}T${item.time.period_end.end_time}`,
+          backgroundColor: "#2563eb",
+          borderColor: "#1e40af",
+          textColor: "#fff",
+          extendedProps: {
+            teacher: item.course_class.teacher.full_name,
+            courseCode: item.course.course_code,
+            credits: item.course.credits,
+          },
+        };
+      });
     } else {
-      console.warn("Không có lịch học cho tuần này.");
+      console.warn("❌ API trả về không thành công:", res.data);
       calendarOptions.value.events = [];
     }
   } catch (err) {
     console.error("❌ Lỗi khi tải lịch học:", err);
+    if (err.response) {
+      console.error("Response data:", err.response.data);
+      console.error("Response status:", err.response.status);
+    }
+    calendarOptions.value.events = [];
   }
 };
 
+
+// 🔹 Khởi tạo Flatpickr chọn ngày
 const initDatePicker = (studentId) => {
   flatpickr("#calendarPicker", {
     locale: vn,
     inline: true,
     dateFormat: "d/m/Y",
     onChange: async (selectedDates) => {
-      if (selectedDates.length > 0) {
-        const selected = selectedDates[0];
-        const sundayDate = selected.toLocaleDateString("vi-VN"); // 05/10/2025
-        await loadStudentSchedule(studentId, sundayDate);
+      if (!selectedDates.length) return;
+      const selected = selectedDates[0];
+      
+      // 🔹 Tìm ngày Chủ nhật của tuần chứa ngày được chọn
+      const sundayOfWeek = getSundayOfWeek(new Date(selected));
+      const sundayDate = formatDateToYYYYMMDD(sundayOfWeek); // ✅ YYYY-MM-DD format của Chủ nhật
+      
+      console.log(`📅 Ngày được chọn: ${selected.toLocaleDateString('vi-VN')}`);
+      console.log(`📅 Chủ nhật của tuần: ${sundayOfWeek.toLocaleDateString('vi-VN')}`);
+      console.log(`📅 Sunday date gửi API: ${sundayDate}`);
+      
+      await loadStudentSchedule(studentId, sundayDate);
 
-        // Di chuyển lịch chính tới ngày được chọn
-        if (calendarRef.value) {
-          const api = calendarRef.value.getApi();
-          api.gotoDate(selected);
-        }
+      // Di chuyển lịch chính tới ngày Chủ nhật của tuần
+      if (calendarRef.value) {
+        const api = calendarRef.value.getApi();
+        api.gotoDate(sundayOfWeek);
       }
     },
   });
 };
 
-// 🚀 Khi component được mount
+// 🚀 Khi component mount
 onMounted(async () => {
-  const studentId = 5;
-  const sundayDate = "05/10/2025";
+  const studentId = schoolId.value || localStorage.getItem("schoolId"); // fallback từ localStorage
+  
+  // 🔹 Tìm Chủ nhật của tuần hiện tại thay vì ngày hiện tại
+  const today = new Date();
+  const sundayOfCurrentWeek = getSundayOfWeek(new Date(today));
+  const sundayDate = formatDateToYYYYMMDD(sundayOfCurrentWeek);
+  
+  console.log(`📅 Hôm nay: ${today.toLocaleDateString('vi-VN')}`);
+  console.log(`📅 Chủ nhật tuần hiện tại: ${sundayOfCurrentWeek.toLocaleDateString('vi-VN')}`);
+  console.log(`📅 Sunday date khởi tạo: ${sundayDate}`);
 
   await loadStudentSchedule(studentId, sundayDate);
   initDatePicker(studentId);

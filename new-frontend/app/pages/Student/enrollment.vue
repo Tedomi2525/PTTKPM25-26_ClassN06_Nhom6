@@ -21,7 +21,7 @@ import DataTable from '@/components/DataTable.vue'
 
 const courseClasses = ref([])
 
-const { schoolId } = useAuth() // 👈 sử dụng composable useAuth để lấy schoolId
+const { schoolId } = useAuth()
 console.log("schoolId in enrollment.vue:", schoolId.value);
 // 🧩 Cấu hình cột hiển thị trong bảng
 const columns = [
