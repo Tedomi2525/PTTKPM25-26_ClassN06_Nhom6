@@ -70,7 +70,6 @@ def get_current_user_service(db: Session, token: str):
     else:
         full_name = user.username
         school_id = None
-    print("school_id:", school_id)  # 👈 thêm dòng này để kiểm tra giá trị của school_id
     return {
         "user_id": user.user_id,
         "username": user.username,

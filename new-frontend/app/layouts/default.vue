@@ -116,7 +116,7 @@ watch(
       
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 pt-16">
+    <main class="flex-1 pt-16 h-full">
       <slot />
     </main>
   </div>

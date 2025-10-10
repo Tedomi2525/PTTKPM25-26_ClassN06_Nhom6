@@ -88,6 +88,7 @@ CREATE TABLE courses (
     course_code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(150) NOT NULL,
     credits INT NOT NULL CHECK (credits > 0),
+    is_deleted INT NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1)),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
