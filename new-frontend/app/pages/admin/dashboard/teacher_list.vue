@@ -17,7 +17,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import DataTable from '@/components/DataTable.vue'
+
+const router = useRouter() // Thêm useRouter để sử dụng navigateTo
+const students = ref([])
 
 const teachers = ref([])
 const columns = [
@@ -46,9 +50,8 @@ async function fetchTeachers() {
 }
 
 function editTeacher(teacher) {
-  alert('Sửa giảng viên: ' + teacher.firstName + ' (' + teacher.teacherId + ')')
-  // hoặc điều hướng tới trang sửa:
-  // router.push(`/Admin/dashboard/teacher_edit/${teacher.teacherId}`)
+  localStorage.setItem('editTeacherId', teacher.teacherId)
+  router.push('/Admin/dashboard/teacher_edit')
 }
 
 async function deleteTeacher(teacher) {

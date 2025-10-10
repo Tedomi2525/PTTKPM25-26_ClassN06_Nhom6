@@ -26,6 +26,13 @@ def create_teacher(payload: TeacherCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+@router.get("/teachers/{teacher_id}", response_model=TeacherSchema)
+def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = teacher_service.get_teacher_by_id(db, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return teacher
+
 @router.put("/teachers/{teacher_id}", response_model=TeacherSchema)
 def update_teacher(teacher_id: int, payload: TeacherUpdate, db: Session = Depends
 (get_db)):
