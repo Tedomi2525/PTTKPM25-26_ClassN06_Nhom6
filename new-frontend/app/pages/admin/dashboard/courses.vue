@@ -1,24 +1,20 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-4 pl-6">
-      <CButton 
-        @click="$router.push('/Admin/dashboard/courses_deleted')" 
-        class="bg-blue-500 text-white px-3 py-2 rounded"
-      >
-        Xem học phần đã ẩn
-      </CButton>
-    </div>
 
-    <DataTable
-      title="Danh Sách Học Phần"
-      :data="courses"
-      :columns="columns"
-      idKey="courseId"
-      deleteLabel="Ẩn"
-      @edit="editCourse"
-      @delete="hideCourse"
-    />
-  </div>
+  <div class="mx-auto mt-4 h-[90%]">
+    <div class="px-6 pb-2 h-[90%]">
+      <CButton type="goto" to="/Admin/dashboard/courses_deleted" variant="secondary">Bảng học phần đã ẩn</CButton>
+    </div>
+      <DataTable
+        title="Danh Sách Học Phần"
+        :data="courses"
+        :columns="columns"
+        idKey="courseId"
+        deleteLabel="Ẩn"
+        @edit="editCourse"
+        @delete="hideCourse"
+        class="h-[90%]"
+      />
+    </div>
 </template>
 
 <script setup>

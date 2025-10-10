@@ -1,12 +1,7 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-4">
-      <button 
-        @click="$router.push('/admin/dashboard/programs_deleted')" 
-        class="bg-gray-500 text-white px-3 py-2 rounded"
-      >
-        Xem chương trình đã ẩn
-      </button>
+  <div class="max-w-6xl mx-auto mt-4">
+    <div class="px-6 pb-2">
+      <CButton type="goto" to="/Admin/dashboard/programs_deleted" variant="secondary">Bảng chương trình đã ẩn</CButton>
     </div>
 
     <DataTable
