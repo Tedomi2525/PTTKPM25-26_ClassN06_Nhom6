@@ -21,6 +21,8 @@ import DataTable from '@/components/DataTable.vue'
 
 const courseClasses = ref([])
 
+const { schoolId } = useAuth() // 👈 sử dụng composable useAuth để lấy schoolId
+console.log("schoolId in enrollment.vue:", schoolId.value);
 // 🧩 Cấu hình cột hiển thị trong bảng
 const columns = [
   { label: "Môn học", field: "courseName" },
@@ -53,7 +55,7 @@ async function fetchCourseClasses() {
 // 🧩 Hàm đăng ký học phần
 async function enroll(row) {
   try {
-    const studentId = localStorage.getItem("studentId"); // 👈 lấy ID sinh viên
+    const studentId = schoolId.value; // 👈 lấy ID sinh viên
     if (!studentId) {
       alert("⚠️ Không tìm thấy mã sinh viên. Vui lòng đăng nhập lại!");
       return;
