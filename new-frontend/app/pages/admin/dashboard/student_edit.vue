@@ -1,9 +1,9 @@
 <template>
-  <div class="max-w-6xl mx-auto mt-4 px-4">
+  <div class="max-w-6xl mx-auto mt-4">
     <CButton type="back" variant="secondary" @click="$router.back()">Trở lại</CButton>
   </div>
 
-  <div class="max-w-6xl mx-auto mt-4 px-4">
+  <div class="max-w-6xl mx-auto mt-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
       <div class="bg-[#09f] border-b border-[#09f] rounded-t-lg text-white px-6 py-3">
         <h4 class="text-lg font-semibold">Sửa Sinh Viên</h4>

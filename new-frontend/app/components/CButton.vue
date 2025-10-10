@@ -23,8 +23,8 @@ import { useRouter } from "vue-router"
 const router = useRouter()
 
 const props = defineProps<{
-  type?: "button" | "submit" | "reset" | "back" | "edit" | "delete"
-  variant?: "primary" | "secondary" | "danger" | "gray" | "edit" | "delete" | "register"
+  type?: "button" | "submit" | "reset" | "back" | "edit" | "delete" | "goto"
+  variant?: "primary" | "secondary" | "danger" | "gray" | "edit" | "delete" | "register" | "goto"
   to?: string
   disabled?: boolean
 }>()
@@ -33,16 +33,15 @@ const emit = defineEmits<{
   (e: "click", event: MouseEvent): void
   (e: "edit", event: MouseEvent): void
   (e: "delete", event: MouseEvent): void
+  (e: "goto", event: MouseEvent): void
 }>()
 
-// ✅ Tự xác định loại nút
 const buttonType = computed(() =>
-  ["back", "edit", "delete"].includes(props.type || "")
+  ["back", "edit", "delete", "goto"].includes(props.type || "")
     ? "button"
     : props.type || "button"
 )
 
-// ✅ CSS theo variant
 const buttonClass = computed(() => {
   const base =
     "inline-flex items-center gap-2 px-3 py-2 rounded transition font-medium text-center text-sm select-none"
@@ -55,6 +54,7 @@ const buttonClass = computed(() => {
     edit: "bg-yellow-400 text-black hover:bg-yellow-500",
     delete: "bg-red-500 text-white hover:bg-red-600",
     register: "bg-white text-[#23336a] border border-[#23336a] hover:bg-[#23336a] hover:text-white",
+    goto: "bg-green-500 text-white hover:bg-green-600",
   }
 
   const disabledClass = props.disabled 
@@ -64,7 +64,6 @@ const buttonClass = computed(() => {
   return `${base} ${variants[props.variant || props.type || "primary"]} ${disabledClass}`
 })
 
-// ✅ Icon theo loại
 const icon = computed(() => {
   switch (props.variant || props.type) {
     case "edit":
@@ -76,7 +75,6 @@ const icon = computed(() => {
   }
 })
 
-// ✅ Hành vi khi click
 function handleClick(event: MouseEvent) {
   if (props.disabled) {
     event.preventDefault()
@@ -90,6 +88,12 @@ function handleClick(event: MouseEvent) {
     emit("edit", event)
   } else if (props.type === "delete" || props.variant === "delete") {
     emit("delete", event)
+  } else if (props.type === "goto" || props.variant === "goto") {
+    emit("goto", event)
+    // ✅ Nếu có route, tự động chuyển trang
+    if (props.to) {
+      router.push(props.to)
+    }
   } else {
     emit("click", event)
   }
