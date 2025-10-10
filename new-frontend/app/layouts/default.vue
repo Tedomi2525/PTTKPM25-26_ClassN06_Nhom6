@@ -73,10 +73,10 @@ watch(
 </script>
 
 <template>
-  <div class="bg-gray-100 min-h-screen">
+  <div class="bg-gray-100">
     <!-- HEADER / NAVBAR -->
     <div class="bg-[#09f] text-white  fixed w-full flex flex-col z-10">
-      <div class="mx-auto w-full px-42">
+      <div class="mx-auto min-w-[50%]">
         <div class="flex justify-between h-16 items-center">
           <!-- Logo -->
           <NuxtLink to="/Admin/dashboard" class="text-xl font-bold">
