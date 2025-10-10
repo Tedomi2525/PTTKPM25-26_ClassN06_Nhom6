@@ -33,52 +33,67 @@ export function useAuth() {
     }
   }
 
-const login = async () => {
+  const login = async () => {
   try {
     const res = await fetch("http://127.0.0.1:8000/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: username.value, password: password.value }),
-    });
+    })
 
-    if (!res.ok) throw new Error("Sai tài khoản hoặc mật khẩu");
+    if (!res.ok) throw new Error("Sai tài khoản hoặc mật khẩu")
 
-    const { accessToken, access_token } = await res.json();
-    const token = accessToken || access_token;
-    if (!token) throw new Error("Không nhận được access token từ server");
+    const data = await res.json()
+    const accessToken = data.accessToken || data.access_token  // hỗ trợ cả camelCase và snake_case
+    
+    if (!accessToken) {
+      throw new Error("Không nhận được access token từ server")
+    }
+    
+    setToken(accessToken)
 
-    setToken(token);
-
-    // 🧠 Gọi /auth/me để lấy thông tin người dùng
+    // Gọi API /me để lấy thông tin user
+    console.log("Making /auth/me request with token:", accessToken)
     const meRes = await fetch("http://127.0.0.1:8000/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!meRes.ok) throw new Error("Không thể lấy thông tin người dùng");
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
 
-    const meData = await meRes.json();
-    console.log("✅ /auth/me:", meData);
+    console.log("/auth/me response status:", meRes.status)
+    console.log("/auth/me response headers:", Object.fromEntries(meRes.headers.entries()))
 
-    // 🔄 Chuẩn hóa dữ liệu (camelCase / snake_case)
-    const normalize = (obj, keys) => keys.find(k => obj[k] !== undefined) && obj[keys.find(k => obj[k] !== undefined)];
-    const fullName = normalize(meData, ["fullName", "full_name"]) || "Người dùng";
-    const userRole = normalize(meData, ["role", "user_role"]) || "user";
-    const schoolIdVal = normalize(meData, ["school_id", "schoolId"]) || null;
+    if (!meRes.ok) {
+      const errorText = await meRes.text()
+      console.error("/auth/me error response:", errorText)
+      throw new Error("Không thể lấy thông tin người dùng")
+    }
 
-    // 💾 Lưu thông tin
-    fullNameCookie.value = fullName;
-    displayName.value = fullName;
-    role.value = userRole;
-    schoolId.value = schoolIdVal;
+    const meData = await meRes.json()
+    console.log("Full /auth/me response:", meData)
+    console.log("typeof meData:", typeof meData)
+    console.log("meData keys:", Object.keys(meData))
+    
+    const fullName = meData.fullName || meData.full_name  // hỗ trợ cả camelCase và snake_case
+    const userRole = meData.role || meData.user_role || "user"  // hỗ trợ cả camelCase và snake_case
+    
+    fullNameCookie.value = fullName  // lưu cookie
+    displayName.value = fullName     // cập nhật display
+    role.value = userRole            // cập nhật role
+    schoolId.value = meData.schoolId || meData.school_id || "" 
 
-    console.log(`👤 ${fullName} (${userRole}) - School ID: ${schoolIdVal}`);
+    console.log("displayName.value:", displayName.value)
+    console.log("fullNameCookie.value:", fullNameCookie.value)
+    console.log("fullName extracted:", fullName)
+    console.log("role extracted:", userRole)
+    console.log("schoolId extracted:", schoolId.value)
 
-    router.push("/Home");
+    router.push("/Home")
+
   } catch (err) {
-    console.error("❌ Login error:", err);
-    loginError.value = "Sai thông tin đăng nhập";
+    loginError.value = "Sai thông tin đăng nhập"
+    console.error("Login error:", err)
   }
-};
-
+}
 
   const logout = () => {
     token.value = "";
