@@ -91,7 +91,7 @@ watch(
 <div class="bg-gray-100 min-h-screen">
   <!-- HEADER / NAVBAR -->
   <header class="bg-blue-500 text-white fixed w-full flex flex-col z-50 shadow-md">
-    <div class="mx-auto min-w-[50%]">
+    <div class="mx-auto min-w-[70%]">
       <div class="flex justify-between h-16 items-center px-4">
         <!-- Logo -->
         <NuxtLink to="/" class="text-xl font-bold">QLDT</NuxtLink>

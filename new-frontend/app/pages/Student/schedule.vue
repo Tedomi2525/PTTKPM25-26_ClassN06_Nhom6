@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto mt-4">
+  <div class="container mx-auto mt-4 px-4">
     <!-- Loading state -->
     <div v-if="isLoading" class="flex justify-center items-center min-h-[500px]">
       <div class="text-center">
@@ -9,23 +9,18 @@
     </div>
 
     <!-- Content khi đã load xong -->
-    <div v-else class="grid grid-cols-4 gap-6 items-start">
-      <!-- 📅 Lịch học chính -->
-      <div class="col-span-3 bg-white rounded-lg shadow p-3">
-        <FullCalendar ref="calendarRef" :options="calendarOptions" />
-      </div>
-
-      <!-- 🗓️ Lịch chọn ngày -->
+    <div v-else class="flex flex-col lg:grid lg:grid-cols-4 gap-6 items-start w-full">
+      <!-- 🗓️ Lịch chọn ngày - Mobile first -->
       <div
         id="datepicker"
-        class="bg-blue-100 rounded-lg shadow max-h-[320px] max-w-[310px] flex flex-col items-center"
+        class="order-1 lg:order-2 lg:col-span-1 bg-blue-100 rounded-lg shadow w-full max-w-[310px] mx-auto lg:mx-0 flex flex-col items-center"
       >
-        <div
-          class="w-full bg-blue-900 text-white font-semibold text-sm text-center px-3 py-2 rounded-t-lg border-b border-white/20"
-        >
-          Chọn ngày trong tuần
-        </div>
-        <div id="calendarPicker" class="scale-90 origin-top"></div>
+        <div id="calendarPicker" class="scale-90 origin-top w-full"></div>
+      </div>
+
+      <!-- 📅 Lịch học chính -->
+      <div class="order-2 lg:order-1 lg:col-span-3 bg-white rounded-lg shadow p-2 sm:p-3 w-full min-h-[400px] lg:min-h-[500px]">
+        <FullCalendar ref="calendarRef" :options="calendarOptions" />
       </div>
     </div>
   </div>
@@ -61,7 +56,7 @@ const calendarOptions = ref({
   headerToolbar: false as const,
   allDaySlot: false,
   firstDay: 0,
-  height: "auto",
+  height: "85vh",
   expandRows: true,
   slotLabelFormat: {
     hour: "2-digit" as const,
