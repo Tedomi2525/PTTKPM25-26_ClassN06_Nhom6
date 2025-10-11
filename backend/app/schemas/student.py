@@ -25,6 +25,7 @@ class StudentBase(BaseModel):
     education_type: Optional[str] = Field(None, alias="educationType")
     faculty: Optional[str] = Field(None, alias="faculty", max_length=100)
     major: Optional[str] = Field(None, alias="major", max_length=100)
+    program_id: Optional[int] = Field(None, alias="programId")
     status: Optional[str] = Field(None, alias="status")
     position: Optional[str] = Field(None, alias="position", max_length=50)
     avatar: Optional[str] = Field(None, alias="avatar", max_length=255)

@@ -16,7 +16,7 @@ class Student(Base):
     gender = Column(String(10))
     email = Column(String(100), unique=True)
     phone = Column(String(20))
-
+    program_id = Column(Integer, ForeignKey("programs.program_id"))
     class_name = Column("class", String(50))
     training_program = Column(String(50))
     course_years = Column(String(20))
