@@ -12,21 +12,10 @@ const isAdmin = computed(() => role.value === "admin")
 const isStudent = computed(() => role.value === "student")
 
 const avatarUrl = computed(() => {
-  if (!avatar.value) {
-    // Avatar mặc định khi không có avatar
-    return '/images/default-avatar.svg'
-  }
-  
-  // Nếu avatar đã có đầy đủ URL (http/https)
-  if (avatar.value.startsWith('http')) {
-    return avatar.value
-  }
-  
-  // Nếu avatar là relative path, nối với base URL
+  if (!avatar.value) return '/images/default-avatar.svg'
+  if (avatar.value.startsWith('http')) return avatar.value
   return `http://127.0.0.1:8000${avatar.value.startsWith('/') ? avatar.value : '/' + avatar.value}`
 })
-
-console.log("Avatar URL:", avatarUrl.value);
 
 function toggleMenu() {
   open.value = !open.value
@@ -42,14 +31,7 @@ function handleImageError(event: Event) {
   img.src = '/images/default-avatar.svg'
 }
 
-onMounted(async () => {
-  if (!token.value) {
-    router.push("/")
-    return
-  }
-  await validateToken()
-})
-
+// Close dropdown if clicked outside
 onMounted(() => {
   const handler = (e: MouseEvent) => {
     const target = e.target as HTMLElement
@@ -59,6 +41,15 @@ onMounted(() => {
   }
   document.addEventListener("click", handler)
   onUnmounted(() => document.removeEventListener("click", handler))
+})
+
+// Validate token
+onMounted(async () => {
+  if (!token.value) {
+    router.push("/")
+    return
+  }
+  await validateToken()
 })
 
 // MENU
@@ -72,14 +63,8 @@ const adminMenuItems = [
 const studentMenuItems = computed(() => {
   const baseItems = [
     { label: 'Thời khóa biểu', href: '/student/schedule' },
-    // { label: 'Điểm danh', href: '/student/attendance' },
     { label: 'Đăng kí học', href: '/student/enrollment' }
   ]
-  
-  // Trang profile hiện tại được thiết kế cho user đang đăng nhập
-  // Không cần dynamic ID vì chỉ hiển thị thông tin của chính user đó
-  baseItems.push({ label: 'Hồ sơ cá nhân', href: '/student/profile' })
-  
   return baseItems
 })
 
@@ -103,71 +88,92 @@ watch(
 </script>
 
 <template>
-  <div class="bg-gray-100">
-    <!-- HEADER / NAVBAR -->
-    <div class="bg-[#09f] text-white  fixed w-full flex flex-col z-10">
-      <div class="mx-auto min-w-[50%]">
-        <div class="flex justify-between h-16 items-center">
-          <!-- Logo -->
-          <NuxtLink to="/admin/dashboard" class="text-xl font-bold">
-            EDUNERA
-          </NuxtLink>
+<div class="bg-gray-100 min-h-screen">
+  <!-- HEADER / NAVBAR -->
+  <header class="bg-blue-500 text-white fixed w-full flex flex-col z-50 shadow-md">
+    <div class="mx-auto min-w-[50%]">
+      <div class="flex justify-between h-16 items-center px-4">
+        <!-- Logo -->
+        <NuxtLink to="/" class="text-xl font-bold">QLDT</NuxtLink>
 
-          <!-- Navigation Menu -->
-          <NavBar
-            v-if="isAdmin"
-            :items="adminMenuItems"
-            @menu-click="handleMenuClick"
-          />
-          <NavBar
-            v-if="isStudent"
-            :items="studentMenuItems"
-            @menu-click="handleMenuClick"
-          />
+        <!-- Navigation Menu -->
+        <NavBar
+          v-if="isAdmin"
+          :items="adminMenuItems"
+          @menu-click="handleMenuClick"
+        />
+        <NavBar
+          v-if="isStudent"
+          :items="studentMenuItems"
+          @menu-click="handleMenuClick"
+        />
 
+        <!-- User Dropdown -->
+        <div class="relative user-dropdown">
+          <button
+            @click="toggleMenu"
+            class="flex items-center px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-200"
+          >
+            <img 
+              :src="avatarUrl" 
+              alt="avatar" 
+              class="w-10 h-10 rounded-full object-cover border-2 border-white/30 mr-3"
+              @error="handleImageError"
+            />
+            <span class="font-medium">{{ displayName }}</span>
+            <svg
+              class="w-4 h-4 ml-2 text-white transition-transform duration-200"
+              :class="{ 'rotate-180': open }"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-
-          <!-- User Dropdown -->
-          <div class="relative user-dropdown">
-            
-            <button @click="toggleMenu" class="px-3 py-1 rounded hover:text-gray-300 flex items-center">
-              <div class="mr-3">
-                <img 
-                  :src="avatarUrl" 
-                  alt="avatar" 
-                  class="w-10 h-10 rounded-full object-cover border-2 border-white/20" 
-                  @error="handleImageError"
-                />
-              </div>
-              {{ displayName }}
-            </button>
+          <transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="opacity-0 transform -translate-y-2"
+            enter-to-class="opacity-100 transform translate-y-0"
+            leave-active-class="transition ease-in duration-150"
+            leave-from-class="opacity-100 transform translate-y-0"
+            leave-to-class="opacity-0 transform -translate-y-2"
+          >
             <ul
               v-if="open"
-              class="absolute right-0 bg-white text-gray-800 mt-2 rounded shadow-lg"
+              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
             >
               <li>
                 <button
                   @click="handleLogout"
-                  class="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  class="flex items-center px-4 py-2 w-full text-left text-gray-800 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
                 >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                  </svg>
                   Đăng xuất
                 </button>
               </li>
+              <li>
+                <NuxtLink
+                  to="/student/profile"
+                  class="flex items-center px-4 py-2 text-gray-800 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A12.045 12.045 0 0112 15c3.314 0 6.314 1.356 8.879 3.555M12 3a9 9 0 019 9v0a9 9 0 11-18 0v0a9 9 0 019-9z" />
+                  </svg>
+                  Hồ sơ cá nhân
+                </NuxtLink>
+              </li>
             </ul>
-
-                      
-          </div>
-
-
-
+          </transition>
         </div>
       </div>
     </div>
-      
+  </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 pt-16 h-full">
-      <slot />
-    </main>
-  </div>
+  <!-- MAIN CONTENT -->
+  <main class="pt-16">
+    <slot />
+  </main>
+</div>
 </template>
