@@ -9,6 +9,7 @@ export interface User {
   fullName: string
   role: string
   schoolId: string
+  programId?: number
   avatar: string
   domain?: string
 }
@@ -76,6 +77,7 @@ export function useAuth() {
         schoolId: data.schoolId || data.school_id || '',
         avatar: data.avatar || '',
         domain: data.domain || '',
+        programId: data.programId || data.program_id || null,
       }
     } catch (err) {
       console.error('🚨 Lỗi khi gọi /auth/me:', err)
@@ -265,7 +267,7 @@ export function useAuth() {
   const role = computed(() => user.value?.role || '')
   const token = computed(() => authToken.value)
   const avatar = computed(() => user.value?.avatar || '')
-
+  const programId = computed(() => user.value?.programId || '')
   // --- return ---
   return {
     // state
@@ -291,5 +293,6 @@ export function useAuth() {
     role,
     token,
     avatar,
+    programId,
   }
 }

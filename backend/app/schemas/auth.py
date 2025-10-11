@@ -27,6 +27,9 @@ class UserOut(BaseModel):
         None, alias="schoolId", description="School ID (student_id or teacher_id)"
     )
     avatar: Optional[str] = Field(None, description="Avatar URL of the user")
+    program_id: Optional[int] = Field(
+        None, alias="programId", description="Program ID associated with the user"
+    )
 
     class Config:
         from_attributes = True

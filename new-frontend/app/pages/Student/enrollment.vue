@@ -18,10 +18,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import DataTable from '@/components/DataTable.vue'
-import { useAuth } from '@/composables/useAuth'  // ✅ PHẢI import
+import { useAuth } from '@/composables/useAuth'
 
-const { schoolId, user } = useAuth() // ✅ Có reactive schoolId và user
-console.log("schoolId in enrollment.vue:", schoolId.value);
+const { schoolId, programId, user } = useAuth()
 
 const courseClasses = ref([])
 
@@ -36,7 +35,7 @@ const columns = [
 // 🧩 Lấy danh sách lớp học phần
 async function fetchCourseClasses() {
   try {
-    const res = await fetch('http://localhost:8000/api/course_classes')
+    const res = await fetch('http://localhost:8000/api/by_program/' + (programId.value || user.value?.programId))
     if (!res.ok) throw new Error('Không tải được danh sách học phần')
     const data = await res.json()
 
