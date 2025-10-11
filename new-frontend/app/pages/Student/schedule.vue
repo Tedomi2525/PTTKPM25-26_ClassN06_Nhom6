@@ -483,25 +483,82 @@ onMounted(async () => {
   width: 100% !important;
 }
 
+.flatpickr-calendar .flatpickr-innerContainer {
+  width: 100% !important;
+}
+
+.flatpickr-calendar .flatpickr-rContainer {
+  width: 100% !important;
+}
+
+.flatpickr-calendar .flatpickr-days {
+  width: 100% !important;
+}
+
+.flatpickr-calendar .dayContainer {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+.flatpickr-day {
+  max-width: none !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  flex-basis: 14.285% !important;
+  width: 14.285% !important;
+}
+
 .flatpickr-months {
   background: #09f !important;
   color: white !important;
   border-radius: 12px 12px 0 0;
 }
 
-.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  color: white !important;
+  font-weight: 600;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months option {
+  background: white !important;
+  color: #374151 !important;
+  padding: 4px !important;
+}
+
 .flatpickr-current-month .numInputWrapper {
   color: white !important;
   font-weight: 600;
+}
+
+.flatpickr-current-month .numInputWrapper input {
+  color: white !important;
+}
+
+.flatpickr-current-month .numInputWrapper input:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
 }
 
 .flatpickr-weekdays {
   background: #f3f4f6 !important;
 }
 
+.flatpickr-weekday {
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+}
+
 .flatpickr-day.selected {
   background: #09f !important;
   border-color: #09f !important;
+  font-weight: 700 !important;
 }
 
 .flatpickr-day.today {
