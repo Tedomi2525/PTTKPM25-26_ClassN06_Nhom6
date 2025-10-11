@@ -1,32 +1,116 @@
 <template>
-  <div class="container mx-auto mt-4 px-4">
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center min-h-[500px]">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">Đang tải lịch học...</p>
-      </div>
-    </div>
-
-    <!-- Content khi đã load xong -->
-    <div v-else class="flex flex-col lg:grid lg:grid-cols-4 gap-6 items-start w-full">
-      <!-- 🗓️ Lịch chọn ngày - Mobile first -->
-      <div
-        id="datepicker"
-        class="order-1 lg:order-2 lg:col-span-1 bg-blue-100 rounded-lg shadow w-full max-w-[310px] mx-auto lg:mx-0 flex flex-col items-center"
-      >
-        <div id="calendarPicker" class="scale-90 origin-top w-full"></div>
+  <div class="h-[95vh] w-full bg-gradient-to-br from-blue-50 to-cyan-50 overflow-hidden">
+    <!-- Container full width -->
+    <div class="h-full w-full px-4 py-3 lg:px-6 lg:py-4 flex flex-col">
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex justify-center items-center flex-1">
+        <div class="text-center space-y-4">
+          <div class="inline-block animate-spin rounded-full h-20 w-20 border-4 border-t-[#09f] border-r-transparent border-b-[#09f] border-l-transparent"></div>
+          <div>
+            <p class="text-gray-700 font-semibold text-lg">Đang tải lịch học...</p>
+            <p class="text-gray-500 text-sm mt-2">Vui lòng đợi trong giây lát</p>
+          </div>
+        </div>
       </div>
 
-      <!-- 📅 Lịch học chính -->
-      <div class="order-2 lg:order-1 lg:col-span-3 bg-white rounded-lg shadow p-2 sm:p-3 w-full min-h-[400px] lg:min-h-[500px]">
-        <FullCalendar ref="calendarRef" :options="calendarOptions" />
+      <!-- Content khi đã load xong -->
+      <div v-else class="animate-fade-in flex-1 flex flex-col overflow-hidden">
+        <!-- Grid layout chính: 12 cột, bỏ cột đầu và cuối -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
+          <!-- Cột trống bên trái -->
+          <div class="hidden lg:block lg:col-span-1"></div>
+          
+          <!-- Sidebar: Lịch chọn ngày + Thống kê (2 cột) -->
+          <div class="lg:col-span-2 flex flex-col gap-3 overflow-y-auto">
+            <!-- Card: Lịch chọn ngày -->
+            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+              <div class="bg-[#09f] px-4 py-2.5">
+                <h3 class="text-base font-semibold text-white">
+                  Chọn ngày
+                </h3>
+              </div>
+              <div class="p-3">
+                <div id="calendarPicker" class="w-full"></div>
+              </div>
+              
+              <!-- Nút điều hướng tuần -->
+              <div class="px-3 pb-3">
+                <div class="grid grid-cols-3 gap-2">
+                  <button 
+                    @click="goToPreviousWeek"
+                    class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
+                    title="Tuần trước"
+                  >
+                    <span class="text-lg">←</span>
+                    <span class="hidden xl:inline text-sm">Trước</span>
+                  </button>
+                  <button 
+                    @click="goToCurrentWeek"
+                    class="px-3 py-2.5 bg-[#09f] hover:bg-[#0088dd] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm"
+                  >
+                    Hôm nay
+                  </button>
+                  <button 
+                    @click="goToNextWeek"
+                    class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
+                    title="Tuần sau"
+                  >
+                    <span class="hidden xl:inline text-sm">Sau</span>
+                    <span class="text-lg">→</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card: Thống kê tuần -->
+            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+              <div class="bg-[#09f] px-4 py-2.5">
+                <h4 class="text-base font-semibold text-white">
+                  Thống kê tuần
+                </h4>
+              </div>
+              <div class="p-3">
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                    <span class="text-xs font-medium text-gray-700">Tổng số buổi học</span>
+                    <span class="text-xl font-bold text-[#09f]">{{ totalClasses }}</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                    <span class="text-xs font-medium text-gray-700">Số môn học</span>
+                    <span class="text-xl font-bold text-[#09f]">{{ uniqueCourses }}</span>
+                  </div>
+                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                    <span class="text-xs font-medium text-gray-700">Tổng số tiết</span>
+                    <span class="text-xl font-bold text-[#09f]">{{ totalPeriods }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main content: Lịch học chính (8 cột) -->
+          <div class="lg:col-span-8 flex flex-col overflow-hidden">
+            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+              <div class="bg-[#09f] px-4 py-2.5 flex-shrink-0">
+                <h3 class="text-base font-semibold text-white">
+                  Lịch học trong tuần
+                </h3>
+              </div>
+              <div class="p-3 flex-1 overflow-y-auto">
+                <FullCalendar ref="calendarRef" :options="calendarOptions" />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Cột trống bên phải -->
+          <div class="hidden lg:block lg:col-span-1"></div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
+import { ref, onMounted, watch, computed } from "vue"
 import axios from "axios"
 import FullCalendar from "@fullcalendar/vue3"
 import type { CalendarApi } from '@fullcalendar/core'
@@ -45,6 +129,41 @@ definePageMeta({
 
 const { schoolId, initAuth, isChecking } = useAuth()
 const isLoading = ref(true)
+const currentWeekStart = ref(new Date())
+
+// Computed properties cho thống kê
+const currentWeekDisplay = computed(() => {
+  const start = new Date(currentWeekStart.value)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+  
+  const formatDate = (d: Date) => {
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+  }
+  
+  return `Tuần ${formatDate(start)} - ${formatDate(end)}`
+})
+
+const totalClasses = computed(() => {
+  return calendarOptions.value.events.length
+})
+
+const uniqueCourses = computed(() => {
+  const courses = new Set(
+    calendarOptions.value.events.map((event: any) => event.extendedProps?.courseCode)
+  )
+  return courses.size
+})
+
+const totalPeriods = computed(() => {
+  return calendarOptions.value.events.reduce((total: number, event: any) => {
+    // Giả sử mỗi buổi học là 2-3 tiết, tính theo thời gian
+    const start = new Date(event.start)
+    const end = new Date(event.end)
+    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+    return total + Math.ceil(hours / 0.75) // Mỗi tiết 45 phút
+  }, 0)
+})
 
 const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
 const calendarOptions = ref({
@@ -53,11 +172,17 @@ const calendarOptions = ref({
   locale: viLocale,
   slotMinTime: "06:00:00",
   slotMaxTime: "22:00:00",
+  slotDuration: "00:30:00",
+  slotLabelInterval: "01:00:00",
   headerToolbar: false as const,
   allDaySlot: false,
   firstDay: 0,
-  height: "85vh",
-  expandRows: true,
+  height: "100%",
+  expandRows: false,
+  contentHeight: "auto",
+  aspectRatio: 1.5,
+  nowIndicator: true,
+  now: new Date(),
   slotLabelFormat: {
     hour: "2-digit" as const,
     minute: "2-digit" as const,
@@ -67,14 +192,29 @@ const calendarOptions = ref({
     const date = arg.date
     const d = String(date.getDate()).padStart(2, "0")
     const m = String(date.getMonth() + 1).padStart(2, "0")
-    const y = date.getFullYear()
-    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const weekdays = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"]
     const thu = weekdays[date.getDay()]
     return {
       html: `<div class="text-center">
-               <div>${d}/${m}/${y}</div>
-               <small>${thu}</small>
+               <div class="text-xs font-semibold text-gray-800">${thu}</div>
+               <div class="text-lg font-bold text-gray-800">${d}/${m}</div>
              </div>`,
+    }
+  },
+  eventContent: (arg: any) => {
+    const { event } = arg
+    const { teacher, courseCode, credits } = event.extendedProps
+    
+    return {
+      html: `
+        <div class="fc-event-main-frame p-2 hover:scale-105 transition-transform duration-200">
+          <div class="font-bold text-sm mb-1">${event.title}</div>
+          <div class="text-xs opacity-90">
+            <div>${teacher}</div>
+            <div class="mt-1">${courseCode} • ${credits} tín chỉ</div>
+          </div>
+        </div>
+      `
     }
   },
   events: [],
@@ -92,6 +232,45 @@ function getSundayOfWeek(date: Date) {
   const diff = date.getDate() - day
   const sunday = new Date(date.setDate(diff))
   return sunday
+}
+
+// Hàm điều hướng tuần
+function goToPreviousWeek() {
+  const api = (calendarRef.value as any)?.getApi() as CalendarApi
+  if (api) {
+    api.prev()
+    const newDate = api.getDate()
+    currentWeekStart.value = getSundayOfWeek(new Date(newDate))
+    loadScheduleForCurrentWeek()
+  }
+}
+
+function goToCurrentWeek() {
+  const api = (calendarRef.value as any)?.getApi() as CalendarApi
+  if (api) {
+    api.today()
+    const today = new Date()
+    currentWeekStart.value = getSundayOfWeek(today)
+    loadScheduleForCurrentWeek()
+  }
+}
+
+function goToNextWeek() {
+  const api = (calendarRef.value as any)?.getApi() as CalendarApi
+  if (api) {
+    api.next()
+    const newDate = api.getDate()
+    currentWeekStart.value = getSundayOfWeek(new Date(newDate))
+    loadScheduleForCurrentWeek()
+  }
+}
+
+async function loadScheduleForCurrentWeek() {
+  const studentId = schoolId.value || localStorage.getItem("schoolId")
+  if (!studentId) return
+  
+  const sundayDate = formatDateToYYYYMMDD(currentWeekStart.value)
+  await loadStudentSchedule(studentId, sundayDate)
 }
 
 async function loadStudentSchedule(studentId: string, sundayDate: string) {
@@ -115,12 +294,13 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
       calendarOptions.value.events = schedules.map((item: any) => {
         const [day, month, year] = item.specific_date.split("/")
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        
         return {
           title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
           end: `${isoDate}T${item.time.period_end.end_time}`,
-          backgroundColor: "#2563eb",
-          borderColor: "#1e40af",
+          backgroundColor: "#09f",
+          borderColor: "#0088dd",
           textColor: "#fff",
           extendedProps: {
             teacher: item.course_class.teacher.full_name,
@@ -172,6 +352,7 @@ async function initSchedule() {
   
   const today = new Date()
   const sundayOfCurrentWeek = getSundayOfWeek(new Date(today))
+  currentWeekStart.value = sundayOfCurrentWeek
   const sundayDate = formatDateToYYYYMMDD(sundayOfCurrentWeek)
   
   // Load lịch học
@@ -204,3 +385,165 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style>
+/* Animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+/* FullCalendar Customization */
+.fc {
+  font-family: inherit;
+}
+
+/* Grid */
+.fc .fc-scrollgrid {
+  border-radius: 12px;
+  overflow: hidden;
+  border: none !important;
+}
+
+.fc .fc-timegrid-slot {
+  height: 30px !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Event styling */
+.fc-event {
+  border-radius: 8px !important;
+  border-left-width: 4px !important;
+  padding: 2px 4px !important;
+  margin: 2px 4px !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fc-event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  z-index: 100 !important;
+}
+
+.fc-event-main {
+  padding: 4px !important;
+}
+
+/* Time labels */
+.fc .fc-timegrid-axis {
+  background: #f9fafb !important;
+  font-weight: 600;
+  color: #6b7280 !important;
+}
+
+.fc .fc-timegrid-slot-label {
+  color: #6b7280 !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Now indicator - dòng chỉ thời gian hiện tại */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #ef4444 !important;
+  border-width: 3px !important;
+  border-style: solid !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+  z-index: 10 !important;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: #ef4444 !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  border-left-color: #ef4444 !important;
+  border-width: 10px 0 10px 10px !important;
+  margin-top: -10px !important;
+}
+
+.fc .fc-timegrid-now-indicator-container {
+  z-index: 10 !important;
+}
+
+/* Flatpickr customization */
+.flatpickr-calendar {
+  box-shadow: none !important;
+  border: none !important;
+  width: 100% !important;
+}
+
+.flatpickr-months {
+  background: #09f !important;
+  color: white !important;
+  border-radius: 12px 12px 0 0;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month .numInputWrapper {
+  color: white !important;
+  font-weight: 600;
+}
+
+.flatpickr-weekdays {
+  background: #f3f4f6 !important;
+}
+
+.flatpickr-day.selected {
+  background: #09f !important;
+  border-color: #09f !important;
+}
+
+.flatpickr-day.today {
+  border-color: #09f !important;
+  background: #09f1 !important;
+  color: #09f !important;
+}
+
+.flatpickr-day:hover {
+  background: #09f2 !important;
+  border-color: #09f !important;
+}
+
+/* Scrollbar styling */
+.fc-scroller::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.fc-scroller::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb {
+  background: #09f;
+  border-radius: 10px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb:hover {
+  background: #0088dd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fc-event {
+    font-size: 0.75rem !important;
+  }
+  
+  .fc .fc-col-header-cell {
+    font-size: 0.75rem !important;
+    padding: 6px 2px !important;
+  }
+}
+</style>
