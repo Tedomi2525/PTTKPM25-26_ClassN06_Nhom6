@@ -34,8 +34,34 @@ def login_service(db: Session, request: LoginRequest):
 def update_user_password(db: Session, user_id: int, payload: UserPasswordUpdate):
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
-        return None
-    user.password = get_password_hash(payload.password)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(payload.current_password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password confirmation
+    if payload.new_password != payload.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirm password do not match"
+        )
+    
+    # Check if new password is different from current password
+    if verify_password(payload.new_password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Update password
+    user.password = get_password_hash(payload.new_password)
     db.commit()
     db.refresh(user)
     return user 

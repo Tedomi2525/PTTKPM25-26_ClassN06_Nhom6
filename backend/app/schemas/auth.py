@@ -33,9 +33,28 @@ class UserOut(BaseModel):
         populate_by_name = True
 
 class UserPasswordUpdate(BaseModel):
-    password: str = Field(
+    current_password: str = Field(
         ...,
+        alias="currentPassword",
+        description="Current user password for verification"
+    )
+    new_password: str = Field(
+        ...,
+        alias="newPassword",
         min_length=8,
         max_length=255,
         description="New user password"
     )
+    confirm_password: str = Field(
+        ...,
+        alias="confirmPassword",
+        min_length=8,
+        max_length=255,
+        description="Confirm new password"
+    )
+    
+    class Config:
+        populate_by_name = True
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Response message")

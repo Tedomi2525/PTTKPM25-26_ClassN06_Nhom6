@@ -214,28 +214,46 @@ export function useAuth() {
   }
 
   // --- Đổi mật khẩu ---
-  async function changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
+  async function changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Promise<{ success: boolean; message: string }> {
     const token = authToken.value
-    if (!token) return false
+    if (!token) {
+      return { success: false, message: 'Bạn cần đăng nhập để thực hiện chức năng này' }
+    }
+
+    // Validation trước khi gửi request
+    if (newPassword !== confirmPassword) {
+      return { success: false, message: 'Mật khẩu mới và xác nhận mật khẩu không khớp' }
+    }
+
+    if (newPassword.length < 8) {
+      return { success: false, message: 'Mật khẩu mới phải có ít nhất 8 ký tự' }
+    }
 
     try {
       const res = await fetch(`${API_BASE}/auth/change-password`, {
-        method: 'POST',
+        method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({ 
+          currentPassword, 
+          newPassword,
+          confirmPassword 
+        }),
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        throw new Error('Đổi mật khẩu thất bại')
+        const errorMessage = data.detail || 'Đổi mật khẩu thất bại'
+        return { success: false, message: errorMessage }
       }
 
-      return true
+      return { success: true, message: data.message || 'Đổi mật khẩu thành công' }
     } catch (err) {
       console.error('🚨 Lỗi khi đổi mật khẩu:', err)
-      throw err
+      return { success: false, message: 'Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.' }
     }
   }
 

@@ -29,6 +29,10 @@
           v-model="newPassword"
           placeholder=" "
           class="peer w-full border border-gray-300 rounded-md p-2 pt-6 text-gray-900 text-sm placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-100 outline-none transition-all"
+          :class="{
+            'border-red-300 focus:border-red-500': newPassword && newPassword.length < 8,
+            'border-green-300 focus:border-green-500': newPassword && newPassword.length >= 8
+          }"
         />
         <label
           for="newPassword"
@@ -38,6 +42,15 @@
         >
           Mật khẩu mới
         </label>
+        <!-- Password strength indicator -->
+        <div v-if="newPassword" class="text-xs mt-1">
+          <span v-if="newPassword.length < 8" class="text-red-500">
+            Mật khẩu phải có ít nhất 8 ký tự
+          </span>
+          <span v-else class="text-green-500">
+            Mật khẩu hợp lệ
+          </span>
+        </div>
       </div>
 
       <!-- Xác nhận mật khẩu -->
@@ -48,6 +61,10 @@
           v-model="confirmPassword"
           placeholder=" "
           class="peer w-full border border-gray-300 rounded-md p-2 pt-6 text-gray-900 text-sm placeholder-transparent focus:border-blue-500 focus:ring-1 focus:ring-blue-100 outline-none transition-all"
+          :class="{
+            'border-red-300 focus:border-red-500': confirmPassword && newPassword && confirmPassword !== newPassword,
+            'border-green-300 focus:border-green-500': confirmPassword && newPassword && confirmPassword === newPassword
+          }"
         />
         <label
           for="confirmPassword"
@@ -57,6 +74,15 @@
         >
           Xác nhận mật khẩu
         </label>
+        <!-- Password match indicator -->
+        <div v-if="confirmPassword && newPassword" class="text-xs mt-1">
+          <span v-if="confirmPassword !== newPassword" class="text-red-500">
+            Mật khẩu không khớp
+          </span>
+          <span v-else class="text-green-500">
+            Mật khẩu khớp
+          </span>
+        </div>
       </div>
     </div>
 
@@ -67,7 +93,7 @@
         :disabled="!canSubmit"
         variant="primary"
       >
-        Đổi mật khẩu
+        {{ isSubmitting ? 'Đang xử lý...' : 'Đổi mật khẩu' }}
       </CButton>
     </div>
   </div>
@@ -76,43 +102,100 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue'
 import CButton from '@/components/CButton.vue'
+import { useAuth } from '@/composables/useAuth'
 
 const props = defineProps<{ user: any; student: any }>()
 
-const reloadData = inject('reloadUserData') as () => Promise<void>
-const setError = inject('setError') as (show: boolean, message?: string, details?: string) => void
+const reloadData = inject<() => Promise<void>>('reloadUserData')
+const setError = inject<(show: boolean, message?: string, details?: string) => void>('setError')
+
+const { changePassword } = useAuth()
 
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+const isSubmitting = ref(false)
 
 const canSubmit = computed(() =>
-  currentPassword.value && newPassword.value && confirmPassword.value
+  currentPassword.value && 
+  newPassword.value && 
+  confirmPassword.value && 
+  !isSubmitting.value
 )
 
 const handleSave = async () => {
+  // Client-side validation
   if (newPassword.value !== confirmPassword.value) {
-    alert('Mật khẩu mới và xác nhận mật khẩu không khớp')
+    if (setError) {
+      setError(true, 'Lỗi xác nhận mật khẩu', 'Mật khẩu mới và xác nhận mật khẩu không khớp')
+    } else {
+      alert('Mật khẩu mới và xác nhận mật khẩu không khớp')
+    }
     return
   }
 
+  if (newPassword.value.length < 8) {
+    if (setError) {
+      setError(true, 'Mật khẩu không hợp lệ', 'Mật khẩu mới phải có ít nhất 8 ký tự')
+    } else {
+      alert('Mật khẩu mới phải có ít nhất 8 ký tự')
+    }
+    return
+  }
+
+  if (currentPassword.value === newPassword.value) {
+    if (setError) {
+      setError(true, 'Mật khẩu không hợp lệ', 'Mật khẩu mới phải khác với mật khẩu hiện tại')
+    } else {
+      alert('Mật khẩu mới phải khác với mật khẩu hiện tại')
+    }
+    return
+  }
+
+  isSubmitting.value = true
+
   try {
-    console.log('Đổi mật khẩu:', {
-      currentPassword: currentPassword.value,
-      newPassword: newPassword.value
-    })
+    const result = await changePassword(
+      currentPassword.value,
+      newPassword.value,
+      confirmPassword.value
+    )
 
-    if (reloadData) await reloadData()
+    if (result.success) {
+      // Clear form
+      currentPassword.value = ''
+      newPassword.value = ''
+      confirmPassword.value = ''
 
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
+      // Reload user data if available
+      if (reloadData) await reloadData()
 
-    alert('Đổi mật khẩu thành công!')
+      // Show success message
+      if (setError) {
+        // If setError is available, we could use it for success too
+        alert(result.message)
+      } else {
+        alert(result.message)
+      }
+    } else {
+      // Show error message
+      if (setError) {
+        setError(true, 'Đổi mật khẩu thất bại', result.message)
+      } else {
+        alert(result.message)
+      }
+    }
   } catch (error) {
-    console.error(error)
-    if (setError)
-      setError(true, 'Password change failed', error instanceof Error ? error.message : 'Unknown error')
+    console.error('Unexpected error during password change:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Có lỗi không xác định xảy ra'
+    
+    if (setError) {
+      setError(true, 'Lỗi hệ thống', errorMessage)
+    } else {
+      alert('Có lỗi xảy ra: ' + errorMessage)
+    }
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
