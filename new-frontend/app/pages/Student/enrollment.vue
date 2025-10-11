@@ -35,7 +35,7 @@ const columns = [
 // 🧩 Lấy danh sách lớp học phần
 async function fetchCourseClasses() {
   try {
-    const res = await fetch('http://localhost:8000/api/by_program/' + (programId.value || user.value?.programId))
+    const res = await fetch(`http://localhost:8000/api/by_program/${programId.value || user.value?.programId}?student_id=${schoolId.value || localStorage.getItem('schoolId')}`)
     if (!res.ok) throw new Error('Không tải được danh sách học phần')
     const data = await res.json()
 

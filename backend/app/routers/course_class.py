@@ -41,5 +41,5 @@ def delete_course_class(course_class_id: int, db: Session = Depends(get_db)):
     return {"detail": "CourseClass deleted successfully"}
 
 @router.get("/by_program/{program_id}", response_model=List[CourseClassResponse])
-def get_course_classes_by_program_id(program_id: int, db: Session = Depends(get_db)):
-    return course_class_service.get_course_classes_by_program_id(db, program_id)
+def get_course_classes_by_program_id(program_id: int, student_id: int = None, db: Session = Depends(get_db)):
+    return course_class_service.get_course_classes_by_program_id(db, program_id, student_id)
