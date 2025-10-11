@@ -1,6 +1,15 @@
 <template>
   <div class="container mx-auto mt-4">
-    <div class="grid grid-cols-4 gap-6 items-start">
+    <!-- Loading state -->
+    <div v-if="isLoading" class="flex justify-center items-center min-h-[500px]">
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <p class="mt-4 text-gray-600">Đang tải lịch học...</p>
+      </div>
+    </div>
+
+    <!-- Content khi đã load xong -->
+    <div v-else class="grid grid-cols-4 gap-6 items-start">
       <!-- 📅 Lịch học chính -->
       <div class="col-span-3 bg-white rounded-lg shadow p-3">
         <FullCalendar ref="calendarRef" :options="calendarOptions" />
@@ -22,7 +31,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted, watch } from "vue"
 import axios from "axios"
 import FullCalendar from "@fullcalendar/vue3"
 import type { CalendarApi } from '@fullcalendar/core'
@@ -39,7 +48,8 @@ definePageMeta({
   layout: "default",
 })
 
-const { schoolId } = useAuth()
+const { schoolId, initAuth, isChecking } = useAuth()
+const isLoading = ref(true)
 
 const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
 const calendarOptions = ref({
@@ -154,17 +164,48 @@ function initDatePicker(studentId: string) {
   })
 }
 
-onMounted(async () => {
+// Hàm khởi tạo lịch học
+async function initSchedule() {
   const studentId = schoolId.value || localStorage.getItem("schoolId")
   if (!studentId) {
     console.error("❌ Không tìm thấy student ID")
+    isLoading.value = false
     return
   }
+  
+  console.log("📅 Đang tải lịch học cho student:", studentId)
   
   const today = new Date()
   const sundayOfCurrentWeek = getSundayOfWeek(new Date(today))
   const sundayDate = formatDateToYYYYMMDD(sundayOfCurrentWeek)
+  
+  // Load lịch học
   await loadStudentSchedule(studentId, sundayDate)
+  
+  // Khởi tạo date picker
   initDatePicker(studentId)
+  
+  isLoading.value = false
+}
+
+// Watch schoolId để tự động load khi có dữ liệu
+watch(schoolId, (newId) => {
+  if (newId && !isChecking.value) {
+    console.log("✅ School ID đã sẵn sàng:", newId)
+    initSchedule()
+  }
+}, { immediate: true })
+
+onMounted(async () => {
+  // Đảm bảo auth đã được khởi tạo
+  if (!schoolId.value) {
+    console.log("🔄 Đang khởi tạo auth...")
+    await initAuth()
+  }
+  
+  // Nếu đã có schoolId, load ngay
+  if (schoolId.value) {
+    await initSchedule()
+  }
 })
 </script>
