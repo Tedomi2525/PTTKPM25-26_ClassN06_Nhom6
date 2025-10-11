@@ -93,7 +93,9 @@ function closeError() {
 // Reload data function
 async function reloadUserData() {
   await initAuth()
-  await studentInit()
+  if (user.value?.schoolId) {
+    await studentInit(user.value.schoolId)
+  }
 }
 
 // Provide the reload function to child components
@@ -142,7 +144,9 @@ function onScroll() {
 
 onMounted(async () => {
   await initAuth()
-  await studentInit()
+  if (user.value?.schoolId) {
+    await studentInit(user.value.schoolId)
+  }
   window.addEventListener('scroll', onScroll)
 })
 </script>
