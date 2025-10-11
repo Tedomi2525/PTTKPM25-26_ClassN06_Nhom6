@@ -1,164 +1,277 @@
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+/**
+ * Kiểu dữ liệu người dùng
+ */
+export interface User {
+  user_id: string | number
+  fullName: string
+  role: string
+  schoolId: string
+  avatar: string
+  domain?: string
+}
+
+/**
+ * Phản hồi từ API đăng nhập
+ */
+interface LoginResponse {
+  accessToken: string
+  user: User
+}
 
 export function useAuth() {
-  const username = ref("");
-  const password = ref("");
-  const router = useRouter();
-  const loginError = ref("");
-  const token = useCookie<string | null>("token");
-  const fullNameCookie = useCookie("full_name");
+  const router = useRouter()
+  const API_BASE = 'http://localhost:8000' // 👈 domain cố định backend
 
-  const displayName = ref("Admin");
-  const role = ref("");
-  const schoolId = ref("");
+  // --- STATE ---
+  const authToken = useCookie<string | null>('auth_token')
+  const user = useState<User | null>('user', () => null)
+  const isLoggedIn = useState<boolean>('isLoggedIn', () => !!authToken.value)
+  const isChecking = useState<boolean>('isChecking', () => false)
+  const loginError = ref<string>('')
 
-  // ✅ Khôi phục từ localStorage nếu có
-  if (typeof window !== "undefined") {
-    const storedToken = localStorage.getItem("token");
-    const storedFullName = localStorage.getItem("fullName");
-    const storedRole = localStorage.getItem("role");
-    const storedSchoolId = localStorage.getItem("schoolId");
-
-    if (storedToken) token.value = storedToken;
-    if (storedFullName) {
-      displayName.value = storedFullName;
-      fullNameCookie.value = storedFullName;
-    }
-    if (storedRole) role.value = storedRole;
-    if (storedSchoolId) schoolId.value = storedSchoolId;
+  // --- Đồng bộ token với localStorage ---
+  if (import.meta.client && !authToken.value) {
+    const stored = localStorage.getItem('auth_token')
+    if (stored) authToken.value = stored
   }
 
-  // ✅ Hàm lưu token vào cookie + localStorage
-  const setToken = (value: string) => {
-    token.value = value;
-    if (typeof window !== "undefined") {
-      localStorage.setItem("token", value);
+  // --- Cập nhật token (cookie + localStorage) ---
+  function setToken(value: string | null) {
+    authToken.value = value
+    if (import.meta.client) {
+      if (value) localStorage.setItem('auth_token', value)
+      else localStorage.removeItem('auth_token')
     }
-  };
+  }
 
-  // ✅ Đăng nhập
-  const login = async () => {
+  // --- Xóa toàn bộ trạng thái đăng nhập ---
+  function clearAuthState() {
+    setToken(null)
+    user.value = null
+    isLoggedIn.value = false
+  }
+
+  // --- Lấy thông tin người dùng từ token ---
+  async function fetchUserInfo(token: string): Promise<User | null> {
     try {
-      const res = await fetch("http://127.0.0.1:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.value,
-          password: password.value,
-        }),
-      });
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-      if (!res.ok) throw new Error("Sai tài khoản hoặc mật khẩu");
-
-      const data = await res.json();
-      const accessToken = data.accessToken || data.access_token;
-      if (!accessToken) throw new Error("Không nhận được access token từ server");
-
-      setToken(accessToken);
-
-      // Lấy thông tin người dùng
-      const meRes = await fetch("http://127.0.0.1:8000/auth/me", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!meRes.ok) throw new Error("Không thể lấy thông tin người dùng");
-
-      const meData = await meRes.json();
-
-      const fullName = meData.fullName || meData.full_name;
-      const userRole = meData.role || meData.user_role || "user";
-      const school = meData.schoolId || meData.school_id || "";
-
-      // ✅ Lưu toàn bộ vào cookie + localStorage
-      fullNameCookie.value = fullName;
-      displayName.value = fullName;
-      role.value = userRole;
-      schoolId.value = school;
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fullName", fullName);
-        localStorage.setItem("role", userRole);
-        localStorage.setItem("schoolId", school);
+      if (!res.ok) {
+        console.error('❌ /auth/me failed:', res.status)
+        return null
       }
 
-      console.log(`👤 ${fullName} (${userRole}) - School ID: ${school}`);
-      router.push("/Home");
+      const data = await res.json()
+      console.log('✅ /auth/me response:', data)
+
+      return {
+        user_id: data.user_id || data.userId || '',
+        fullName: data.fullName || data.full_name,
+        role: data.role || data.user_role || 'user',
+        schoolId: data.schoolId || data.school_id || '',
+        avatar: data.avatar || '',
+        domain: data.domain || '',
+      }
     } catch (err) {
-      loginError.value = "Sai thông tin đăng nhập";
-      console.error("Login error:", err);
+      console.error('🚨 Lỗi khi gọi /auth/me:', err)
+      return null
     }
-  };
+  }
 
-  // ✅ Đăng xuất
-  const logout = () => {
-    token.value = "";
-    fullNameCookie.value = "";
-    displayName.value = "Admin";
-    role.value = "";
-    schoolId.value = "";
-
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("fullName");
-      localStorage.removeItem("role");
-      localStorage.removeItem("schoolId");
-    }
-
-    router.push("/");
-  };
-
-  // ✅ Xác thực token khi reload
-  const validateToken = async () => {
-    if (!token.value) return false;
+  // --- Khởi tạo xác thực ---
+  async function initAuth() {
+    isChecking.value = true
     try {
-      const res = await fetch("http://127.0.0.1:8000/auth/me", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token.value}` },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const fullName = data.fullName || data.full_name;
-        const userRole = data.role || data.user_role || "user";
-        const school = data.schoolId || data.school_id || "";
-
-        fullNameCookie.value = fullName;
-        displayName.value = fullName;
-        role.value = userRole;
-        schoolId.value = school;
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem("fullName", fullName);
-          localStorage.setItem("role", userRole);
-          localStorage.setItem("schoolId", school);
-        }
-
-        console.log("✅ Token hợp lệ - user:", fullName);
-        return true;
+      const token = authToken.value
+      if (!token) {
+        clearAuthState()
+        return
       }
-      return false;
-    } catch (error) {
-      console.error("❌ Token validation failed:", error);
-      return false;
+
+      const info = await fetchUserInfo(token)
+      if (info) {
+        user.value = info
+        isLoggedIn.value = true
+      } else {
+        clearAuthState()
+      }
+    } finally {
+      isChecking.value = false
     }
-  };
+  }
 
-  const isAuthenticated = () => !!token.value;
+  // --- Đăng nhập ---
+  async function login(payload: { username: string; password: string }) {
+    isChecking.value = true
+    loginError.value = ''
 
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error('Sai tài khoản hoặc mật khẩu')
+
+      const data = await res.json()
+      const accessToken = data.accessToken || data.access_token
+      if (!accessToken) throw new Error('Không nhận được access token')
+
+      setToken(accessToken)
+      const info = await fetchUserInfo(accessToken)
+
+      if (!info) throw new Error('Không thể lấy thông tin người dùng')
+
+      user.value = info
+      isLoggedIn.value = true
+      console.log(`👤 Đăng nhập thành công: ${info.fullName}`)
+      await router.push('/home')
+
+      return { success: true, user: info }
+    } catch (err: any) {
+      console.error('❌ Login error:', err)
+      clearAuthState()
+      loginError.value =
+        err.message || 'Đăng nhập thất bại — vui lòng thử lại.'
+      return { success: false, message: loginError.value }
+    } finally {
+      isChecking.value = false
+    }
+  }
+
+  // --- Đăng xuất ---
+  async function logout() {
+    try {
+      if (authToken.value) {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${authToken.value}` },
+        })
+      }
+    } catch (e) {
+      console.warn('⚠️ Logout API failed — clearing local state.', e)
+    } finally {
+      clearAuthState()
+      await router.push('/')
+    }
+  }
+
+  // --- Kiểm tra token ---
+  async function validateToken(): Promise<boolean> {
+    const token = authToken.value
+    if (!token) return false
+
+    try {
+      const info = await fetchUserInfo(token)
+      if (info) {
+        user.value = info
+        isLoggedIn.value = true
+        return true
+      }
+      clearAuthState()
+      return false
+    } catch {
+      clearAuthState()
+      return false
+    }
+  }
+
+  // --- Cập nhật thông tin người dùng ---
+  async function updateProfile(data: Partial<User>): Promise<User | null> {
+    const token = authToken.value
+    if (!token) return null
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!res.ok) {
+        throw new Error('Cập nhật thông tin thất bại')
+      }
+
+      const updatedUser = await res.json()
+      if (user.value) {
+        Object.assign(user.value, updatedUser)
+      }
+      
+      return user.value
+    } catch (err) {
+      console.error('🚨 Lỗi khi cập nhật thông tin:', err)
+      throw err
+    }
+  }
+
+  // --- Đổi mật khẩu ---
+  async function changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
+    const token = authToken.value
+    if (!token) return false
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/change-password`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Đổi mật khẩu thất bại')
+      }
+
+      return true
+    } catch (err) {
+      console.error('🚨 Lỗi khi đổi mật khẩu:', err)
+      throw err
+    }
+  }
+
+  // --- computed ---
+  const schoolId = computed(() => user.value?.schoolId || '')
+  const domain = computed(() => user.value?.domain || '')
+  const fullName = computed(() => user.value?.fullName || 'Admin')
+  const displayName = computed(() => user.value?.fullName || 'Admin')
+  const role = computed(() => user.value?.role || '')
+  const token = computed(() => authToken.value)
+  const avatar = computed(() => user.value?.avatar || '')
+
+  // --- return ---
   return {
-    username,
-    password,
-    token,
+    // state
+    user,
+    authToken,
+    isLoggedIn,
+    isChecking,
+    loginError,
+
+    // methods
     login,
     logout,
-    isAuthenticated,
-    loginError,
-    displayName,
-    fullNameCookie,
+    initAuth,
     validateToken,
-    role,
+    updateProfile,
+    changePassword,
+
+    // computed
     schoolId,
-  };
+    domain,
+    fullName,
+    displayName,
+    role,
+    token,
+    avatar,
+  }
 }

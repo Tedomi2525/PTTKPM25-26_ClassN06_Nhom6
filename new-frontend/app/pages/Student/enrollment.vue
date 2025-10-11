@@ -18,12 +18,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import DataTable from '@/components/DataTable.vue'
+import { useAuth } from '@/composables/useAuth'  // ✅ PHẢI import
+
+const { schoolId, user } = useAuth() // ✅ Có reactive schoolId và user
+console.log("schoolId in enrollment.vue:", schoolId.value);
 
 const courseClasses = ref([])
 
-const { schoolId } = useAuth()
-console.log("schoolId in enrollment.vue:", schoolId.value);
-// 🧩 Cấu hình cột hiển thị trong bảng
 const columns = [
   { label: "Môn học", field: "courseName" },
   { label: "Giảng viên", field: "teacherName" },
@@ -32,14 +33,13 @@ const columns = [
   { label: "Lớp", field: "section" }
 ]
 
-// 🧩 Lấy danh sách lớp học phần từ API
+// 🧩 Lấy danh sách lớp học phần
 async function fetchCourseClasses() {
   try {
     const res = await fetch('http://localhost:8000/api/course_classes')
     if (!res.ok) throw new Error('Không tải được danh sách học phần')
     const data = await res.json()
 
-    // Làm phẳng dữ liệu để dễ hiển thị trong bảng
     courseClasses.value = data.map(item => ({
       ...item,
       courseName: item.course?.name || 'Không có tên môn học',
@@ -54,13 +54,13 @@ async function fetchCourseClasses() {
 
 // 🧩 Hàm đăng ký học phần
 async function enroll(row) {
-  try {
-    const studentId = schoolId.value; // 👈 lấy ID sinh viên
-    if (!studentId) {
-      alert("⚠️ Không tìm thấy mã sinh viên. Vui lòng đăng nhập lại!");
-      return;
-    }
+  const studentId = schoolId.value || localStorage.getItem('schoolId')
+  if (!studentId) {
+    alert("⚠️ Không tìm thấy mã sinh viên. Vui lòng đăng nhập lại!");
+    return;
+  }
 
+  try {
     const response = await fetch('http://127.0.0.1:8000/api/enrollments', {
       method: 'POST',
       headers: {
@@ -88,9 +88,8 @@ async function enroll(row) {
   }
 }
 
-onMounted(fetchCourseClasses) 
+onMounted(fetchCourseClasses)
 
-// 🧩 Tiêu đề trang
 definePageMeta({
   title: 'Đăng ký học phần'
 })

@@ -4,12 +4,29 @@ import { useRouter, useRoute } from "vue-router"
 import { useAuth } from "@/composables/useAuth"
 
 const open = ref(false)
-const { displayName, logout, validateToken, token, role } = useAuth()
+const { displayName, logout, validateToken, token, role, avatar, user } = useAuth()
 const router = useRouter()
 const route = useRoute()
 
 const isAdmin = computed(() => role.value === "admin")
 const isStudent = computed(() => role.value === "student")
+
+const avatarUrl = computed(() => {
+  if (!avatar.value) {
+    // Avatar mặc định khi không có avatar
+    return '/images/default-avatar.svg'
+  }
+  
+  // Nếu avatar đã có đầy đủ URL (http/https)
+  if (avatar.value.startsWith('http')) {
+    return avatar.value
+  }
+  
+  // Nếu avatar là relative path, nối với base URL
+  return `http://127.0.0.1:8000${avatar.value.startsWith('/') ? avatar.value : '/' + avatar.value}`
+})
+
+console.log("Avatar URL:", avatarUrl.value);
 
 function toggleMenu() {
   open.value = !open.value
@@ -18,6 +35,11 @@ function toggleMenu() {
 function handleLogout() {
   logout()
   open.value = false
+}
+
+function handleImageError(event: Event) {
+  const img = event.target as HTMLImageElement
+  img.src = '/images/default-avatar.svg'
 }
 
 onMounted(async () => {
@@ -41,17 +63,25 @@ onMounted(() => {
 
 // MENU
 const adminMenuItems = [
-  { label: 'Trang chủ', href: '/Home' },
-  { label: 'Thời khóa biểu', href: '/Admin/schedule' },
-  { label: 'Điểm danh', href: '/Admin/attendance' },
-  { label: 'Quản lý', href: '/Admin/dashboard' },
+  { label: 'Trang chủ', href: '/home' },
+  { label: 'Thời khóa biểu', href: '/admin/schedule' },
+  { label: 'Điểm danh', href: '/admin/attendance' },
+  { label: 'Quản lý', href: '/admin/dashboard' },
 ]
 
-const studentMenuItems = [
-  { label: 'Thời khóa biểu', href: '/Student/schedule' },
-  // { label: 'Điểm danh', href: '/Student/attendance' },
-  { label: 'Đăng kí học', href: '/Student/enrollment' }
-]
+const studentMenuItems = computed(() => {
+  const baseItems = [
+    { label: 'Thời khóa biểu', href: '/student/schedule' },
+    // { label: 'Điểm danh', href: '/student/attendance' },
+    { label: 'Đăng kí học', href: '/student/enrollment' }
+  ]
+  
+  // Trang profile hiện tại được thiết kế cho user đang đăng nhập
+  // Không cần dynamic ID vì chỉ hiển thị thông tin của chính user đó
+  baseItems.push({ label: 'Hồ sơ cá nhân', href: '/student/profile' })
+  
+  return baseItems
+})
 
 const selectedMenu = ref<string | null>(null)
 
@@ -62,7 +92,7 @@ function handleMenuClick(item: { label: string; href: string }) {
 watch(
   () => route.path,
   (newPath) => {
-    if (newPath.startsWith("/Admin/dashboard")) {
+    if (newPath.startsWith("/admin/dashboard")) {
       selectedMenu.value = "Dashboard"
     } else {
       selectedMenu.value = null
@@ -79,7 +109,7 @@ watch(
       <div class="mx-auto min-w-[50%]">
         <div class="flex justify-between h-16 items-center">
           <!-- Logo -->
-          <NuxtLink to="/Admin/dashboard" class="text-xl font-bold">
+          <NuxtLink to="/admin/dashboard" class="text-xl font-bold">
             EDUNERA
           </NuxtLink>
 
@@ -89,12 +119,27 @@ watch(
             :items="adminMenuItems"
             @menu-click="handleMenuClick"
           />
-          <NavBar v-if="isStudent" :items="studentMenuItems" />
+          <NavBar
+            v-if="isStudent"
+            :items="studentMenuItems"
+            @menu-click="handleMenuClick"
+          />
+
+
 
           <!-- User Dropdown -->
           <div class="relative user-dropdown">
-            <button @click="toggleMenu" class="px-3 py-1 rounded hover:text-gray-300">
-              Xin chào, {{ displayName }}
+            
+            <button @click="toggleMenu" class="px-3 py-1 rounded hover:text-gray-300 flex items-center">
+              <div class="mr-3">
+                <img 
+                  :src="avatarUrl" 
+                  alt="avatar" 
+                  class="w-10 h-10 rounded-full object-cover border-2 border-white/20" 
+                  @error="handleImageError"
+                />
+              </div>
+              {{ displayName }}
             </button>
             <ul
               v-if="open"
@@ -109,7 +154,12 @@ watch(
                 </button>
               </li>
             </ul>
+
+                      
           </div>
+
+
+
         </div>
       </div>
     </div>

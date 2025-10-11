@@ -2,14 +2,15 @@
   <div>
     <div class="flex justify-between items-center mb-4">
       <button 
-        @click="$router.push('/Admin/courses_deleted')" 
-        class="bg-gray-500 text-white px-3 py-2 rounded"
+        @click="navigateTo('/Admin/courses_deleted')" 
+        class="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition"
       >
         Xem học phần đã ẩn
       </button>
     </div>
 
     <DataTable
+      v-if="!loading"
       title="Danh Sách Học Phần"
       :data="courses"
       :columns="columns"
@@ -18,6 +19,8 @@
       @edit="editCourse"
       @delete="hideCourse"
     />
+
+    <div v-else class="text-center text-gray-500">Đang tải danh sách học phần...</div>
   </div>
 </template>
 
@@ -26,6 +29,7 @@ import { ref, onMounted } from "vue"
 import DataTable from "@/components/DataTable.vue"
 
 const courses = ref([])
+const loading = ref(true)
 
 const columns = [
   { label: "Mã học phần", field: "courseCode" },
@@ -33,32 +37,31 @@ const columns = [
   { label: "Số tín chỉ", field: "credits" }
 ]
 
+// ✅ Dùng $fetch (tự động parse JSON, xử lý lỗi tốt hơn)
 async function fetchCourses() {
+  loading.value = true
   try {
-    const res = await fetch("http://localhost:8000/api/courses")
-    if (!res.ok) throw new Error('Không tải được danh sách')
-    courses.value = await res.json()
+    courses.value = await $fetch("http://localhost:8000/api/courses")
   } catch (err) {
-    alert('Lỗi: ' + err.message)
+    console.error(err)
+    alert("Không tải được danh sách học phần.")
+  } finally {
+    loading.value = false
   }
 }
 
 function editCourse(course) {
-  alert('Sửa học phần: ' + course.name + ' (' + course.courseId + ')')
-  // hoặc điều hướng tới trang sửa:
-  // router.push(`/Admin/dashboard/course_edit/${course.courseId}`)
+  navigateTo(`/Admin/dashboard/course_edit/${course.courseId}`)
 }
 
 async function hideCourse(course) {
-  if (!confirm(`Ẩn học phần ${course.name}?`)) return
+  if (!confirm(`Ẩn học phần "${course.name}"?`)) return
   try {
-    const res = await fetch(`http://localhost:8000/api/course/${course.courseId}/hide`, { 
-      method: "PUT" 
-    })
-    if (!res.ok) throw new Error('Không ẩn được')
+    await $fetch(`http://localhost:8000/api/course/${course.courseId}/hide`, { method: "PUT" })
     await fetchCourses()
   } catch (err) {
-    alert('Lỗi: ' + err.message)
+    console.error(err)
+    alert("Không thể ẩn học phần.")
   }
 }
 

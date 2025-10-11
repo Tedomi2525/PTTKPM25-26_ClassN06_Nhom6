@@ -25,7 +25,8 @@ class UserOut(BaseModel):
     role: str = Field(..., description="Role of the user (e.g., admin, teacher, student)")
     school_id: Optional[int] = Field(
         None, alias="schoolId", description="School ID (student_id or teacher_id)"
-    )  # ✅ thêm dòng này
+    )
+    avatar: Optional[str] = Field(None, description="Avatar URL of the user")
 
     class Config:
         from_attributes = True
