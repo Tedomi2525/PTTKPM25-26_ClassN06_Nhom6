@@ -303,6 +303,7 @@ CREATE TABLE enrollments (
     UNIQUE(student_id, course_class_id)
 );
 
+
 -- 7. ROOMS
 CREATE TABLE rooms (
     room_id SERIAL PRIMARY KEY,

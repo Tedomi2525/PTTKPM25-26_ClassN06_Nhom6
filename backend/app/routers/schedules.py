@@ -104,3 +104,25 @@ def generate_schedule(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate schedule: {str(e)}")
+
+@router.post("/advance-semester")
+def advance_semester(
+    program_id: int = Query(..., description="Program ID to advance semester for"),
+    db: Session = Depends(get_db)
+):
+    """
+    Thủ công chuyển học kỳ cho program (chỉ dành cho quản trị viên)
+    """
+    try:
+        success = schedule_service.advance_semester_after_schedule(db, program_id)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to advance semester")
+            
+        return {
+            "success": True,
+            "message": "Successfully advanced to next semester"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to advance semester: {str(e)}")

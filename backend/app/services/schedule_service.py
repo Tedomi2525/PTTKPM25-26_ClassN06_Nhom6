@@ -454,7 +454,8 @@ def generate_semester_schedule(db: Session, program_id: int, total_weeks: int = 
                     })
         
         db.commit()
-        advance_semester_after_schedule(db, program_id)
+        # Comment out auto-advance semester to keep students registered in current semester
+        # advance_semester_after_schedule(db, program_id)
     except Exception as e:
         db.rollback()
         return {"error": f"Failed to generate semester schedule: {str(e)}"}
