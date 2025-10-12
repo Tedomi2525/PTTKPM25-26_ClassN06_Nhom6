@@ -11,6 +11,13 @@ def get_enrollments_by_student_id(db: Session, student_id: int):
         joinedload(EnrollmentModel.course_class).joinedload(CourseClassModel.teacher)
     ).all()
 
+def get_enrollments_by_course_class_id(db: Session, course_class_id: int):
+    return db.query(EnrollmentModel).filter(EnrollmentModel.course_class_id == course_class_id).options(
+        joinedload(EnrollmentModel.student),
+        joinedload(EnrollmentModel.course_class).joinedload(CourseClassModel.course),
+        joinedload(EnrollmentModel.course_class).joinedload(CourseClassModel.teacher)
+    ).all()
+
 def create_enrollment(db: Session, payload: EnrollmentCreate):
     new_enrollment = EnrollmentModel(**payload.dict())
     db.add(new_enrollment)

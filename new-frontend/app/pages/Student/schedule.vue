@@ -283,7 +283,7 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
     const res = await axios.get(`http://localhost:8000/api/students/${studentId}/schedule`, {
       params: { sunday_date: sundayDate },
     })
-
+    console.log("📅 Lịch học:", res.data)
     if (res.data.success) {
       const schedules = res.data.data.schedules || []
       if (!schedules.length) {

@@ -57,7 +57,6 @@
           </div>
 
           <nav class="flex justify-between text-sm">
-            <a href="#" class="text-black hover:text-[#09f]">Đổi mật khẩu</a>
             <a href="#" class="text-black hover:text-[#09f]">Quên mật khẩu?</a>
           </nav>
 

@@ -10,6 +10,7 @@ const route = useRoute()
 
 const isAdmin = computed(() => role.value === "admin")
 const isStudent = computed(() => role.value === "student")
+const isTeacher = computed(() => role.value === "teacher")
 
 const avatarUrl = computed(() => {
   if (!avatar.value) return '/images/default-avatar.svg'
@@ -68,6 +69,13 @@ const studentMenuItems = computed(() => {
   return baseItems
 })
 
+const teacherMenuItems = computed(() => {
+  const baseItems = [
+    { label: 'Thời khóa biểu', href: '/teacher/schedule' },
+  ]
+  return baseItems
+})
+
 const selectedMenu = ref<string | null>(null)
 
 function handleMenuClick(item: { label: string; href: string }) {
@@ -105,6 +113,11 @@ watch(
         <NavBar
           v-if="isStudent"
           :items="studentMenuItems"
+          @menu-click="handleMenuClick"
+        />
+        <NavBar
+          v-if="isTeacher"
+          :items="teacherMenuItems"
           @menu-click="handleMenuClick"
         />
 
@@ -164,7 +177,7 @@ watch(
               </li>
               <li>
                 <NuxtLink
-                  to="/student/profile"
+                  to="/profile"
                   class="flex items-center px-4 py-2 text-gray-800 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
                 >
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

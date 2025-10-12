@@ -37,3 +37,7 @@ def delete_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=400, detail="Cannot delete enrollment due to existing references")
     return {"detail": "Enrollment deleted successfully"}
+
+@router.get("/enrollments/course-class/{course_class_id}", response_model=list[Enrollment])
+def get_enrollments_by_course_class_id(course_class_id: int, db: Session = Depends(get_db)):
+    return enrollment_service.get_enrollments_by_course_class_id(db, course_class_id)
