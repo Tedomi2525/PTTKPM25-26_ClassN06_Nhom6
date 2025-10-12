@@ -1,8 +1,11 @@
 <template>
 <div class="mx-auto px-4 bg-gray-50 grid grid-cols-12">
+  <div class="col-span-1">
+
+  </div>
   <!-- Sidebar left -->
   <nav
-    class="self-start font-bold text-2xl col-span-12 lg:col-span-3 sticky top-32 h-fit hidden lg:block"
+    class="self-start font-bold text-2xl col-span-12 lg:col-span-2 sticky top-32 h-fit hidden lg:block"
   >
     <h1 class="text-4xl font-bold mb-8 text-gray-800 whitespace-nowrap">
       Hồ sơ cá nhân
@@ -24,7 +27,7 @@
   </nav>
 
   <!-- Content right -->
-  <div class="col-span-12 lg:col-span-9 pt-8 rounded-lg">
+  <div class="col-span-12 lg:col-span-8 pt-8 rounded-lg">
     <ErrorNotification
       :message="errorMessage"
       :details="errorDetails"

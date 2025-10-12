@@ -17,8 +17,12 @@ const avatarUrl = computed(() => {
   return `http://127.0.0.1:8000${avatar.value.startsWith('/') ? avatar.value : '/' + avatar.value}`
 })
 
-function toggleMenu() {
-  open.value = !open.value
+function showDropdown() {
+  open.value = true
+}
+
+function hideDropdown() {
+  open.value = false
 }
 
 function handleLogout() {
@@ -31,17 +35,7 @@ function handleImageError(event: Event) {
   img.src = '/images/default-avatar.svg'
 }
 
-// Close dropdown if clicked outside
-onMounted(() => {
-  const handler = (e: MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (!target.closest(".user-dropdown")) {
-      open.value = false
-    }
-  }
-  document.addEventListener("click", handler)
-  onUnmounted(() => document.removeEventListener("click", handler))
-})
+// Note: Removed click outside handler since we're using hover now
 
 // Validate token
 onMounted(async () => {
@@ -63,7 +57,13 @@ const adminMenuItems = [
 const studentMenuItems = computed(() => {
   const baseItems = [
     { label: 'Thời khóa biểu', href: '/student/schedule' },
-    { label: 'Đăng kí học', href: '/student/enrollment' }
+    { 
+      label: 'Đăng kí học', 
+      dropdown: [
+        { label: 'Đăng ký học', href: '/student/enrollment' },
+        { label: 'Kết quả đăng ký', href: '/student/enrollment-result' }
+      ]
+    }
   ]
   return baseItems
 })
@@ -109,9 +109,12 @@ watch(
         />
 
         <!-- User Dropdown -->
-        <div class="relative user-dropdown">
+        <div 
+          class="relative user-dropdown"
+          @mouseenter="showDropdown"
+          @mouseleave="hideDropdown"
+        >
           <button
-            @click="toggleMenu"
             class="flex items-center px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-200"
           >
             <img 
@@ -138,10 +141,16 @@ watch(
             leave-from-class="opacity-100 transform translate-y-0"
             leave-to-class="opacity-0 transform -translate-y-2"
           >
-            <ul
+            <div 
               v-if="open"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
+              class="absolute right-0 pt-2 w-48 z-50"
             >
+              <!-- Triangle pointer -->
+              <div class="flex justify-end pr-4">
+                <div class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white"></div>
+              </div>
+              <!-- Dropdown content -->
+              <ul class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden mt-0">
               <li>
                 <button
                   @click="handleLogout"
@@ -164,7 +173,8 @@ watch(
                   Hồ sơ cá nhân
                 </NuxtLink>
               </li>
-            </ul>
+              </ul>
+            </div>
           </transition>
         </div>
       </div>

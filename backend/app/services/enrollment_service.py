@@ -1,11 +1,15 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.models.enrollment import Enrollment as EnrollmentModel
+from app.models.course_class import CourseClass as CourseClassModel
 from app.schemas.enrollment import EnrollmentCreate, EnrollmentUpdate, Enrollment
 
 
 def get_enrollments_by_student_id(db: Session, student_id: int):
-    return db.query(EnrollmentModel).filter(EnrollmentModel.student_id == student_id).all()
+    return db.query(EnrollmentModel).filter(EnrollmentModel.student_id == student_id).options(
+        joinedload(EnrollmentModel.course_class).joinedload(CourseClassModel.course),
+        joinedload(EnrollmentModel.course_class).joinedload(CourseClassModel.teacher)
+    ).all()
 
 def create_enrollment(db: Session, payload: EnrollmentCreate):
     new_enrollment = EnrollmentModel(**payload.dict())

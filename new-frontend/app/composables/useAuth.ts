@@ -87,23 +87,46 @@ export function useAuth() {
 
   // --- Khởi tạo xác thực ---
   async function initAuth() {
+    // Tránh multiple concurrent init calls
+    if (isChecking.value) {
+      console.log('⏳ initAuth already running, waiting...')
+      let attempts = 0
+      while (isChecking.value && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        attempts++
+      }
+      return
+    }
+
     isChecking.value = true
+    console.log('🔄 Starting initAuth...')
+    
     try {
       const token = authToken.value
+      console.log('🔑 Current token:', token ? 'exists' : 'none')
+      
       if (!token) {
+        console.log('❌ No token found, clearing auth state')
         clearAuthState()
         return
       }
 
+      console.log('📞 Fetching user info...')
       const info = await fetchUserInfo(token)
       if (info) {
         user.value = info
         isLoggedIn.value = true
+        console.log('✅ Auth initialized successfully:', info.fullName)
       } else {
+        console.log('❌ Failed to fetch user info, clearing auth state')
         clearAuthState()
       }
+    } catch (error) {
+      console.error('🚨 Error in initAuth:', error)
+      clearAuthState()
     } finally {
       isChecking.value = false
+      console.log('🔄 initAuth completed')
     }
   }
 
