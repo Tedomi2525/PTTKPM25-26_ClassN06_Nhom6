@@ -18,11 +18,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
           <!-- Cột trống bên trái -->
           <div class="hidden lg:block lg:col-span-1"></div>
-          
+
           <!-- Sidebar: Lịch chọn ngày + Thống kê (2 cột) -->
           <div class="lg:col-span-2 flex flex-col gap-3 overflow-y-auto">
             <!-- Card: Lịch chọn ngày -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
               <div class="bg-[#09f] px-4 py-2.5">
                 <h3 class="text-base font-semibold text-white">
                   Chọn ngày
@@ -31,29 +32,23 @@
               <div class="p-3">
                 <div id="calendarPicker" class="w-full"></div>
               </div>
-              
+
               <!-- Nút điều hướng tuần -->
               <div class="px-3 pb-3">
                 <div class="grid grid-cols-3 gap-2">
-                  <button 
-                    @click="goToPreviousWeek"
+                  <button @click="goToPreviousWeek"
                     class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
-                    title="Tuần trước"
-                  >
+                    title="Tuần trước">
                     <span class="text-lg">←</span>
                     <span class="hidden xl:inline text-sm">Trước</span>
                   </button>
-                  <button 
-                    @click="goToCurrentWeek"
-                    class="px-3 py-2.5 bg-[#09f] hover:bg-[#0088dd] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm"
-                  >
+                  <button @click="goToCurrentWeek"
+                    class="px-3 py-2.5 bg-[#09f] hover:bg-[#0088dd] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
                     Hôm nay
                   </button>
-                  <button 
-                    @click="goToNextWeek"
+                  <button @click="goToNextWeek"
                     class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
-                    title="Tuần sau"
-                  >
+                    title="Tuần sau">
                     <span class="hidden xl:inline text-sm">Sau</span>
                     <span class="text-lg">→</span>
                   </button>
@@ -62,7 +57,8 @@
             </div>
 
             <!-- Card: Thống kê tuần -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
               <div class="bg-[#09f] px-4 py-2.5">
                 <h4 class="text-base font-semibold text-white">
                   Thống kê tuần
@@ -70,15 +66,18 @@
               </div>
               <div class="p-3">
                 <div class="space-y-2">
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Tổng số buổi học</span>
                     <span class="text-xl font-bold text-[#09f]">{{ totalClasses }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Số môn học</span>
                     <span class="text-xl font-bold text-[#09f]">{{ uniqueCourses }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Tổng số tiết</span>
                     <span class="text-xl font-bold text-[#09f]">{{ totalPeriods }}</span>
                   </div>
@@ -89,18 +88,20 @@
 
           <!-- Main content: Lịch học chính (8 cột) -->
           <div class="lg:col-span-8 flex flex-col overflow-hidden">
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
               <div class="bg-[#09f] px-4 py-2.5 flex-shrink-0">
                 <h3 class="text-base font-semibold text-white">
                   Lịch học trong tuần
                 </h3>
               </div>
               <div class="p-3 flex-1 overflow-y-auto">
-                <FullCalendar ref="calendarRef" :options="calendarOptions" />
+                <FullCalendar ref="calendarRef" :options="plainOptions" />
               </div>
             </div>
           </div>
-          
+
+          <SchedulePopup :show="showPopup" :event="selectedEvent" @close="showPopup = false" />
           <!-- Cột trống bên phải -->
           <div class="hidden lg:block lg:col-span-1"></div>
         </div>
@@ -121,6 +122,7 @@ import "flatpickr/dist/flatpickr.css"
 import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js"
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useAuth } from "@/composables/useAuth"
+import SchedulePopup from "@/components/popup/schedule_popup.vue"
 
 
 definePageMeta({
@@ -130,17 +132,19 @@ definePageMeta({
 const { schoolId, initAuth, isChecking } = useAuth()
 const isLoading = ref(true)
 const currentWeekStart = ref(new Date())
+const showPopup = ref(false)
+const selectedEvent = ref<any>(null)
 
 // Computed properties cho thống kê
 const currentWeekDisplay = computed(() => {
   const start = new Date(currentWeekStart.value)
   const end = new Date(start)
   end.setDate(end.getDate() + 6)
-  
+
   const formatDate = (d: Date) => {
     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
   }
-  
+
   return `Tuần ${formatDate(start)} - ${formatDate(end)}`
 })
 
@@ -179,7 +183,56 @@ const calendarOptions = ref({
   firstDay: 0,
   height: "100%",
   expandRows: false,
-  contentHeight: "auto",
+  eventClick: (info: any) => {
+    selectedEvent.value = {
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end,
+      extendedProps: info.event.extendedProps,
+      roomName: info.event.extendedProps.roomName,
+      className: info.event.extendedProps.className,
+    }
+    showPopup.value = true
+  },
+  eventDidMount: (info: any) => {
+    // Lấy phần tử chính của event
+    const el = info.el.querySelector('.fc-event-main-frame') || info.el;
+
+    // Cho phép hover + click
+    el.style.cursor = 'pointer';
+    el.style.pointerEvents = 'auto';
+    el.style.transition = 'all 0.2s ease';
+    el.style.borderRadius = '6px';
+    el.style.position = 'relative';
+    el.style.zIndex = '10';
+
+    // Hiệu ứng hover
+    el.addEventListener('mouseenter', () => {
+      el.style.transform = 'scale(1.03)';
+      el.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+      el.style.zIndex = '999';
+    });
+
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = 'none';
+      el.style.zIndex = '10';
+    });
+
+    // Bắt sự kiện click để mở popup
+    el.addEventListener('click', () => {
+      selectedEvent.value = {
+        title: info.event.title,
+        start: info.event.start,
+        end: info.event.end,
+        extendedProps: info.event.extendedProps,
+        roomName: info.event.extendedProps.roomName,
+        className: info.event.extendedProps.className,
+      };
+      showPopup.value = true;
+    });
+  },
+  contentHeight: "auto", 
   aspectRatio: 1.5,
   nowIndicator: true,
   now: new Date(),
@@ -203,22 +256,29 @@ const calendarOptions = ref({
   },
   eventContent: (arg: any) => {
     const { event } = arg
-    const { teacher, courseCode, credits } = event.extendedProps
-    
+    const { teacher, courseCode } = event.extendedProps
+
     return {
       html: `
-        <div class="fc-event-main-frame p-2 hover:scale-105 transition-transform duration-200">
-          <div class="font-bold text-sm mb-1">${event.title}</div>
-          <div class="text-xs opacity-90">
-            <div>${teacher}</div>
-            <div class="mt-1">${courseCode}</div>
-          </div>
+      <div class="fc-event-main-frame p-2 transition-transform duration-200" title="${event.title} - ${courseCode}" tabindex="0">
+        <div class="font-bold text-sm mb-1">${event.title}</div>
+        <div class="text-xs opacity-90">
+          <div>${teacher}</div>
+          <div class="mt-1">${courseCode}</div>
         </div>
-      `
+      </div>
+    `
     }
   },
+
   events: [],
 })
+
+// FullCalendar's Vue wrapper expects a plain options object (not a Ref wrapper).
+// Create a computed that returns the unwrapped options so the component receives
+// the actual object and event callbacks (eventClick/eventDidMount) are bound
+// correctly.
+const plainOptions = computed(() => calendarOptions.value)
 
 function formatDateToYYYYMMDD(date: Date) {
   const y = date.getFullYear()
@@ -268,7 +328,7 @@ function goToNextWeek() {
 async function loadScheduleForCurrentWeek() {
   const studentId = schoolId.value || localStorage.getItem("schoolId")
   if (!studentId) return
-  
+
   const sundayDate = formatDateToYYYYMMDD(currentWeekStart.value)
   await loadStudentSchedule(studentId, sundayDate)
 }
@@ -294,7 +354,7 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
       calendarOptions.value.events = schedules.map((item: any) => {
         const [day, month, year] = item.specific_date.split("/")
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-        
+
         return {
           title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
@@ -305,6 +365,7 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
           extendedProps: {
             teacher: item.course_class.teacher.full_name,
             courseCode: item.course.course_code,
+            students: item.course_class.students,
           },
         }
       })
@@ -346,20 +407,20 @@ async function initSchedule() {
     isLoading.value = false
     return
   }
-  
+
   console.log("📅 Đang tải lịch học cho student:", studentId)
-  
+
   const today = new Date()
   const sundayOfCurrentWeek = getSundayOfWeek(new Date(today))
   currentWeekStart.value = sundayOfCurrentWeek
   const sundayDate = formatDateToYYYYMMDD(sundayOfCurrentWeek)
-  
+
   // Load lịch học
   await loadStudentSchedule(studentId, sundayDate)
-  
+
   // Khởi tạo date picker
   initDatePicker(studentId)
-  
+
   isLoading.value = false
 }
 
@@ -377,12 +438,26 @@ onMounted(async () => {
     console.log("🔄 Đang khởi tạo auth...")
     await initAuth()
   }
-  
+
   // Nếu đã có schoolId, load ngay
   if (schoolId.value) {
     await initSchedule()
   }
 })
+
+function testOpenPopup() {
+  try {
+    const ev = (calendarOptions as any).value ? (calendarOptions as any).value.events?.[0] : (calendarOptions as any).events?.[0]
+    if (ev) {
+      selectedEvent.value = Object.assign({}, ev)
+      showPopup.value = true
+    } else {
+      console.debug('schedule.vue: testOpenPopup no events present')
+    }
+  } catch (e) {
+    console.debug('schedule.vue: testOpenPopup error', e)
+  }
+}
 </script>
 
 <style>
@@ -392,6 +467,7 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -440,6 +516,41 @@ onMounted(async () => {
   padding: 4px !important;
 }
 
+/* Force pointer events on inner event content and ensure it sits above overlays */
+.fc-event,
+.fc-event *,
+.fc-event-main-frame {
+  pointer-events: auto !important;
+}
+
+.fc-event {
+  z-index: 50 !important;
+}
+
+.fc-event-main-frame {
+  z-index: 60 !important;
+}
+
+/* Hover affordance for the inner event content */
+.fc-event-main-frame.hovering {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  z-index: 999 !important;
+}
+
+
+.fc-event-main-frame:focus {
+  outline: 2px solid rgba(9, 132, 255, 0.25);
+  outline-offset: 2px;
+}
+
+/* Helper class toggled by JS so hover styles can be applied even when :hover
+   is not triggered due to stacking contexts/overlays. */
+.fc-event-main-frame--hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12) !important;
+}
+
 /* Time labels */
 .fc .fc-timegrid-axis {
   background: #f9fafb !important;
@@ -472,7 +583,7 @@ onMounted(async () => {
 }
 
 .fc .fc-timegrid-now-indicator-container {
-  z-index: 10 !important;
+  /* z-index: 10 !important; */
 }
 
 /* Flatpickr customization */
@@ -596,7 +707,7 @@ onMounted(async () => {
   .fc-event {
     font-size: 0.75rem !important;
   }
-  
+
   .fc .fc-col-header-cell {
     font-size: 0.75rem !important;
     padding: 6px 2px !important;
