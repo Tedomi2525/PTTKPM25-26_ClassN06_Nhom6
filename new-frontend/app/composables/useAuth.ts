@@ -39,12 +39,26 @@ export function useAuth() {
     if (stored) authToken.value = stored
   }
 
-  // --- Cập nhật token (cookie + localStorage) ---
+  // --- Cập nhật token (optimized single storage) ---
   function setToken(value: string | null) {
+    const startTime = performance.now()
+    
+    // Ưu tiên cookie (Nuxt SSR-friendly), localStorage làm backup
     authToken.value = value
+    
     if (import.meta.client) {
-      if (value) localStorage.setItem('auth_token', value)
-      else localStorage.removeItem('auth_token')
+      // Batch localStorage operations để giảm I/O
+      requestIdleCallback(() => {
+        if (value) {
+          localStorage.setItem('auth_token', value)
+        } else {
+          localStorage.removeItem('auth_token')
+        }
+        const duration = performance.now() - startTime
+        if (duration > 10) {
+          console.warn(`🐌 setToken took ${duration.toFixed(1)}ms`)
+        }
+      }, { timeout: 100 })
     }
   }
 
@@ -87,15 +101,19 @@ export function useAuth() {
 
   // --- Khởi tạo xác thực ---
   async function initAuth() {
-    // Tránh multiple concurrent init calls
+    // Tránh multiple concurrent init calls với Promise-based approach (faster)
     if (isChecking.value) {
-      console.log('⏳ initAuth already running, waiting...')
-      let attempts = 0
-      while (isChecking.value && attempts < 50) {
-        await new Promise(resolve => setTimeout(resolve, 100))
-        attempts++
-      }
-      return
+      console.log('⏳ initAuth already running, waiting with timeout...')
+      // Chờ tối đa 2 giây thay vì 5 giây, và check mỗi 50ms thay vì 100ms
+      return new Promise((resolve) => {
+        const startTime = Date.now()
+        const checkInterval = setInterval(() => {
+          if (!isChecking.value || Date.now() - startTime > 2000) {
+            clearInterval(checkInterval)
+            resolve(void 0)
+          }
+        }, 50)
+      })
     }
 
     isChecking.value = true
@@ -130,17 +148,24 @@ export function useAuth() {
     }
   }
 
-  // --- Đăng nhập ---
+  // --- Đăng nhập (optimized) ---
   async function login(payload: { username: string; password: string }) {
     isChecking.value = true
     loginError.value = ''
+    
+    console.log('🔄 Starting optimized login process...')
+    const startTime = performance.now()
+    const timings: Record<string, number> = {}
 
     try {
+      // Step 1: Login API
+      const loginStart = performance.now()
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
+      timings.loginApi = performance.now() - loginStart
 
       if (!res.ok) throw new Error('Sai tài khoản hoặc mật khẩu')
 
@@ -148,15 +173,37 @@ export function useAuth() {
       const accessToken = data.accessToken || data.access_token
       if (!accessToken) throw new Error('Không nhận được access token')
 
+      // Step 2: Save token (non-blocking)
+      const tokenStart = performance.now()
       setToken(accessToken)
+      timings.saveToken = performance.now() - tokenStart
+
+      // Step 3: Fetch user info
+      const userInfoStart = performance.now()
       const info = await fetchUserInfo(accessToken)
+      timings.fetchUserInfo = performance.now() - userInfoStart
 
       if (!info) throw new Error('Không thể lấy thông tin người dùng')
 
+      // Step 4: Update state (batch)
+      const stateStart = performance.now()
       user.value = info
       isLoggedIn.value = true
-      console.log(`👤 Đăng nhập thành công: ${info.fullName}`)
-      await router.push('/home')
+      timings.updateState = performance.now() - stateStart
+      
+      const endTime = performance.now()
+      const totalTime = (endTime - startTime).toFixed(0)
+      
+      console.log(`👤 Đăng nhập thành công: ${info.fullName} (${totalTime}ms)`)
+      console.log(`📊 Timing breakdown:`, {
+        loginApi: `${timings.loginApi.toFixed(1)}ms`,
+        saveToken: `${timings.saveToken.toFixed(1)}ms`, 
+        fetchUserInfo: `${timings.fetchUserInfo.toFixed(1)}ms`,
+        updateState: `${timings.updateState.toFixed(1)}ms`
+      })
+
+      // Navigate after successful login (don't block return)
+      router.push('/home')
 
       return { success: true, user: info }
     } catch (err: any) {
