@@ -218,19 +218,33 @@ export function useAuth() {
   }
 
   // --- Đăng xuất ---
+  const isLoggingOut = ref(false)
+  
   async function logout() {
+    if (isLoggingOut.value) {
+      console.log('⏳ Logout already in progress, skipping...')
+      return
+    }
+    
+    isLoggingOut.value = true
+    console.log('🚪 Starting logout process...')
+    
     try {
       if (authToken.value) {
         await fetch(`${API_BASE}/auth/logout`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${authToken.value}` },
         })
+        console.log('✅ Logout API call successful')
       }
     } catch (e) {
       console.warn('⚠️ Logout API failed — clearing local state.', e)
     } finally {
       clearAuthState()
+      console.log('🧹 Auth state cleared')
       await router.push('/')
+      isLoggingOut.value = false
+      console.log('✅ Logout process completed')
     }
   }
 
@@ -345,6 +359,7 @@ export function useAuth() {
     authToken,
     isLoggedIn,
     isChecking,
+    isLoggingOut,
     loginError,
 
     // methods

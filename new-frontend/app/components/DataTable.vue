@@ -24,8 +24,8 @@
           </CButton>
           
           <CButton 
+            v-if="showEditButton && isAdmin"
             variant="edit" 
-            v-if="!registerMode"
             :disabled="!selectedRow" 
             @edit="handleEdit" 
           >
@@ -44,8 +44,8 @@
       </div>
 
       <!-- Table Wrapper (chỉ phần này scroll) -->
-      <div class="hidden lg:block border-t border-b border-gray-200 max-w-full">
-        <div class="overflow-x-auto overflow-y-auto" style="max-height: 85vh;">
+      <div class="hidden lg:block border-t border-b border-gray-200 max-w-full *:h-full">
+        <div class="overflow-x-auto overflow-y-auto" :style="{ 'max-height': maxHeight }">
           <table class="w-full border-separate border-spacing-0 table-fixed">
             <thead class="bg-gray-200">
               <tr>
@@ -101,7 +101,7 @@
       </div>
 
       <!-- Card View (Mobile) -->
-      <div class="lg:hidden space-y-4 p-6 overflow-y-auto" style="max-height: 70vh;">
+      <div class="lg:hidden space-y-4 p-6 overflow-y-auto" :style="{ 'max-height': maxHeight }">
         <div
           v-for="(row, idx) in sortedData"
           :key="row[idKey]"
@@ -157,7 +157,10 @@ const props = defineProps({
   showRegisterButton: { type: Boolean, default: false },
   registerLabel: { type: String, default: 'Đăng ký' },
   registerTo: { type: String, default: '' },
-  registerMode: { type: Boolean, default: false }
+  registerMode: { type: Boolean, default: false },
+  showEditButton: { type: Boolean, default: true },
+  isAdmin: { type: Boolean, default: false },
+  maxHeight: { type: String, default: '85%' }
 })
 
 const selectedRow = ref(null)

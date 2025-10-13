@@ -4,7 +4,7 @@ import { useRouter, useRoute } from "vue-router"
 import { useAuth } from "@/composables/useAuth"
 
 const open = ref(false)
-const { displayName, logout, validateToken, token, role, avatar, user } = useAuth()
+const { displayName, logout, validateToken, token, role, avatar, user, isLoggingOut } = useAuth()
 const router = useRouter()
 const route = useRoute()
 
@@ -27,8 +27,10 @@ function hideDropdown() {
 }
 
 function handleLogout() {
-  logout()
+  if (isLoggingOut.value) return // Prevent multiple logout calls
+  
   open.value = false
+  logout()
 }
 
 function handleImageError(event: Event) {
@@ -167,12 +169,20 @@ watch(
               <li>
                 <button
                   @click="handleLogout"
-                  class="flex items-center px-4 py-2 w-full text-left text-gray-800 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
+                  :disabled="isLoggingOut"
+                  class="flex items-center px-4 py-2 w-full text-left transition-colors duration-200"
+                  :class="isLoggingOut 
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-100' 
+                    : 'text-gray-800 hover:bg-blue-100 hover:text-blue-700'"
                 >
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-if="!isLoggingOut" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
                   </svg>
-                  Đăng xuất
+                  <svg v-else class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" class="opacity-75"></path>
+                  </svg>
+                  {{ isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất' }}
                 </button>
               </li>
               <li>
