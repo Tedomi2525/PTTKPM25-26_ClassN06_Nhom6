@@ -66,32 +66,7 @@ const calendarOptions = {
              </div>`,
     };
   },
-  events: [
-    {
-      title: "Phân tích & thiết kế hệ thống\nTiết 1-2\nPhòng A6-07\nGV: Cô Mai",
-      start: "2025-09-08T06:45:00",
-      end: "2025-09-08T09:25:00",
-      color: "#1e88e5",
-    },
-    {
-      title: "An toàn & bảo mật\nTiết 1-2\nPhòng A8-104\nGV: Thầy Ngữ",
-      start: "2025-09-10T06:45:00",
-      end: "2025-09-10T09:25:00",
-      color: "#fb8c00",
-    },
-    {
-      title: "Điện toán đám mây\nTiết 1-2\nPhòng A6-02\nGV: Thầy Phạm",
-      start: "2025-09-11T06:45:00",
-      end: "2025-09-11T09:25:00",
-      color: "#e53935",
-    },
-    {
-      title: "Tiếng Anh 2\nTiết 7-8\nPhòng A2-201\nGV: Cô Hằng",
-      start: "2025-09-09T13:00:00",
-      end: "2025-09-09T14:40:00",
-      color: "#43a047",
-    },
-  ],
+  events: [],
 };
 
 onMounted(() => {
