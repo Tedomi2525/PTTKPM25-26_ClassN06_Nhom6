@@ -3,14 +3,8 @@
     <!-- Container full width -->
     <div class="h-full w-full px-4 py-3 lg:px-6 lg:py-4 flex flex-col">
       <!-- Loading state -->
-      <LoadingSpinner 
-        v-if="isLoading" 
-        size="large"
-        color="blue"
-        message="Đang tải lịch học..."
-        sub-message="Vui lòng đợi trong giây lát"
-        full-height
-      />
+      <LoadingSpinner v-if="isLoading" size="large" color="blue" message="Đang tải lịch học..."
+        sub-message="Vui lòng đợi trong giây lát" full-height />
 
       <!-- Content khi đã load xong -->
       <div v-else class="animate-fade-in flex-1 flex flex-col overflow-hidden">
@@ -165,12 +159,12 @@ const totalPeriods = computed(() => {
     const start = new Date(event.start)
     const end = new Date(event.end)
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-    
+
     // Nếu ca học kéo dài 2h45p (2.75 giờ) thì tính 3 tiết
     if (hours >= 2.5 && hours <= 3) {
       return total + 3
     }
-    
+
     // Tính theo tỷ lệ cho các ca học khác (nếu có)
     return total + Math.ceil(hours / 0.92) // 2.75h / 3 tiết = 0.92h/tiết
   }, 0)
@@ -239,7 +233,7 @@ const calendarOptions = ref({
       showPopup.value = true;
     });
   },
-  contentHeight: "auto", 
+  contentHeight: "auto",
   aspectRatio: 1.5,
   nowIndicator: true,
   now: new Date(),
@@ -363,6 +357,7 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
 
         return {
+          id: item.course_class.course_class_id, // thêm id nếu FullCalendar cần
           title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
           end: `${isoDate}T${item.time.period_end.end_time}`,
@@ -370,12 +365,16 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
           borderColor: "#0088dd",
           textColor: "#fff",
           extendedProps: {
+            courseClassId: item.course_class.course_class_id, // 🔥 quan trọng nhất
             teacher: item.course_class.teacher.full_name,
             courseCode: item.course.course_code,
+            credits: item.course.credits,
             students: item.course_class.students,
+            section: item.course_class.section,
           },
         }
       })
+
     } else {
       console.warn("❌ API trả về không thành công:", res.data)
       calendarOptions.value.events = []
