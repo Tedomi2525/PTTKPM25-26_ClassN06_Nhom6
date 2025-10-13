@@ -161,11 +161,18 @@ const uniqueCourses = computed(() => {
 
 const totalPeriods = computed(() => {
   return calendarOptions.value.events.reduce((total: number, event: any) => {
-    // Giả sử mỗi buổi học là 2-3 tiết, tính theo thời gian
+    // Mỗi ca học kéo dài 2h45p và bao gồm 3 tiết học
     const start = new Date(event.start)
     const end = new Date(event.end)
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-    return total + Math.ceil(hours / 0.75) // Mỗi tiết 45 phút
+    
+    // Nếu ca học kéo dài 2h45p (2.75 giờ) thì tính 3 tiết
+    if (hours >= 2.5 && hours <= 3) {
+      return total + 3
+    }
+    
+    // Tính theo tỷ lệ cho các ca học khác (nếu có)
+    return total + Math.ceil(hours / 0.92) // 2.75h / 3 tiết = 0.92h/tiết
   }, 0)
 })
 
