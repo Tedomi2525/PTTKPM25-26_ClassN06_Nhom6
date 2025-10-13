@@ -1,12 +1,11 @@
 <template>
   <div class="p-6 space-y-6">
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center min-h-[400px]">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">Đang tải danh sách học phần...</p>
-      </div>
-    </div>
+    <LoadingSpinner 
+      v-if="isLoading" 
+      message="Đang tải danh sách học phần..."
+      sub-message="Vui lòng đợi trong giây lát"
+    />
 
     <!-- Error state -->
     <div v-else-if="errorMessage" class="flex justify-center items-center min-h-[400px]">
@@ -46,6 +45,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import DataTable from '@/components/DataTable.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const { schoolId, programId, user, initAuth, isChecking } = useAuth()

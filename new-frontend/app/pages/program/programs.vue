@@ -4,7 +4,14 @@
       <CButton type="goto" to="/Admin/dashboard/programs_deleted" variant="secondary">Bảng chương trình đã ẩn</CButton>
     </div>
 
+    <LoadingSpinner 
+      v-if="isLoading"
+      message="Đang tải danh sách chương trình đào tạo..."
+      sub-message="Vui lòng đợi trong giây lát"
+    />
+    
     <DataTable
+      v-else
       title="Danh Sách Chương Trình Đào Tạo"
       :data="programs"
       :columns="columns"
@@ -19,8 +26,10 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import DataTable from "@/components/DataTable.vue"
+import LoadingSpinner from "@/components/LoadingSpinner.vue"
 
 const programs = ref([])
+const isLoading = ref(true)
 
 const columns = [
   { label: "Tên chương trình", field: "programName" },
@@ -30,12 +39,15 @@ const columns = [
 ]
 
 async function fetchPrograms() {
+  isLoading.value = true
   try {
     const res = await fetch("http://localhost:8000/api/programs")
     if (!res.ok) throw new Error('Không tải được danh sách chương trình')
     programs.value = await res.json()
   } catch (err) {
     alert('Lỗi: ' + err.message)
+  } finally {
+    isLoading.value = false
   }
 }
 

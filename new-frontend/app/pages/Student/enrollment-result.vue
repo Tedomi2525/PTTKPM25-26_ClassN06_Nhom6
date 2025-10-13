@@ -1,13 +1,10 @@
 <template>
   <div class="p-6 space-y-6">
-    <div v-if="isLoading || isChecking" class="flex justify-center items-center min-h-[400px]">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">
-          {{ isChecking ? 'Đang xác thực người dùng...' : 'Đang tải kết quả đăng ký...' }}
-        </p>
-      </div>
-    </div>
+    <LoadingSpinner 
+      v-if="isLoading || isChecking" 
+      :message="isChecking ? 'Đang xác thực người dùng...' : 'Đang tải kết quả đăng ký...'"
+      sub-message="Vui lòng đợi trong giây lát"
+    />
 
     <div v-else-if="errorMessage" class="flex justify-center items-center min-h-[400px]">
       <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center">
@@ -37,6 +34,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import DataTable from '@/components/DataTable.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useAuth } from '@/composables/useAuth'
 
 definePageMeta({

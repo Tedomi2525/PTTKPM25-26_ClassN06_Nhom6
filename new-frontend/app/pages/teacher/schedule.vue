@@ -3,15 +3,14 @@
     <!-- Container full width -->
     <div class="h-full w-full px-4 py-3 lg:px-6 lg:py-4 flex flex-col">
       <!-- Loading state -->
-      <div v-if="isLoading" class="flex justify-center items-center flex-1">
-        <div class="text-center space-y-4">
-          <div class="inline-block animate-spin rounded-full h-20 w-20 border-4 border-t-[#09f] border-r-transparent border-b-[#09f] border-l-transparent"></div>
-          <div>
-            <p class="text-gray-700 font-semibold text-lg">Đang tải lịch giảng dạy...</p>
-            <p class="text-gray-500 text-sm mt-2">Vui lòng đợi trong giây lát</p>
-          </div>
-        </div>
-      </div>
+      <LoadingSpinner 
+        v-if="isLoading" 
+        size="large"
+        color="blue"
+        message="Đang tải lịch giảng dạy..."
+        sub-message="Vui lòng đợi trong giây lát"
+        full-height
+      />
 
       <!-- Content khi đã load xong -->
       <div v-else class="animate-fade-in flex-1 flex flex-col overflow-hidden">
@@ -120,6 +119,7 @@ import viLocale from "@fullcalendar/core/locales/vi"
 import flatpickr from "flatpickr"
 import "flatpickr/dist/flatpickr.css"
 import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js"
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useAuth } from "@/composables/useAuth"
 
 

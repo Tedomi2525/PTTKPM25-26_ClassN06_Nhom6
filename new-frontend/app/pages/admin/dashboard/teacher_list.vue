@@ -1,7 +1,14 @@
 <template>
   <div class="mx-auto mt-8">
+    <LoadingSpinner 
+      v-if="isLoading"
+      message="Đang tải danh sách giảng viên..."
+      sub-message="Vui lòng đợi trong giây lát"
+    />
+    
     <!-- Data Table with integrated Add button -->
     <DataTable
+      v-else
       title="Danh Sách Giảng Viên"
       :data="teachers"
       :columns="columns"
@@ -19,11 +26,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from '@/components/DataTable.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter() // Thêm useRouter để sử dụng navigateTo
 const students = ref([])
 
 const teachers = ref([])
+const isLoading = ref(true)
 const columns = [
   { label: "Mã GV", field: "teacherCode" },
   { label: "Họ và đệm", field: "lastName" },
@@ -40,12 +49,15 @@ const columns = [
 ]
 
 async function fetchTeachers() {
+  isLoading.value = true
   try {
     const res = await fetch('http://localhost:8000/api/teachers')
     if (!res.ok) throw new Error('Không tải được danh sách')
     teachers.value = await res.json()
   } catch (err) {
     alert('Lỗi: ' + err.message)
+  } finally {
+    isLoading.value = false
   }
 }
 

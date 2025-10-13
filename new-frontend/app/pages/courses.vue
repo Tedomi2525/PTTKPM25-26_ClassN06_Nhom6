@@ -9,8 +9,14 @@
       </button>
     </div>
 
+    <LoadingSpinner 
+      v-if="loading"
+      message="Đang tải danh sách học phần..."
+      sub-message="Vui lòng đợi trong giây lát"
+    />
+    
     <DataTable
-      v-if="!loading"
+      v-else
       title="Danh Sách Học Phần"
       :data="courses"
       :columns="columns"
@@ -19,14 +25,13 @@
       @edit="editCourse"
       @delete="hideCourse"
     />
-
-    <div v-else class="text-center text-gray-500">Đang tải danh sách học phần...</div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue"
 import DataTable from "@/components/DataTable.vue"
+import LoadingSpinner from "@/components/LoadingSpinner.vue"
 
 const courses = ref([])
 const loading = ref(true)
