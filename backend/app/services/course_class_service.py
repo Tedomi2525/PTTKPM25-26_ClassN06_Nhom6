@@ -39,6 +39,12 @@ def get_course_classes(db: Session, skip: int = 0, limit: int = 100):
         .limit(limit)\
         .all()
 
+def get_students_in_course_class(db: Session, course_class_id: int):
+    return db.query(Enrollment)\
+        .options(joinedload(Enrollment.student))\
+        .filter(Enrollment.course_class_id == course_class_id)\
+        .all()
+
 def update_course_class(db: Session, course_class_id: int, course_class: CourseClassUpdate):
     db_course_class = db.query(CourseClass).filter(CourseClass.course_class_id == course_class_id).first()
     if not db_course_class:
