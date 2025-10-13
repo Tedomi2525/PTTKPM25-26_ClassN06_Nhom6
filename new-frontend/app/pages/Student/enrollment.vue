@@ -57,6 +57,7 @@ const errorMessage = ref('')
 const columns = [
   { label: "Môn học", field: "courseName" },
   { label: "Giảng viên", field: "teacherName" },
+  { label: "Sĩ số hiện tại", field: "currentStudents" },
   { label: "Sĩ số tối đa", field: "maxStudents" },
   { label: "Sĩ số tối thiểu", field: "minStudents" },
   { label: "Lớp", field: "section" }

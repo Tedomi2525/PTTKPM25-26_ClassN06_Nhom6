@@ -211,7 +211,7 @@ const calendarOptions = ref({
           <div class="font-bold text-sm mb-1">${event.title}</div>
           <div class="text-xs opacity-90">
             <div>${teacher}</div>
-            <div class="mt-1">${courseCode} • ${credits} tín chỉ</div>
+            <div class="mt-1">${courseCode}</div>
           </div>
         </div>
       `
@@ -305,7 +305,6 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
           extendedProps: {
             teacher: item.course_class.teacher.full_name,
             courseCode: item.course.course_code,
-            credits: item.course.credits,
           },
         }
       })

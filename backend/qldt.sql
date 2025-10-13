@@ -15,7 +15,21 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS programs;
 DROP TABLE IF EXISTS periods;
 DROP TABLE IF EXISTS rooms;
+-- 14. PROGRAMS
+CREATE TABLE programs (
+    program_id SERIAL PRIMARY KEY,
+    program_name VARCHAR(150) NOT NULL,  
+    department VARCHAR(100),            
+    start_year INT NOT NULL,             
+    duration INT,                        
+    current_semester VARCHAR(10),                  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+INSERT INTO programs (program_name, department, start_year, duration)
+VALUES
+('Công nghệ thông tin 2025-2029', 'Khoa Công nghệ Thông tin', 2025, 4);
 -- 1. USERS
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -70,6 +84,7 @@ CREATE TABLE students (
     class VARCHAR(50),                                 -- Lớp (VD: K17-CNTT_4)
     training_program VARCHAR(50),                      -- Khóa đào tạo (VD: DH_K17.40)
     course_years VARCHAR(20),                          -- Niên khóa (VD: 2023-2027)
+    program_id INT REFERENCES programs(program_id) ON DELETE SET NULL,
     education_type VARCHAR(50),                        -- Loại hình đào tạo (chính quy, liên thông, v.v.)
     faculty VARCHAR(100),                              -- Khoa quản lý
     major VARCHAR(100),                                -- Ngành học
@@ -194,6 +209,7 @@ CREATE TABLE course_classes (
     section VARCHAR(20),
     max_students INT CHECK (max_students > 0),
     min_students INT CHECK (min_students >= 0),
+    current_students INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -289,10 +305,6 @@ INSERT INTO course_classes (course_id, teacher_id, section, max_students, min_st
 (88,1,'N01',60,15),(88,2,'N02',60,15),
 (89,2,'N01',60,15),(89,3,'N02',60,15);
 
-ALTER TABLE course_classes
-ADD COLUMN current_students INT DEFAULT 0 NOT NULL
-CHECK (current_students >= 0 AND current_students <= max_students);
-
 -- 6. ENROLLMENTS
 CREATE TABLE enrollments (
     enrollment_id SERIAL PRIMARY KEY,
@@ -316,11 +328,11 @@ CREATE TABLE rooms (
 
 INSERT INTO rooms (room_name, capacity, camera_stream_url)
 VALUES
-  ('P101', 60, 'rtsp://camera1'),
-  ('P102', 70, 'rtsp://camera2'),
-  ('Lab1', 70, 'rtsp://camera3'),
-  ('Lab2', 70, 'rtsp://camera4'),
-  ('Hall', 120, 'rtsp://camera5');
+  ('A6-205', 60, 'rtsp://camera1'),
+  ('A6-206', 70, 'rtsp://camera2'),
+  ('A4-407', 70, 'rtsp://camera3'),
+  ('A4-408', 70, 'rtsp://camera4'),
+  ('A4-309', 120, 'rtsp://camera5');
 
 -- 8. PERIODS
 CREATE TABLE periods (
@@ -456,21 +468,7 @@ CREATE TABLE attendances (
 
 CREATE INDEX idx_attendances ON attendances(student_id, date);
 
--- 14. PROGRAMS
-CREATE TABLE programs (
-    program_id SERIAL PRIMARY KEY,
-    program_name VARCHAR(150) NOT NULL,  
-    department VARCHAR(100),            
-    start_year INT NOT NULL,             
-    duration INT,                        
-    current_semester VARCHAR(10),                  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
-INSERT INTO programs (program_name, department, start_year, duration)
-VALUES
-('Công nghệ thông tin 2025-2029', 'Khoa Công nghệ Thông tin', 2025, 4);
 
 -- 15. PROGRAM_COURSES
 CREATE TABLE program_courses (

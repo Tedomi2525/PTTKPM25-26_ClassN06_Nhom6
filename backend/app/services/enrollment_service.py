@@ -23,6 +23,10 @@ def create_enrollment(db: Session, payload: EnrollmentCreate):
     db.add(new_enrollment)
     db.commit()
     db.refresh(new_enrollment)
+    
+    # Increment the current_students count for the course class
+    increment_course_class_students(db, new_enrollment.course_class_id)
+    
     return new_enrollment
 
 def update_enrollment(db: Session, enrollment_id: int, payload: EnrollmentUpdate):
@@ -40,6 +44,35 @@ def delete_enrollment(db: Session, enrollment_id: int):
     enrollment = db.query(EnrollmentModel).filter(EnrollmentModel.enrollment_id == enrollment_id).first()
     if not enrollment:
         return None
+    
+    course_class_id = enrollment.course_class_id
     db.delete(enrollment)
     db.commit()
+    
+    # Decrement the current_students count for the course class
+    decrement_course_class_students(db, course_class_id)
+    
     return True
+
+def increment_course_class_students(db: Session, course_class_id: int):
+    """Increment the current_students count for a course class by 1"""
+    course_class = db.query(CourseClassModel).filter(CourseClassModel.course_class_id == course_class_id).first()
+    if not course_class:
+        return None
+    course_class.current_students += 1
+    course_class.updated_at = func.now()
+    db.commit()
+    db.refresh(course_class)
+    return course_class
+
+def decrement_course_class_students(db: Session, course_class_id: int):
+    """Decrement the current_students count for a course class by 1"""
+    course_class = db.query(CourseClassModel).filter(CourseClassModel.course_class_id == course_class_id).first()
+    if not course_class:
+        return None
+    if course_class.current_students > 0:
+        course_class.current_students -= 1
+        course_class.updated_at = func.now()
+        db.commit()
+        db.refresh(course_class)
+    return course_class
