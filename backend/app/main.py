@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import os
 
-from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, course_class, courses, semesters
+from app.routers import test, rooms, programs, users, teacher, program_courses,schedules, students, enrollments, course_class, auth, courses, semesters
 from fastapi.middleware.cors import CORSMiddleware
 # Import models to ensure they are registered with SQLAlchemy
 import app.models
@@ -37,7 +37,6 @@ app.include_router(students.router, prefix="/api")
 app.include_router(enrollments.router, prefix="/api")
 app.include_router(course_class.router, prefix="/api")
 app.include_router(auth.router, prefix="/auth")
-app.include_router(course_class.router, prefix="/api")
 app.include_router(courses.router, prefix="/api")
 app.include_router(semesters.router, prefix="/api")
 

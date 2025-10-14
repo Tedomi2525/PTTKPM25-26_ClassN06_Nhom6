@@ -5,3 +5,5 @@
     </NuxtLayout>
   </div>
 </template>
+
+const {programID} = useAuth()

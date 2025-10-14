@@ -9,3 +9,7 @@ python-dotenv
 alembic
 psycopg2-binary
 numpy
+opencv-python
+ultralytics
+tqdm
+pillow
