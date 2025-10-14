@@ -13,3 +13,7 @@ opencv-python
 ultralytics
 tqdm
 pillow
+torch
+torchvision
+faiss-cpu
+python-multipart
