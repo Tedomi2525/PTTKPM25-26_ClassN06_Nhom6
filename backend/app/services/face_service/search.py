@@ -14,7 +14,7 @@ import faiss
 
 app = FastAPI(title="Face Recognition API")
 
-FAISS_INDEX_PATH = "face_service/face.index"
+FAISS_INDEX_PATH = "face.index"
 RECOGNITION_THRESHOLD = 0.9  # ngưỡng khớp
 
 def load_faiss_index():
