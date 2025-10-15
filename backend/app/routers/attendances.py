@@ -6,7 +6,7 @@ from app.services import attendance_service
 
 router = APIRouter()
 
-@router.post("/attendances/face-recognition", summary="Nhận diện khuôn mặt sinh viên")
+@router.post("/attendances/face-recognition", summary="Nhận diện khuôn mặt sinh viên qua ảnh")
 async def recognize_face(
     file: UploadFile = File(..., description="Ảnh khuôn mặt sinh viên"),
     db: Session = Depends(get_db)
@@ -34,4 +34,27 @@ async def recognize_face(
         raise
     except Exception as e:
         print(f"Error in face recognition endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
+
+
+@router.post("/attendances/face-recognition-camera", summary="Nhận diện khuôn mặt sinh viên qua camera")
+def recognize_face_camera(
+    timeout: int = 15,
+    db: Session = Depends(get_db)
+):
+    """
+    Nhận diện sinh viên qua camera realtime
+    
+    - **timeout**: Thời gian tối đa quét camera (giây), mặc định 15s
+    - Camera sẽ tự động quét và nhận diện khuôn mặt
+    - Trả về thông tin sinh viên ngay khi tìm thấy
+    """
+    try:
+        result = attendance_service.search_face_by_camera(db, timeout)
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in camera recognition endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")

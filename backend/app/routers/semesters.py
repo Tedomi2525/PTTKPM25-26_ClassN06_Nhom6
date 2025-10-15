@@ -6,8 +6,7 @@ import app.models.semester as models
 import app.schemas.semester as schemas
 
 router = APIRouter(
-    prefix="/semesters",
-    tags=["semesters"]
+    prefix="/semesters"
 )
 
 @router.get("/", response_model=List[schemas.Semester])
