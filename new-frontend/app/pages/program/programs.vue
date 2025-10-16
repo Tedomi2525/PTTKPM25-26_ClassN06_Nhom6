@@ -17,6 +17,7 @@
       :columns="columns"
       idKey="program_id"
       deleteLabel="Ẩn"
+      isAdmin="True"
       @edit="editProgram"
       @delete="hideProgram"
     />

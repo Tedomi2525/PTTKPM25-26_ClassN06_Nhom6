@@ -15,6 +15,7 @@
       idKey="teacherId"
       :showAddButton="true"
       addButtonTo="/Admin/dashboard/teacher_add"
+      isAdmin="True"
       addLabel="Thêm giảng viên"
       @edit="editTeacher"
       @delete="deleteTeacher"

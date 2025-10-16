@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-6xl mx-auto mt-4">
-        <CButton type="back" variant="secondary" @click="$router.back()">Trở lại</CButton>
+    <CButton type="back" variant="secondary" @click="$router.back()">Trở lại</CButton>
   </div>
   <div class="max-w-6xl mx-auto mt-4">
 
@@ -21,6 +21,8 @@
                   </li>
               </ul>
           </div>
+
+          <!-- Thông tin cá nhân -->
           <div>
             <h5 class="text-blue-600 font-semibold mb-4">Thông tin cá nhân</h5>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -46,7 +48,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-
               <div>
                 <label for="gender" class="block text-sm font-medium mb-1">Giới tính *</label>
                 <DropDown
@@ -64,6 +65,7 @@
             </div>
           </div>
 
+          <!-- Thông tin đào tạo -->
           <div>
             <h5 class="text-blue-600 font-semibold mb-4">Thông tin đào tạo & quản lý</h5>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -75,14 +77,13 @@
                 <label for="trainingProgram" class="block text-sm font-medium mb-1">Khóa đào tạo</label>
                 <InputField id="trainingProgram" v-model="form.trainingProgram" placeholder="VD: DH_K17.40" />
               </div>
-                            <div>
+              <div>
                 <label for="courseYears" class="block text-sm font-medium mb-1">Niên khóa</label>
                 <InputField id="courseYears" v-model="form.courseYears" placeholder="VD: 2023-2027" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-
               <div>
                 <label for="educationType" class="block text-sm font-medium mb-1">Hệ đào tạo</label>
                 <DropDown
@@ -95,18 +96,27 @@
                   ]"
                 />
               </div>
+
+              <!-- ✅ Chỉ sửa phần faculty -->
               <div>
-                <label for="faculty" class="block text-sm font-medium mb-1">Khoa quản lý</label>
-                <InputField id="faculty" v-model="form.faculty" placeholder="VD: Khoa Công nghệ Thông tin" />
+                <label for="faculty" class="block text-sm font-medium mb-1">Khoa quản lý *</label>
+                <DropDown
+                  id="faculty"
+                  placeholder="Khoa quản lý"
+                  :options="facultyOptions"
+                  @update:modelValue="handleFacultySelect"
+                />
               </div>
-                            <div>
+
+
+
+              <div>
                 <label for="major" class="block text-sm font-medium mb-1">Ngành</label>
                 <InputField id="major" v-model="form.major" placeholder="VD: Công nghệ thông tin" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-
               <div>
                 <label for="position" class="block text-sm font-medium mb-1">Chức vụ</label>
                 <InputField id="position" v-model="form.position" placeholder="VD: Sinh viên" />
@@ -135,6 +145,7 @@
             </div>
           </div>
 
+          <!-- Nút thao tác -->
           <div class="flex justify-end space-x-2">
             <CButton type="reset" variant="secondary" @click="resetForm">Hủy bỏ</CButton>
             <CButton type="submit" variant="primary" :disabled="isSubmitting">
@@ -168,16 +179,39 @@ const form = ref({
   courseYears: "",
   educationType: "",
   faculty: "",
+  program_id: "",
   major: "",
   status: "Đang học",
   position: "",
-  avatar: null, // dùng để chứa File object hoặc null
+  avatar: null,
 });
 
 const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
 
+
+// ✅ Xử lý chọn khoa
+const facultyOptions = [
+  { label: 'Khoa Hệ thống thông tin', value: JSON.stringify({ faculty: 'Khoa Hệ thống thông tin', program_id: '1' }) },
+  { label: 'Khoa Khoa học máy tính', value: JSON.stringify({ faculty: 'Khoa Khoa học máy tính', program_id: '2' }) },
+  { label: 'Khoa Trí tuệ nhân tạo', value: JSON.stringify({ faculty: 'Khoa Trí tuệ nhân tạo', program_id: '3' }) }
+]
+
+const handleFacultySelect = (option) => {
+  try {
+    const selected = JSON.parse(option)
+    console.log("👉 Faculty option emitted:", selected)
+
+    form.value.faculty = selected.faculty
+    form.value.program_id = selected.program_id
+  } catch (e) {
+    console.error("❌ Lỗi parse faculty option:", e)
+    form.value.faculty = ""
+    form.value.program_id = ""
+  }
+}
+  
 // =======================================================
 // HANDLE FILE UPLOAD
 // =======================================================
@@ -207,6 +241,7 @@ const resetForm = () => {
     courseYears: "",
     educationType: "",
     faculty: "",
+    program_id: "",
     major: "",
     status: "Đang học",
     position: "",
@@ -223,13 +258,12 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
 
   try {
-    // 🔹 Tạo FormData (chỉ dùng multipart form)
     const formData = new FormData();
 
     for (const [key, value] of Object.entries(form.value)) {
       if (key === "avatar") {
         if (value instanceof File) {
-          formData.append("avatar_file", value); // backend nhận avatar_file
+          formData.append("avatar_file", value);
         }
       } else if (value !== null && value !== "") {
         if (key === "dob" && value) {
@@ -262,9 +296,7 @@ const handleSubmit = async () => {
     }
 
     const data = await response.json();
-
     alert(`✅ Thêm sinh viên thành công!\nMã SV: ${data.studentCode || "N/A"}`);
-
     resetForm();
     router.push("/admin/dashboard/student_list");
   } catch (err) {

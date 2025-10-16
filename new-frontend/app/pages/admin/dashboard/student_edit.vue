@@ -11,7 +11,7 @@
 
       <div class="p-6">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          
+
           <!-- Thông báo lỗi -->
           <div
             v-if="errorMessage"
@@ -20,10 +20,7 @@
           >
             <p class="font-bold">Lỗi gửi dữ liệu!</p>
             <p>{{ errorMessage }}</p>
-            <ul
-              v-if="validationErrors"
-              class="mt-2 list-disc list-inside text-sm"
-            >
+            <ul v-if="validationErrors" class="mt-2 list-disc list-inside text-sm">
               <li v-for="(errors, field) in validationErrors" :key="field">
                 **{{ field }}**: {{ errors.join(', ') }}
               </li>
@@ -105,10 +102,17 @@
                   ]"
                 />
               </div>
+
               <div>
-                <label for="faculty" class="block text-sm font-medium mb-1">Khoa quản lý</label>
-                <InputField id="faculty" v-model="form.faculty" placeholder="VD: Khoa Công nghệ Thông tin" />
+                <label for="faculty" class="block text-sm font-medium mb-1">Khoa quản lý *</label>
+                <DropDown
+                  id="faculty"
+                  placeholder="Khoa quản lý"
+                  :options="facultyOptions"
+                  @update:modelValue="handleFacultySelect"
+                />
               </div>
+
               <div>
                 <label for="major" class="block text-sm font-medium mb-1">Ngành</label>
                 <InputField id="major" v-model="form.major" placeholder="VD: Công nghệ thông tin" />
@@ -168,7 +172,6 @@ definePageMeta({
 
 const router = useRouter();
 const route = useRoute();
-
 const studentId = route.query.id || localStorage.getItem("editStudentId");
 
 const form = ref({
@@ -182,6 +185,7 @@ const form = ref({
   courseYears: "",
   educationType: "",
   faculty: "",
+  program_id: "",
   major: "",
   status: "Đang học",
   position: "",
@@ -192,7 +196,24 @@ const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
 
-// 🟦 Lấy dữ liệu sinh viên khi mở trang
+// ✅ Faculty giống student_add
+const facultyOptions = [
+  { label: 'Khoa Hệ thống thông tin', value: JSON.stringify({ faculty: 'Khoa Hệ thống thông tin', program_id: '1' }) },
+  { label: 'Khoa Khoa học máy tính', value: JSON.stringify({ faculty: 'Khoa Khoa học máy tính', program_id: '2' }) },
+  { label: 'Khoa Trí tuệ nhân tạo', value: JSON.stringify({ faculty: 'Khoa Trí tuệ nhân tạo', program_id: '3' }) }
+]
+
+const handleFacultySelect = (option) => {
+  if (option) {
+    form.value.faculty = option.value.value;
+    form.value.program_id = option.value.program_id;
+  } else {
+    form.value.faculty = "";
+    form.value.program_id = "";
+  }
+};
+
+// 🟦 Lấy dữ liệu sinh viên
 onMounted(async () => {
   if (!studentId) {
     alert("Không tìm thấy ID sinh viên!");
@@ -205,9 +226,12 @@ onMounted(async () => {
     if (!res.ok) throw new Error("Không thể tải dữ liệu sinh viên");
     const data = await res.json();
 
-    if (data.dob) data.dob = data.dob.split("T")[0]; // lấy đúng định dạng yyyy-mm-dd
-
+    if (data.dob) data.dob = data.dob.split("T")[0];
     Object.assign(form.value, data);
+
+    // ✅ Gán selectedFaculty khi load form
+    const found = facultyOptions.value.find(f => f.value === data.faculty);
+    if (found) selectedFaculty.value = { label: found.label, value: found };
   } catch (err) {
     errorMessage.value = err.message;
   }
@@ -215,7 +239,14 @@ onMounted(async () => {
 
 // 🟧 Upload ảnh
 const handleFileUpload = (fileObject) => {
-  if (fileObject instanceof File) form.value.avatar = fileObject;
+  if (fileObject instanceof File) {
+    form.value.avatar = fileObject;
+  } else if (fileObject && fileObject.file instanceof File) {
+    form.value.avatar = fileObject.file;
+  } else {
+    form.value.avatar = null;
+  }
+  console.log("Avatar selected:", form.value.avatar);
 };
 
 // 🟩 Reset form
@@ -231,11 +262,13 @@ const resetForm = () => {
     courseYears: "",
     educationType: "",
     faculty: "",
+    program_id: "",
     major: "",
     status: "Đang học",
     position: "",
     avatar: null,
   };
+  selectedFaculty.value = null;
 };
 
 // 🟩 Cập nhật sinh viên
@@ -245,17 +278,13 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
 
   try {
-    // Đảm bảo định dạng ngày đúng yyyy-mm-dd
     const cleanData = { ...form.value };
-    if (cleanData.dob) {
+    if (cleanData.dob)
       cleanData.dob = new Date(cleanData.dob).toISOString().split("T")[0];
-    }
 
     const res = await fetch(`http://localhost:8000/api/students/${studentId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cleanData),
     });
 
@@ -266,10 +295,7 @@ const handleSubmit = async () => {
       return;
     }
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-    }
-
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     alert("✅ Cập nhật sinh viên thành công!");
     router.push("/admin/dashboard/student_list");
   } catch (err) {
@@ -278,6 +304,4 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
-
 </script>
-  
