@@ -56,6 +56,7 @@ class StudentCreate(StudentBase):
         educationType: Optional[str] = Form(None),
         faculty: Optional[str] = Form(None),
         major: Optional[str] = Form(None),
+        program_id: Optional[int] = Form(None),
         status: Optional[str] = Form(None),
         position: Optional[str] = Form(None),
         avatar: Optional[str] = Form(None),
@@ -77,6 +78,7 @@ class StudentCreate(StudentBase):
             major=major,
             status=status,
             position=position,
+            program_id=program_id,
             avatar=avatar,
             avatar_file=avatar_file,
         )

@@ -15,6 +15,7 @@
       :showAddButton="true"
       addButtonTo="/Admin/dashboard/student_add"
       addLabel="Thêm sinh viên"
+      isAdmin="True"
       @edit="editStudent"
       @delete="deleteStudent"
     />

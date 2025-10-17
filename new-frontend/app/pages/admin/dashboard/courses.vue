@@ -10,6 +10,7 @@
         :columns="columns"
         idKey="courseId"
         deleteLabel="Ẩn"
+        isAdmin="True"
         @edit="editCourse"
         @delete="hideCourse"
         class="h-[90%]"
