@@ -47,14 +47,6 @@ uvicorn app.main:app --reload
 # API docs available at http://127.0.0.1:8000/docs
 ```
 
-**Testing:**
-```bash
-# Run specific test files
-python -m pytest tests/test_auth.py
-python -m pytest tests/test_users.py
-python -m pytest tests/test_courses.py
-```
-
 ### Frontend (Nuxt.js)
 
 **Setup and Development:**
