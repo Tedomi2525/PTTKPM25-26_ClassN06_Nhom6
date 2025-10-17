@@ -9,6 +9,7 @@ router = APIRouter()
 @router.post("/attendances/face-recognition", summary="Nhận diện khuôn mặt sinh viên qua ảnh")
 async def recognize_face(
     file: UploadFile = File(..., description="Ảnh khuôn mặt sinh viên"),
+    schedule_id: int = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -26,8 +27,7 @@ async def recognize_face(
         image_content = await file.read()
         
         # Process face recognition
-        result = attendance_service.search_face_by_image(image_content, db)
-        
+        result = attendance_service.search_face_by_image(image_content, schedule_id, db)
         return result
         
     except HTTPException:
@@ -39,18 +39,20 @@ async def recognize_face(
 
 @router.post("/attendances/face-recognition-camera", summary="Nhận diện khuôn mặt sinh viên qua camera")
 def recognize_face_camera(
+    schedule_id: int = None,
     timeout: int = 15,
     db: Session = Depends(get_db)
 ):
     """
     Nhận diện sinh viên qua camera realtime
     
+    - **schedule_id**: ID lịch học để lưu điểm danh
     - **timeout**: Thời gian tối đa quét camera (giây), mặc định 15s
     - Camera sẽ tự động quét và nhận diện khuôn mặt
     - Trả về thông tin sinh viên ngay khi tìm thấy
     """
     try:
-        result = attendance_service.search_face_by_camera(db, timeout)
+        result = attendance_service.search_face_by_camera(schedule_id, db, timeout)
         return result
         
     except HTTPException:

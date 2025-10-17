@@ -35,6 +35,7 @@ class Student(Base):
     user = relationship("User", back_populates="student")
     enrollments = relationship("Enrollment", back_populates="student")
     student_faces = relationship("StudentFace", back_populates="student", cascade="all, delete-orphan")
+    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("gender IN ('Nam', 'Nữ', 'Khác')", name="check_gender"),

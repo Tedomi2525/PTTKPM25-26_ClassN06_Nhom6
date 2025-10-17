@@ -3,8 +3,11 @@ import numpy as np
 import faiss
 import cv2
 import time
+from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+
+from app.schemas import schedule, user
 
 # Set environment variable để tránh lỗi OpenMP
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -12,6 +15,10 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from app.services.face_service.embedding.face_embedding import get_face_embedding
 from app.models.student_faces import StudentFace 
 from app.models.student import Student
+from app.models.course_class import CourseClass
+from app.models.attendance import Attendance
+from app.models.schedule import Schedule
+from app.models.enrollment import Enrollment
 
 FAISS_INDEX_PATH = "face.index"
 RECOGNITION_THRESHOLD = 0.6  # ngưỡng khớp (càng nhỏ càng khớp, L2 distance)
@@ -31,7 +38,7 @@ def load_faiss_index():
 # FACE RECOGNITION SERVICES
 # ==============================================================================
 
-def search_face_by_image(image_content: bytes, db: Session):
+def search_face_by_image(image_content: bytes, schedule_id: int, db: Session):
     """
     Tìm kiếm sinh viên qua ảnh khuôn mặt
     
@@ -99,6 +106,18 @@ def search_face_by_image(image_content: bytes, db: Session):
     is_match = distance < RECOGNITION_THRESHOLD
     confidence = max(0, min(100, (1 - distance) * 100))  # Chuyển thành % confidence
 
+    if is_match:
+        attendance = Attendance(
+            student_id=student.student_id,
+            schedule_id=schedule_id,
+            date=datetime.now().date(),
+            status="present",
+            confirmed_at=datetime.now(),
+            confirmed_by=1
+        )
+        db.add(attendance)
+        db.commit()
+
     return {
         "matched": is_match,
         "student": {
@@ -118,11 +137,12 @@ def search_face_by_image(image_content: bytes, db: Session):
     }
 
 
-def search_face_by_camera(db: Session, timeout: int = CAMERA_TIMEOUT):
+def search_face_by_camera(schedule_id: int, db: Session, timeout: int = CAMERA_TIMEOUT):
     """
     Tìm kiếm sinh viên qua camera realtime
     
     Args:
+        schedule_id: ID lịch học để lưu điểm danh
         db: Database session
         timeout: Thời gian tối đa quét camera (giây)
         
@@ -197,6 +217,20 @@ def search_face_by_camera(db: Session, timeout: int = CAMERA_TIMEOUT):
                 
                 # Tìm thấy sinh viên khớp!
                 confidence = max(0, min(100, (1 - distance) * 100))
+                
+                # Lưu điểm danh nếu có schedule_id
+                if schedule_id:
+                    attendance = Attendance(
+                        student_id=student.student_id,
+                        schedule_id=schedule_id,
+                        date=datetime.now().date(),
+                        status="present",
+                        confirmed_at=datetime.now(),
+                        confirmed_by=1
+                    )
+                    db.add(attendance)
+                    db.commit()
+                
                 found_student = {
                     "matched": True,
                     "student": {
@@ -247,6 +281,78 @@ def search_face_by_camera(db: Session, timeout: int = CAMERA_TIMEOUT):
         print(f"[CAMERA] Lỗi không mong đợi: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Lỗi camera: {str(e)}")
 
-
+def get_attendance_status(schedule_id: int, db: Session):
+    """
+    Lấy danh sách trạng thái điểm danh của tất cả sinh viên trong lớp học
+    
+    Args:
+        schedule_id: ID lịch học
+        db: Database session
+        
+    Returns:
+        dict: Danh sách sinh viên và trạng thái điểm danh
+    """
+    try:
+        # Lấy thông tin lịch học và lớp
+        schedule = db.query(Schedule).filter(Schedule.schedule_id == schedule_id).first()
+        if not schedule:
+            raise HTTPException(status_code=404, detail="Không tìm thấy lịch học")
+        
+        # Lấy danh sách sinh viên trong lớp
+        students = db.query(Student).join(
+            Enrollment, Student.student_id == Enrollment.student_id
+        ).filter(Enrollment.class_id == schedule.class_id).all()
+        
+        # Lấy danh sách điểm danh của ngày hôm nay
+        today = datetime.now().date()
+        attendances = db.query(Attendance).filter(
+            Attendance.schedule_id == schedule_id,
+            Attendance.date == today
+        ).all()
+        
+        # Tạo dict để tra cứu nhanh trạng thái điểm danh
+        attendance_dict = {att.student_id: att for att in attendances}
+        
+        # Tạo danh sách kết quả
+        attendance_list = []
+        for student in students:
+            attendance = attendance_dict.get(student.student_id)
+            
+            student_data = {
+                "student_id": student.student_id,
+                "student_code": student.student_code,
+                "full_name": f"{student.last_name} {student.first_name}",
+                "email": student.email,
+                "avatar": student.avatar,
+                "status": attendance.status if attendance else "absent",
+                "confirmed_at": attendance.confirmed_at.isoformat() if attendance and attendance.confirmed_at else None,
+                "confirmed_by": attendance.confirmed_by if attendance else None
+            }
+            attendance_list.append(student_data)
+        
+        # Thống kê
+        total_students = len(students)
+        present_count = len([att for att in attendances if att.status == "present"])
+        absent_count = total_students - present_count
+        attendance_rate = round((present_count / total_students * 100), 2) if total_students > 0 else 0
+        
+        return {
+            "schedule_id": schedule_id,
+            "date": today.isoformat(),
+            "class_info": {
+                "class_id": schedule.class_id,
+                "class_name": schedule.course_class.class_name if schedule.course_class else None
+            },
+            "statistics": {
+                "total_students": total_students,
+                "present_count": present_count,
+                "absent_count": absent_count,
+                "attendance_rate": attendance_rate
+            },
+            "attendance_list": attendance_list
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
 
 

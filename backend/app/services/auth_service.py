@@ -95,7 +95,6 @@ def get_current_user_service(db: Session, token: str):
     elif teacher:
         full_name = f"{teacher.first_name} {teacher.last_name}".strip()
         school_id = teacher.teacher_id
-        avatar = teacher.avatar
     else:
         full_name = user.username
         school_id = None
@@ -105,7 +104,7 @@ def get_current_user_service(db: Session, token: str):
         "full_name": full_name,
         "role": user.role,
         "school_id": school_id,
-        "avatar": avatar,
+        "avatar": avatar if student else None,
         "disabled": False,
-        "program_id": program_id
+        "program_id": program_id if student else None
     }
