@@ -76,3 +76,9 @@ def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=400, detail="Cannot delete teacher due to existing references")
     return {"detail": "Teacher deleted successfully"}
+@router.get("/teachers/{teacher_id}/school")
+def get_teacher_school(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = db.query(TeacherSchema).filter(TeacherSchema.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return {"school_id": teacher.teacher_id}

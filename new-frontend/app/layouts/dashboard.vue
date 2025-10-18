@@ -95,10 +95,10 @@ const route = useRoute()
 const isAsideCollapsed = ref(false) // Trạng thái ẩn/hiện của aside
 
 const dashboardSubMenu = [
-  { label: "Sinh viên", href: "/Admin/dashboard/student_list", match: "/Admin/dashboard/student" },
-  { label: "Giảng viên", href: "/Admin/dashboard/teacher_list", match: "/Admin/dashboard/teacher" },
-  { label: "Học phần", href: "/Admin/dashboard/courses", match: "/Admin/dashboard/course" },
-  { label: "Chương trình học", href: "/program/programs", match: "/program/programs" },
+  { label: "Sinh viên", href: "/admin/dashboard/student_list", match: "/admin/dashboard/student" },
+  { label: "Giảng viên", href: "/admin/dashboard/teacher_list", match: "/admin/dashboard/teacher" },
+  { label: "Học phần", href: "/admin/dashboard/courses", match: "/admin/dashboard/course" },
+  { label: "Chương trình học", href: "/admin/dashboard/program/programs", match: "/admin/dashboard/program" },
 ]
 
 function toggleAside() {
