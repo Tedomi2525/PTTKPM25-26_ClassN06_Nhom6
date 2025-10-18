@@ -352,12 +352,15 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
         return
       }
 
-      calendarOptions.value.events = schedules.map((item: any) => {
+      console.log("📅 Current week start:", currentWeekStart.value)
+      console.log("📅 Sunday date param:", sundayDate)
+
+      calendarOptions.value.events = schedules.map((item: any, index: number) => {
         const [day, month, year] = item.specific_date.split("/")
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
 
-        return {
-          id: item.course_class.course_class_id, // thêm id nếu FullCalendar cần
+        const event = {
+          id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`, // unique id
           title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
           end: `${isoDate}T${item.time.period_end.end_time}`,
@@ -365,15 +368,27 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
           borderColor: "#0088dd",
           textColor: "#fff",
           extendedProps: {
-            courseClassId: item.course_class.course_class_id, // 🔥 quan trọng nhất
+            courseClassId: item.course_class.course_class_id,
             teacher: item.course_class.teacher.full_name,
             courseCode: item.course.course_code,
             credits: item.course.credits,
             students: item.course_class.students,
             section: item.course_class.section,
+            roomName: item.room.room_name,
+            className: item.course_class.section,
           },
         }
+        console.log("📅 Event created:", event)
+        return event
       })
+
+      console.log("📅 Total events set:", calendarOptions.value.events.length)
+
+      // Force calendar to re-render
+      if (calendarRef.value) {
+        const api = (calendarRef.value as any).getApi()
+        api.refetchEvents()
+      }
 
     } else {
       console.warn("❌ API trả về không thành công:", res.data)
