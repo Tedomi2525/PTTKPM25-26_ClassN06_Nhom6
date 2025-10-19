@@ -7,17 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 print(f"📁 BASE_DIR: {BASE_DIR}")
 
 class Settings(BaseSettings):
-<<<<<<< HEAD
-    # Database Configuration
-    DATABASE_URL: str = "postgresql://postgres:Quanopo123+@localhost:5432/PTTK"
-    
-    # Security Configuration
-    SECRET_KEY: str = "your-secret-key-change-this-in-production"
-=======
     # Các biến môi trường
     DATABASE_URL: str
     SECRET_KEY: str
->>>>>>> bae4f21a1eaf1f9020bac2780329d5ce19e1a660
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     KMP_DUPLICATE_LIB_OK: str = "TRUE"
