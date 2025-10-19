@@ -530,7 +530,6 @@ function testOpenPopup() {
 .fc-event:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-  z-index: 100 !important;
 }
 
 .fc-event-main {
@@ -544,19 +543,11 @@ function testOpenPopup() {
   pointer-events: auto !important;
 }
 
-.fc-event {
-  z-index: 50 !important;
-}
-
-.fc-event-main-frame {
-  z-index: 60 !important;
-}
 
 /* Hover affordance for the inner event content */
 .fc-event-main-frame.hovering {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  z-index: 999 !important;
 }
 
 
@@ -591,7 +582,6 @@ function testOpenPopup() {
   border-width: 3px !important;
   border-style: solid !important;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
-  z-index: 10 !important;
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
@@ -601,10 +591,6 @@ function testOpenPopup() {
   border-left-color: #ef4444 !important;
   border-width: 10px 0 10px 10px !important;
   margin-top: -10px !important;
-}
-
-.fc .fc-timegrid-now-indicator-container {
-  /* z-index: 10 !important; */
 }
 
 /* Flatpickr customization */
