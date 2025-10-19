@@ -137,8 +137,8 @@ import SchedulePopup from "@/components/popup/schedule_popup.vue"
 
 
 definePageMeta({
-  layout: "default",
-})
+  layout: "dashboard",
+});
 
 // === BIẾN STATE CORE VÀ AUTOSUGGEST ===
 interface Suggestion {

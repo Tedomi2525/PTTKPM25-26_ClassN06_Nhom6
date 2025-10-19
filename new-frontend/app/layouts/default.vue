@@ -52,13 +52,12 @@ onMounted(async () => {
 // MENU
 const adminMenuItems = [
   { label: 'Trang chủ', href: '/home' },
-  { label: 'Thời khóa biểu', href: '/admin/schedule' },
-  { label: 'Điểm danh', href: '/admin/attendance' },
-  { label: 'Quản lý', href: '/admin/dashboard' },
+  { label: 'Quản lý', href: '/admin/dashboard/admin' },
 ]
 
 const studentMenuItems = computed(() => {
   const baseItems = [
+    { label: 'Trang chủ', href: '/home' },
     { label: 'Thời khóa biểu', href: '/student/schedule' },
     { 
       label: 'Đăng kí học', 
@@ -73,6 +72,7 @@ const studentMenuItems = computed(() => {
 
 const teacherMenuItems = computed(() => {
   const baseItems = [
+    { label: 'Trang chủ', href: '/home' },
     { label: 'Thời khóa biểu', href: '/teacher/schedule' },
   ]
   return baseItems

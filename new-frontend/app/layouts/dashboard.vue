@@ -52,6 +52,10 @@
                   <svg v-else-if="sub.label === 'Học phần' || sub.label === 'Chương trình học'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.794 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.794 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.206 18 16.5 18s-3.332.477-4.5 1.253"/>
                   </svg>
+                  <img v-else-if="sub.label === 'Thời khóa biểu'" src="/images/icons8-schedule-64.png" alt="Thời khóa biểu" class="w-6 h-6 object-contain" />
+                  <img v-else-if="sub.label === 'Điểm danh'" src="/images/icons8-attendance-96.png" alt="Điểm danh" class="w-6 h-6 object-contain" />
+                  <img v-else-if="sub.label === 'Bảng điều khiển'" src="/images/icons8-dashboard-50.png" alt="Bảng điều khiển" class="w-6 h-6 object-contain" />
+                  <!-- <img v-else-if="sub.label === 'Học phần'" src="/images/icons8-course-64.png" alt="Học phần" class="w-6 h-6 object-contain" /> -->
                   <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                   </svg>
@@ -95,8 +99,11 @@ const route = useRoute()
 const isAsideCollapsed = ref(false) // Trạng thái ẩn/hiện của aside
 
 const dashboardSubMenu = [
+  { label: "Bảng điều khiển", href: "/admin/dashboard/admin", match: "/admin/dashboard/admin" },
   { label: "Sinh viên", href: "/admin/dashboard/student_list", match: "/admin/dashboard/student" },
   { label: "Giảng viên", href: "/admin/dashboard/teacher_list", match: "/admin/dashboard/teacher" },
+  { label: "Thời khóa biểu", href: "/admin/dashboard/schedule", match: "/admin/dashboard/schedule" },
+  { label: "Điểm danh", href: "/admin/dashboard/attendance", match: "/admin/dashboard/attendance" },
   { label: "Học phần", href: "/admin/dashboard/courses", match: "/admin/dashboard/course" },
   { label: "Chương trình học", href: "/admin/dashboard/program/programs", match: "/admin/dashboard/program" },
 ]
