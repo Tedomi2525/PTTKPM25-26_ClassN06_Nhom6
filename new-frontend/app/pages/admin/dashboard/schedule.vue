@@ -9,8 +9,8 @@
           <div class="hidden lg:block lg:col-span-1"></div>
 
           <div class="lg:col-span-2 flex flex-col gap-3 overflow-y-auto">
-            <div class="flex items-start gap-2 mb-3 relative">
-              <div class="flex-1 relative">
+            <div class="flex items-start gap-2 mb-3 relative p-1">
+              <div class="flex-1 relative ">
                 <input v-model="inputId"
                        @input="handleInput"
                        @keydown.enter="checkSchedule"
@@ -19,7 +19,7 @@
                        class="w-full px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" />
                 
                 <ul v-if="suggestions.length"
-                    class="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
+                    class="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto z-10">
                   <li v-for="(suggestion, index) in suggestions"
                       :key="index"
                       @click="selectSuggestion(suggestion)"
@@ -105,7 +105,6 @@
               <div class="bg-[#09f] px-4 py-2.5 flex-shrink-0">
                 <h3 class="text-base font-semibold text-white">
                   Lịch học/Giảng dạy trong tuần
-                  <span v-if="currentLoadedId" class="text-sm font-normal ml-3"> (Mã: {{ currentLoadedId }})</span>
                 </h3>
               </div>
               <div class="p-3 flex-1 overflow-y-auto">
@@ -136,30 +135,33 @@ import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js"
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import SchedulePopup from "@/components/popup/schedule_popup.vue"
 
-definePageMeta({
-  layout: "default",
-})
 
-// === BIẾN STATE MỚI CHO AUTOSUGGEST ===
+definePageMeta({
+  layout: "dashboard",
+});
+
+// === BIẾN STATE CORE VÀ AUTOSUGGEST ===
 interface Suggestion {
-  id: string; // studentId hoặc teacherId (dùng để gọi API load lịch)
-  code: string; // Mã code (SVxxxxxx hoặc GVxxxxxx) (dùng để hiển thị)
+  id: string; // studentId hoặc teacherId
+  code: string; // Mã code (SVxxxxxx hoặc GVxxxxxx)
   name: string; // Họ tên
   type: 'SV' | 'GV';
 }
 const suggestions = ref<Suggestion[]>([]);
-let searchTimeout: NodeJS.Timeout | null = null;
-// =======================================
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const isLoading = ref(false)
 const isChecking = ref(false)
 const currentWeekStart = ref(getSundayOfWeek(new Date()))
-const currentLoadedId = ref<string | null>(null)
+const currentLoadedId = ref<string | null>(null) // ID nội bộ (ví dụ: '3')
+const currentLoadedCode = ref<string | null>(null) // Mã code (ví dụ: 'SV25000003')
 const showPopup = ref(false)
 const selectedEvent = ref<any>(null)
 const inputId = ref("")
+// ===============================================
 
-// Computed properties cho thống kê (Giữ nguyên)
+
+// Computed properties cho thống kê (Giữ nguyên logic tính toán)
 const currentWeekDisplay = computed(() => {
   const start = new Date(currentWeekStart.value)
   const end = new Date(start)
@@ -185,18 +187,14 @@ const uniqueCourses = computed(() => {
 
 const totalPeriods = computed(() => {
   return calendarOptions.value.events.reduce((total: number, event: any) => {
-    // Mỗi ca học kéo dài 2h45p và bao gồm 3 tiết học
     const start = new Date(event.start)
     const end = new Date(event.end)
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
 
-    // Nếu ca học kéo dài 2h45p (2.75 giờ) thì tính 3 tiết
     if (hours >= 2.5 && hours <= 3) {
       return total + 3
     }
-
-    // Tính theo tỷ lệ cho các ca học khác (nếu có)
-    return total + Math.ceil(hours / 0.92) // 2.75h / 3 tiết = 0.92h/tiết
+    return total + Math.ceil(hours / 0.92)
   }, 0)
 })
 
@@ -226,10 +224,7 @@ const calendarOptions = ref({
     showPopup.value = true
   },
   eventDidMount: (info: any) => {
-    // Lấy phần tử chính của event
     const el = info.el.querySelector('.fc-event-main-frame') || info.el;
-
-    // Cho phép hover + click
     el.style.cursor = 'pointer';
     el.style.pointerEvents = 'auto';
     el.style.transition = 'all 0.2s ease';
@@ -237,7 +232,6 @@ const calendarOptions = ref({
     el.style.position = 'relative';
     el.style.zIndex = '10';
 
-    // Hiệu ứng hover
     el.addEventListener('mouseenter', () => {
       el.style.transform = 'scale(1.03)';
       el.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
@@ -250,7 +244,6 @@ const calendarOptions = ref({
       el.style.zIndex = '10';
     });
 
-    // Bắt sự kiện click để mở popup
     el.addEventListener('click', () => {
       selectedEvent.value = {
         title: info.event.title,
@@ -310,11 +303,6 @@ const calendarOptions = ref({
 const plainOptions = computed(() => calendarOptions.value)
 
 // === LOGIC AUTOSUGGEST ===
-
-/**
- * Hàm tìm kiếm gợi ý từ API
- * @param query Mã sinh viên/giảng viên hoặc tên
- */
 async function fetchSuggestions(query: string) {
   const q = query.trim().toUpperCase();
   if (q.length < 3) {
@@ -326,7 +314,6 @@ async function fetchSuggestions(query: string) {
     let url = '';
     let isStudent = false;
     
-    // Tự động tìm kiếm nếu query bắt đầu bằng SV hoặc GV
     if (q.startsWith('SV')) {
       url = `http://localhost:8000/api/students/search`;
       isStudent = true;
@@ -340,28 +327,27 @@ async function fetchSuggestions(query: string) {
 
     const res = await axios.get(url, { params: { q } });
     
-    // Xử lý kết quả trả về:
     if (isStudent && Array.isArray(res.data)) {
         suggestions.value = res.data.map((item: any) => ({
             id: item.studentId,
             code: item.studentCode,
             name: item.full_name,
-            type: 'SV',
+            type: "SV" as "SV",
         })).filter((s: Suggestion) => s.id && s.code).slice(0, 10);
-    } else if (!isStudent && Array.isArray(res.data)) { // Giả định API giảng viên cũng trả về mảng
+    } else if (!isStudent && Array.isArray(res.data)) {
         suggestions.value = res.data.map((item: any) => ({
             id: item.teacherId,
             code: item.teacherCode,
             name: item.full_name,
-            type: 'GV',
+            type: "GV" as "GV",
         })).filter((s: Suggestion) => s.id && s.code).slice(0, 10);
     } else if (!isStudent && res.data.teacherId) {
-       // Xử lý trường hợp API giảng viên trả về 1 đối tượng duy nhất (như API cũ của bạn)
+       // Xử lý trường hợp API giảng viên trả về 1 đối tượng duy nhất
         suggestions.value = [{
             id: res.data.teacherId,
             code: res.data.teacherCode,
             name: res.data.full_name,
-            type: 'GV',
+            type: "GV" as "GV",
         }].filter((s: Suggestion) => s.id && s.code);
     } 
     else {
@@ -374,25 +360,20 @@ async function fetchSuggestions(query: string) {
   }
 }
 
-/**
- * Xử lý sự kiện input với debounce (Giới hạn gọi API)
- */
 function handleInput() {
   if (searchTimeout) {
     clearTimeout(searchTimeout);
   }
   searchTimeout = setTimeout(() => {
     fetchSuggestions(inputId.value);
-  }, 300); // Debounce 300ms
+  }, 300);
 }
 
-/**
- * Xử lý khi người dùng chọn một gợi ý
- */
 function selectSuggestion(suggestion: Suggestion) {
-  inputId.value = suggestion.code; // Điền mã code vào ô input
-  suggestions.value = []; // Đóng danh sách gợi ý
-  // Tự động kiểm tra lịch sau khi chọn
+  console.log("🎯 selectSuggestion called with:", suggestion)
+  inputId.value = suggestion.code;
+  suggestions.value = [];
+  console.log("🔍 Calling checkSchedule from selectSuggestion")
   checkSchedule();
 }
 // =======================================
@@ -413,13 +394,14 @@ function getSundayOfWeek(date: Date): Date {
   return sunday
 }
 
-// Hàm điều hướng tuần (Giữ nguyên)
+// === HÀM ĐIỀU HƯỚNG TUẦN ===
 function goToPreviousWeek() {
   const api = (calendarRef.value as any)?.getApi() as CalendarApi
   if (api) {
     api.prev()
     const newDate = api.getDate()
-    currentWeekStart.value = getSundayOfWeek(new Date(newDate))
+    const sunday = getSundayOfWeek(new Date(newDate))
+    currentWeekStart.value = sunday
     loadScheduleForCurrentWeek()
   }
 }
@@ -429,7 +411,8 @@ function goToCurrentWeek() {
   if (api) {
     api.today()
     const today = new Date()
-    currentWeekStart.value = getSundayOfWeek(today)
+    const sunday = getSundayOfWeek(today)
+    currentWeekStart.value = sunday
     loadScheduleForCurrentWeek()
   }
 }
@@ -439,23 +422,30 @@ function goToNextWeek() {
   if (api) {
     api.next()
     const newDate = api.getDate()
-    currentWeekStart.value = getSundayOfWeek(new Date(newDate))
+    const sunday = getSundayOfWeek(new Date(newDate))
+    currentWeekStart.value = sunday
     loadScheduleForCurrentWeek()
   }
 }
 
 async function loadScheduleForCurrentWeek() {
-  const id = currentLoadedId.value
-  if (!id) return
+  const idRaw = currentLoadedId.value
+  const code = currentLoadedCode.value 
+  
+  if (!idRaw || !code) return
 
+  const id = String(idRaw)
   const sundayDate = formatDateToYYYYMMDD(currentWeekStart.value)
-  if (id.toUpperCase().startsWith("SV")) {
+  
+  if (code.toUpperCase().startsWith("SV")) {
     await loadStudentSchedule(id, sundayDate)
-  } else if (id.toUpperCase().startsWith("GV")) {
+  } else if (code.toUpperCase().startsWith("GV")) {
     await loadTeacherSchedule(id, sundayDate)
   }
 }
+// =============================
 
+// === HÀM TẢI LỊCH GIẢNG VIÊN VÀ SINH VIÊN ===
 async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
   if (!teacherId) {
     console.warn("❌ Teacher ID không hợp lệ")
@@ -474,7 +464,10 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
     if (res.data.success) {
       const schedules = res.data.data.schedules || []
       
-      calendarOptions.value.events = schedules.map((item: any) => {
+      console.log("📅 Current week start:", currentWeekStart.value)
+      console.log("📅 Sunday date param:", sundayDate)
+
+      calendarOptions.value.events = schedules.map((item: any, index: number) => {
         const [day, month, year] = item.specific_date.split("/")
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
         
@@ -493,7 +486,8 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
         const colorIndex = item.course.course_id % courseColors.length
         const color = courseColors[colorIndex] || courseColors[0]
         
-        return {
+        const event = {
+          id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`, // unique id
           title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
           end: `${isoDate}T${item.time.period_start.end_time}`,
@@ -508,10 +502,23 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
             semester: item.semester?.semester_name || "N/A",
             studentCount: `${item.course_class.min_students}-${item.course_class.max_students}`,
             scheduleId: item.schedule_id,
-            dayName: item.day_name
+            dayName: item.day_name,
+            roomName: item.room.room_name,
+            className: item.course_class.section,
           },
         }
+        console.log("📅 Event created:", event)
+        return event
       })
+
+      console.log("📅 Total events set:", calendarOptions.value.events.length)
+
+      // Force calendar to re-render
+      if (calendarRef.value) {
+        const api = (calendarRef.value as any).getApi()
+        api.refetchEvents()
+      }
+
       currentLoadedId.value = teacherId
     } else {
       console.warn("❌ API trả về không thành công:", res.data)
@@ -525,6 +532,27 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
     isChecking.value = false
   }
 }
+async function fetchAttendanceStatuses(studentId: string, schedules: any[]) {
+  const statusMap: Record<string, string> = {}
+  await Promise.all(
+    schedules.map(async (item: any) => {
+      let attendanceStatus = "Chưa có dữ liệu"
+      try {
+        const resAttend = await axios.get(`http://localhost:8000/api/attendances/getStatus`, {
+          params: {
+            student_id: studentId,
+            schedule_id: item.schedule_id
+          }
+        })
+        attendanceStatus = resAttend.data?.status || "Không xác định"
+      } catch (err) {
+        console.warn(`⚠️ Lỗi khi lấy trạng thái điểm danh cho schedule ${item.schedule_id}`)
+      }
+      statusMap[item.schedule_id] = attendanceStatus
+    })
+  )
+  return statusMap
+}
 
 async function loadStudentSchedule(studentId: string, sundayDate: string) {
   if (!studentId) {
@@ -532,84 +560,145 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
     return
   }
 
-  isChecking.value = true
   try {
     const res = await axios.get(`http://localhost:8000/api/students/${studentId}/schedule`, {
       params: { sunday_date: sundayDate },
     })
+    console.log("📅 Lịch học:", res.data)
 
-    if (res.data.success) {
-      const schedules = res.data.data.schedules || []
-      
-      calendarOptions.value.events = schedules.map((item: any) => {
-        const [day, month, year] = item.specific_date.split("/")
-        const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-
-        return {
-          id: item.course_class.course_class_id,
-          title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
-          start: `${isoDate}T${item.time.period_start.start_time}`,
-          end: `${isoDate}T${item.time.period_end.end_time}`,
-          backgroundColor: "#09f",
-          borderColor: "#0088dd",
-          textColor: "#fff",
-          extendedProps: {
-            courseClassId: item.course_class.course_class_id,
-            teacher: item.course_class.teacher.full_name,
-            courseCode: item.course.course_code,
-            credits: item.course.credits,
-            students: item.course_class.students,
-            section: item.course_class.section,
-            room: item.room.room_name,
-          },
-        }
-      })
-      currentLoadedId.value = studentId
-
-    } else {
-      console.warn("❌ API trả về không thành công:", res.data)
+    if (!res.data.success) {
       calendarOptions.value.events = []
+      return
     }
+
+    const schedules = res.data.data.schedules || []
+    if (!schedules.length) {
+      calendarOptions.value.events = []
+      return
+    }
+
+    // Gọi API lấy trạng thái điểm danh
+    const attendanceMap = await fetchAttendanceStatuses(studentId, schedules)
+    console.log("✅ Map trạng thái điểm danh:", attendanceMap)
+
+    // Gán trạng thái vào event
+    calendarOptions.value.events = schedules.map((item: any, index: number) => {
+      const [day, month, year] = item.specific_date.split("/")
+      const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+
+      const event = {
+        id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`,
+        title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
+        start: `${isoDate}T${item.time.period_start.start_time}`,
+        end: `${isoDate}T${item.time.period_end.end_time}`,
+        backgroundColor: "#09f",
+        borderColor: "#0088dd",
+        textColor: "#fff",
+        extendedProps: {
+          courseClassId: item.course_class.course_class_id,
+          teacher: item.course_class.teacher.full_name,
+          courseCode: item.course.course_code,
+          credits: item.course.credits,
+          students: item.course_class.students,
+          section: item.course_class.section,
+          roomName: item.room.room_name,
+          className: item.course_class.section,
+          scheduleId: item.schedule_id,
+          attendanceStatus: attendanceMap[item.schedule_id] || "Không xác định" // ← thêm dòng này
+        },
+      }
+
+      console.log("📅 Event created:", event)
+      return event
+    })
+
+    console.log("📅 Total events set:", calendarOptions.value.events.length)
+
+    if (calendarRef.value) {
+      const api = (calendarRef.value as any).getApi()
+      api.refetchEvents()
+    }
+
   } catch (err: any) {
     console.error("❌ Lỗi khi tải lịch học:", err)
     calendarOptions.value.events = []
-    alert("Không tìm thấy lịch học hoặc lỗi kết nối API.")
-  } finally {
-    isChecking.value = false
   }
 }
+// =============================================
 
 function initDatePicker() {
-  flatpickr("#calendarPicker", {
-    locale: vn,
-    inline: true,
-    dateFormat: "d/m/Y",
-    onChange: async (selectedDates) => {
-      if (!selectedDates.length || !currentLoadedId.value) return
-      
-      const selected = selectedDates[0]
-      if (!selected) return
+  console.log("📅 initDatePicker called")
 
-      const sundayOfWeek = getSundayOfWeek(new Date(selected))
-      currentWeekStart.value = sundayOfWeek
-      const sundayDate = formatDateToYYYYMMDD(sundayOfWeek)
+  // Function to wait for element
+  const waitForElement = (selector: string, maxAttempts: number = 10, interval: number = 100): Promise<Element | null> => {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const checkElement = () => {
+        const element = document.querySelector(selector);
+        if (element || attempts >= maxAttempts) {
+          resolve(element);
+        } else {
+          attempts++;
+          setTimeout(checkElement, interval);
+        }
+      };
+      checkElement();
+    });
+  };
 
-      const idToLoad = currentLoadedId.value
-      if (idToLoad.toUpperCase().startsWith("SV")) {
-        await loadStudentSchedule(idToLoad, sundayDate)
-      } else if (idToLoad.toUpperCase().startsWith("GV")) {
-        await loadTeacherSchedule(idToLoad, sundayDate)
-      }
+  // Wait for calendarPicker element
+  waitForElement("#calendarPicker").then((pickerElement) => {
+    console.log("📅 calendarPicker element:", pickerElement)
 
-      if (calendarRef.value) {
-        const api = (calendarRef.value as any).getApi() as CalendarApi
-        api.gotoDate(sundayOfWeek)
-      }
-    },
-  })
+    if (!pickerElement) {
+      console.error("❌ calendarPicker element not found after waiting!")
+      return
+    }
+
+    // Destroy existing flatpickr instance if exists
+    const existingPicker = pickerElement as any;
+    if (existingPicker && existingPicker._flatpickr) {
+      console.log("🗑️ Destroying existing flatpickr instance")
+      existingPicker._flatpickr.destroy();
+    }
+
+    console.log("🆕 Creating new flatpickr instance")
+    const fp = flatpickr("#calendarPicker", {
+      locale: vn,
+      inline: true,
+      dateFormat: "d/m/Y",
+      onChange: async (selectedDates) => {
+        if (!selectedDates.length || !currentLoadedId.value) return
+
+        const selected = selectedDates[0]
+        if (!selected) return
+
+        const sundayOfWeek = getSundayOfWeek(new Date(selected))
+        currentWeekStart.value = sundayOfWeek
+        const sundayDate = formatDateToYYYYMMDD(sundayOfWeek)
+
+        // Dùng currentLoadedCode để phân loại lịch
+        const codeToLoad = currentLoadedCode.value
+        const idToLoad = currentLoadedId.value
+
+        if (codeToLoad && codeToLoad.toUpperCase().startsWith("SV")) {
+          await loadStudentSchedule(idToLoad, sundayDate)
+        } else if (codeToLoad && codeToLoad.toUpperCase().startsWith("GV")) {
+          await loadTeacherSchedule(idToLoad, sundayDate)
+        }
+
+        if (calendarRef.value) {
+          const api = (calendarRef.value as any).getApi() as CalendarApi
+          api.gotoDate(sundayOfWeek)
+        }
+      },
+    })
+
+    console.log("✅ Flatpickr instance created:", fp)
+  });
 }
 
-// Hàm khởi tạo ban đầu, chỉ set ngày và date picker, không load dữ liệu
+// Hàm khởi tạo ban đầu
 async function initComponent() {
   const today = new Date()
   const sundayOfCurrentWeek = getSundayOfWeek(new Date(today))
@@ -620,6 +709,7 @@ async function initComponent() {
   isLoading.value = false
 }
 
+// Hàm chính xử lý nút Kiểm tra
 async function checkSchedule() {
   const id = inputId.value.trim()
   if (!id) {
@@ -627,7 +717,6 @@ async function checkSchedule() {
     return
   }
 
-  // Xóa danh sách gợi ý khi bắt đầu kiểm tra
   suggestions.value = [];
   
   isChecking.value = true
@@ -644,46 +733,53 @@ async function checkSchedule() {
 
   try {
     let actualId = id
-    console.log("🔍 Đang tìm kiếm mã:", id)
+    let loadedCode = id // Mã code mặc định là mã nhập vào
     
     if (id.toUpperCase().startsWith("SV")) {
       const res = await axios.get(`http://localhost:8000/api/students/search`, {
         params: { q: id }
       })
       const studentData = res.data[0]
-      // 🔥 Thay vì dùng studentCode, ta cần dùng studentId để gọi API load schedule
       if (!studentData || !studentData.studentId) throw new Error("Không tìm thấy sinh viên với mã đã nhập")
       
       actualId = studentData.studentId
+      loadedCode = studentData.studentCode // 🔥 Lưu mã code
       await loadStudentSchedule(actualId, sundayDate)
 
     } else if (id.toUpperCase().startsWith("GV")) {
       const res = await axios.get(`http://localhost:8000/api/teachers/search`, {
         params: { q: id }
       })
-      const teacherData = res.data
-      // 🔥 Thay vì dùng teacherCode, ta cần dùng teacherId để gọi API load schedule
+      const teacherData = Array.isArray(res.data) ? res.data[0] : res.data;
       if (!teacherData || !teacherData.teacherId) throw new Error("Không tìm thấy giảng viên với mã đã nhập")
       
       actualId = teacherData.teacherId
+      loadedCode = teacherData.teacherCode // 🔥 Lưu mã code
       await loadTeacherSchedule(actualId, sundayDate)
       
     } else {
       alert("Mã không hợp lệ. Vui lòng nhập mã sinh viên (SV...) hoặc giảng viên (GV...)")
       calendarOptions.value.events = []
       currentLoadedId.value = null
+      currentLoadedCode.value = null // Reset code
       isChecking.value = false
       isLoading.value = false
       return
     }
     
     currentLoadedId.value = actualId
+    currentLoadedCode.value = loadedCode // 🔥 Cập nhật mã code thành công
+
+    // Re-init date picker sau khi load dữ liệu thành công
+    console.log("🔄 Re-initializing date picker after successful load")
+    initDatePicker()
 
   } catch (err: any) {
     console.error("❌ Lỗi khi tải TKB:", err.message || err)
     alert(err.message || "Không thể tải TKB. Kiểm tra lại mã hoặc API.")
     calendarOptions.value.events = []
     currentLoadedId.value = null
+    currentLoadedCode.value = null // Reset code khi lỗi
   } finally {
     isChecking.value = false
     isLoading.value = false
@@ -744,7 +840,6 @@ onMounted(() => {
 .fc-event:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-  z-index: 100 !important;
 }
 
 .fc-event-main {
@@ -758,19 +853,12 @@ onMounted(() => {
   pointer-events: auto !important;
 }
 
-.fc-event {
-  z-index: 50 !important;
-}
 
-.fc-event-main-frame {
-  z-index: 60 !important;
-}
 
 /* Hover affordance for the inner event content */
 .fc-event-main-frame.hovering {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  z-index: 999 !important;
 }
 
 
@@ -805,7 +893,6 @@ onMounted(() => {
   border-width: 3px !important;
   border-style: solid !important;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
-  z-index: 10 !important;
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
@@ -815,10 +902,6 @@ onMounted(() => {
   border-left-color: #ef4444 !important;
   border-width: 10px 0 10px 10px !important;
   margin-top: -10px !important;
-}
-
-.fc .fc-timegrid-now-indicator-container {
-  /* z-index: 10 !important; */
 }
 
 /* Flatpickr customization */

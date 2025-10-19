@@ -14,7 +14,7 @@
             <button
               :class="[ 
                 'px-3 py-3 text-sm font-medium border-b-4 transition-colors duration-200 whitespace-nowrap flex items-center',
-                isActiveRoute(item) 
+                selectedMenu === item.label || isActiveRoute(item) 
                   ? 'text-white border-white'
                   : 'text-gray-300 hover:text-white border-transparent hover:border-white'
               ]"
@@ -71,7 +71,7 @@
             @click="$emit('menu-click', item)"
             :class="[ 
               'px-3 py-3 text-sm font-medium border-b-4 transition-colors duration-200 whitespace-nowrap',
-              route.path === item.href || route.path.startsWith(item.href + '/')
+              selectedMenu === item.label || route.path === item.href || route.path.startsWith(item.href + '/')
                 ? 'text-white border-white'
                 : 'text-gray-300 hover:text-white border-transparent hover:border-white'
             ]"
@@ -95,6 +95,10 @@ defineProps({
   items: {
     type: Array,
     default: () => []
+  },
+  selectedMenu: {
+    type: [String, null],
+    default: null
   }
 })
 

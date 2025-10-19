@@ -153,7 +153,7 @@ def search_face_by_camera(schedule_id: int, db: Session, timeout: int = CAMERA_T
     
     if not cap.isOpened():
         raise HTTPException(status_code=500, detail="Không thể truy cập camera. Kiểm tra kết nối camera.")
-    
+    print(f"[CAMERA] Camera opened successfully.")
     start_time = time.time()
     found_student = None
     frame_count = 0
@@ -301,7 +301,7 @@ def get_attendance_status(schedule_id: int, db: Session):
         # Lấy danh sách sinh viên trong lớp
         students = db.query(Student).join(
             Enrollment, Student.student_id == Enrollment.student_id
-        ).filter(Enrollment.class_id == schedule.class_id).all()
+        ).filter(Enrollment.course_class_id == schedule.course_class_id).all()
         
         # Lấy danh sách điểm danh của ngày hôm nay
         today = datetime.now().date()
@@ -339,10 +339,6 @@ def get_attendance_status(schedule_id: int, db: Session):
         return {
             "schedule_id": schedule_id,
             "date": today.isoformat(),
-            "class_info": {
-                "class_id": schedule.class_id,
-                "class_name": schedule.course_class.class_name if schedule.course_class else None
-            },
             "statistics": {
                 "total_students": total_students,
                 "present_count": present_count,
@@ -355,4 +351,40 @@ def get_attendance_status(schedule_id: int, db: Session):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
 
-
+def get_attendance_status_by_schedule_and_student(schedule_id: int, student_id: int, db: Session):
+    """
+    Lấy trạng thái điểm danh của một sinh viên trong một lịch học cụ thể
+    
+    Args:
+        schedule_id: ID lịch học
+        student_id: ID sinh viên
+        db: Database session
+        
+    Returns:
+        dict: Thông tin trạng thái điểm danh của sinh viên
+    """
+    try:
+        attendance = db.query(Attendance).filter(
+            Attendance.schedule_id == schedule_id,
+            Attendance.student_id == student_id
+        ).first()
+        
+        if not attendance:
+            return {
+                "student_id": student_id,
+                "schedule_id": schedule_id,
+                "status": "absent",
+                "confirmed_at": None,
+                "confirmed_by": None
+            }
+        
+        return {
+            "student_id": student_id,
+            "schedule_id": schedule_id,
+            "status": attendance.status,
+            "confirmed_at": attendance.confirmed_at.isoformat() if attendance.confirmed_at else None,
+            "confirmed_by": attendance.confirmed_by
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
