@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
     # Database Configuration
-    DATABASE_URL: str = "postgresql://postgres:123321@localhost:5432/qldt"
+    DATABASE_URL: str = "postgresql://postgres:Quanopo123+@localhost:5432/PTTK"
     
     # Security Configuration
     SECRET_KEY: str = "your-secret-key-change-this-in-production"

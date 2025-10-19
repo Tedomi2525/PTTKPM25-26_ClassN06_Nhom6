@@ -365,7 +365,7 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
           borderColor: "#0088dd",
           textColor: "#fff",
           extendedProps: {
-            courseClassId: item.course_class.course_class_id, // 🔥 quan trọng nhất
+            courseClassId: item.course_class.course_class_id,
             teacher: item.course_class.teacher.full_name,
             courseCode: item.course.course_code,
             credits: item.course.credits,
@@ -586,10 +586,6 @@ function testOpenPopup() {
   border-left-color: #ef4444 !important;
   border-width: 10px 0 10px 10px !important;
   margin-top: -10px !important;
-}
-
-.fc .fc-timegrid-now-indicator-container {
-  /* z-index: 10 !important; */
 }
 
 /* Flatpickr customization */
