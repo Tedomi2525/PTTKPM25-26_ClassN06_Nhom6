@@ -301,7 +301,7 @@ def get_attendance_status(schedule_id: int, db: Session):
         # Lấy danh sách sinh viên trong lớp
         students = db.query(Student).join(
             Enrollment, Student.student_id == Enrollment.student_id
-        ).filter(Enrollment.class_id == schedule.class_id).all()
+        ).filter(Enrollment.course_class_id == schedule.course_class_id).all()
         
         # Lấy danh sách điểm danh của ngày hôm nay
         today = datetime.now().date()
@@ -339,10 +339,6 @@ def get_attendance_status(schedule_id: int, db: Session):
         return {
             "schedule_id": schedule_id,
             "date": today.isoformat(),
-            "class_info": {
-                "class_id": schedule.class_id,
-                "class_name": schedule.course_class.class_name if schedule.course_class else None
-            },
             "statistics": {
                 "total_students": total_students,
                 "present_count": present_count,

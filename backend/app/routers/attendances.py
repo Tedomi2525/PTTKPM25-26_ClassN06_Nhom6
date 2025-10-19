@@ -82,3 +82,23 @@ def get_attendance_status(
     except Exception as e:
         print(f"Error in get attendance status endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
+    
+@router.get("/attendances/status-by-schedule", summary="Lấy danh sách điểm danh theo lịch học")
+def get_attendance_status_by_schedule(
+    schedule_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Lấy danh sách điểm danh của tất cả sinh viên theo lịch học
+
+    - **schedule_id**: ID lịch học
+    - Trả về danh sách thông tin điểm danh
+    """
+    try:
+        result = attendance_service.get_attendance_status(schedule_id, db)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in get attendance status by schedule endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
