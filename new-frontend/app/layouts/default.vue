@@ -88,7 +88,15 @@ watch(
   () => route.path,
   (newPath) => {
     if (newPath.startsWith("/admin/dashboard")) {
-      selectedMenu.value = "Dashboard"
+      selectedMenu.value = "Quản lý"
+    } else if (newPath.startsWith("/student/schedule")) {
+      selectedMenu.value = "Thời khóa biểu"
+    } else if (newPath.startsWith("/student/enrollment")) {
+      selectedMenu.value = "Đăng kí học"
+    } else if (newPath.startsWith("/teacher/schedule")) {
+      selectedMenu.value = "Thời khóa biểu"
+    } else if (newPath.startsWith("/home")) {
+      selectedMenu.value = "Trang chủ"
     } else {
       selectedMenu.value = null
     }
@@ -110,16 +118,19 @@ watch(
         <NavBar
           v-if="isAdmin"
           :items="adminMenuItems"
+          :selected-menu="selectedMenu"
           @menu-click="handleMenuClick"
         />
         <NavBar
           v-if="isStudent"
           :items="studentMenuItems"
+          :selected-menu="selectedMenu"
           @menu-click="handleMenuClick"
         />
         <NavBar
           v-if="isTeacher"
           :items="teacherMenuItems"
+          :selected-menu="selectedMenu"
           @menu-click="handleMenuClick"
         />
 
