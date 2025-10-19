@@ -118,7 +118,6 @@ const studentsListWithIndex = computed(() => {
 // === Hàm tải danh sách sinh viên ===
 async function loadStudents() {
   const ev: any = props.event || {};
-  console.debug("🧠 props.event nhận được:", ev);
 
   // ✅ Đảm bảo lấy đúng khóa ID từ sự kiện
   const courseClassId =
@@ -128,7 +127,6 @@ async function loadStudents() {
     ev.id;
 
   if (!courseClassId) {
-    console.warn("⚠️ Không có courseClassId để load danh sách sinh viên.");
     return;
   }
 
@@ -144,7 +142,6 @@ async function loadStudents() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
-    console.debug("✅ Dữ liệu sinh viên trả về:", data);
 
     studentsList.value = Array.isArray(data)
       ? data.map((item: any) => ({
@@ -156,7 +153,6 @@ async function loadStudents() {
         }))
       : [];
   } catch (e) {
-    console.error("❌ Lỗi khi tải danh sách sinh viên:", e);
   } finally {
     loadingStudents.value = false;
   }

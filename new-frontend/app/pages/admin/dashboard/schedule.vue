@@ -19,7 +19,7 @@
                        class="w-full px-3 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" />
                 
                 <ul v-if="suggestions.length"
-                    class="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
+                    class="absolute w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto z-10">
                   <li v-for="(suggestion, index) in suggestions"
                       :key="index"
                       @click="selectSuggestion(suggestion)"
@@ -428,7 +428,6 @@ function goToNextWeek() {
   }
 }
 
-// 🔥 ĐÃ SỬA LỖI: Sử dụng currentLoadedCode để phân loại lịch
 async function loadScheduleForCurrentWeek() {
   const idRaw = currentLoadedId.value
   const code = currentLoadedCode.value 
@@ -533,6 +532,27 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
     isChecking.value = false
   }
 }
+async function fetchAttendanceStatuses(studentId: string, schedules: any[]) {
+  const statusMap: Record<string, string> = {}
+  await Promise.all(
+    schedules.map(async (item: any) => {
+      let attendanceStatus = "Chưa có dữ liệu"
+      try {
+        const resAttend = await axios.get(`http://localhost:8000/api/attendances/getStatus`, {
+          params: {
+            student_id: studentId,
+            schedule_id: item.schedule_id
+          }
+        })
+        attendanceStatus = resAttend.data?.status || "Không xác định"
+      } catch (err) {
+        console.warn(`⚠️ Lỗi khi lấy trạng thái điểm danh cho schedule ${item.schedule_id}`)
+      }
+      statusMap[item.schedule_id] = attendanceStatus
+    })
+  )
+  return statusMap
+}
 
 async function loadStudentSchedule(studentId: string, sundayDate: string) {
   if (!studentId) {
@@ -540,66 +560,68 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
     return
   }
 
-  isChecking.value = true
   try {
     const res = await axios.get(`http://localhost:8000/api/students/${studentId}/schedule`, {
       params: { sunday_date: sundayDate },
     })
+    console.log("📅 Lịch học:", res.data)
 
-    if (res.data.success) {
-      const schedules = res.data.data.schedules || []
-      
-      console.log("📅 Current week start:", currentWeekStart.value)
-      console.log("📅 Sunday date param:", sundayDate)
+    if (!res.data.success) {
+      calendarOptions.value.events = []
+      return
+    }
 
-      calendarOptions.value.events = schedules.map((item: any, index: number) => {
-        const [day, month, year] = item.specific_date.split("/")
-        const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    const schedules = res.data.data.schedules || []
+    if (!schedules.length) {
+      calendarOptions.value.events = []
+      return
+    }
 
-        const event = {
-          id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`, // unique id
-          title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
-          start: `${isoDate}T${item.time.period_start.start_time}`,
-          end: `${isoDate}T${item.time.period_end.end_time}`,
-          backgroundColor: "#09f",
-          borderColor: "#0088dd",
-          textColor: "#fff",
-          extendedProps: {
-            courseClassId: item.course_class.course_class_id,
-            teacher: item.course_class.teacher.full_name,
-            courseCode: item.course.course_code,
-            credits: item.course.credits,
-            students: item.course_class.students,
-            section: item.course_class.section,
-            room: item.room.room_name,
-            roomName: item.room.room_name,
-            className: item.course_class.section,
-          },
-        }
-        console.log("📅 Event created:", event)
-        return event
-      })
+    // Gọi API lấy trạng thái điểm danh
+    const attendanceMap = await fetchAttendanceStatuses(studentId, schedules)
+    console.log("✅ Map trạng thái điểm danh:", attendanceMap)
 
-      console.log("📅 Total events set:", calendarOptions.value.events.length)
+    // Gán trạng thái vào event
+    calendarOptions.value.events = schedules.map((item: any, index: number) => {
+      const [day, month, year] = item.specific_date.split("/")
+      const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
 
-      // Force calendar to re-render
-      if (calendarRef.value) {
-        const api = (calendarRef.value as any).getApi()
-        api.refetchEvents()
+      const event = {
+        id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`,
+        title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
+        start: `${isoDate}T${item.time.period_start.start_time}`,
+        end: `${isoDate}T${item.time.period_end.end_time}`,
+        backgroundColor: "#09f",
+        borderColor: "#0088dd",
+        textColor: "#fff",
+        extendedProps: {
+          courseClassId: item.course_class.course_class_id,
+          teacher: item.course_class.teacher.full_name,
+          courseCode: item.course.course_code,
+          credits: item.course.credits,
+          students: item.course_class.students,
+          section: item.course_class.section,
+          roomName: item.room.room_name,
+          className: item.course_class.section,
+          scheduleId: item.schedule_id,
+          attendanceStatus: attendanceMap[item.schedule_id] || "Không xác định" // ← thêm dòng này
+        },
       }
 
-      currentLoadedId.value = studentId
+      console.log("📅 Event created:", event)
+      return event
+    })
 
-    } else {
-      console.warn("❌ API trả về không thành công:", res.data)
-      calendarOptions.value.events = []
+    console.log("📅 Total events set:", calendarOptions.value.events.length)
+
+    if (calendarRef.value) {
+      const api = (calendarRef.value as any).getApi()
+      api.refetchEvents()
     }
+
   } catch (err: any) {
     console.error("❌ Lỗi khi tải lịch học:", err)
     calendarOptions.value.events = []
-    alert("Không tìm thấy lịch học hoặc lỗi kết nối API.")
-  } finally {
-    isChecking.value = false
   }
 }
 // =============================================
