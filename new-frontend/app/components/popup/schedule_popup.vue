@@ -25,6 +25,9 @@
             <p><strong>Mã học phần:</strong> {{ event.extendedProps?.courseCode }}</p>
             <p><strong>Giảng viên:</strong> {{ event.extendedProps?.teacher }}</p>
             <p><strong>Thời gian:</strong> {{ formatTime(event.start, event.end) }}</p>
+            <p><strong>Điểm danh:</strong>
+              {{ event.extendedProps?.attendanceStatus === 'present' ? 'Có mặt' : 'Vắng mặt' }}
+            </p>
           </div>
         </div>
 
@@ -134,9 +137,10 @@ async function loadStudents() {
 
   try {
     const url = `http://localhost:8000/api/course_classes/${courseClassId}/students`;
-    console.debug("📡 Gọi API:", url);
-
     const res = await fetch(url);
+    console.log("📡 Gọi API:", url);
+    console.log("📶 Response:", res);
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();

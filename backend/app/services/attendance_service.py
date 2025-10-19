@@ -153,7 +153,7 @@ def search_face_by_camera(schedule_id: int, db: Session, timeout: int = CAMERA_T
     
     if not cap.isOpened():
         raise HTTPException(status_code=500, detail="Không thể truy cập camera. Kiểm tra kết nối camera.")
-    
+    print(f"[CAMERA] Camera opened successfully.")
     start_time = time.time()
     found_student = None
     frame_count = 0
@@ -355,4 +355,40 @@ def get_attendance_status(schedule_id: int, db: Session):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
 
-
+def get_attendance_status_by_schedule_and_student(schedule_id: int, student_id: int, db: Session):
+    """
+    Lấy trạng thái điểm danh của một sinh viên trong một lịch học cụ thể
+    
+    Args:
+        schedule_id: ID lịch học
+        student_id: ID sinh viên
+        db: Database session
+        
+    Returns:
+        dict: Thông tin trạng thái điểm danh của sinh viên
+    """
+    try:
+        attendance = db.query(Attendance).filter(
+            Attendance.schedule_id == schedule_id,
+            Attendance.student_id == student_id
+        ).first()
+        
+        if not attendance:
+            return {
+                "student_id": student_id,
+                "schedule_id": schedule_id,
+                "status": "absent",
+                "confirmed_at": None,
+                "confirmed_by": None
+            }
+        
+        return {
+            "student_id": student_id,
+            "schedule_id": schedule_id,
+            "status": attendance.status,
+            "confirmed_at": attendance.confirmed_at.isoformat() if attendance.confirmed_at else None,
+            "confirmed_by": attendance.confirmed_by
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")

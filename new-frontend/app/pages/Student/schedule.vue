@@ -333,6 +333,27 @@ async function loadScheduleForCurrentWeek() {
   const sundayDate = formatDateToYYYYMMDD(currentWeekStart.value)
   await loadStudentSchedule(studentId, sundayDate)
 }
+async function fetchAttendanceStatuses(studentId: string, schedules: any[]) {
+  const statusMap: Record<string, string> = {}
+  await Promise.all(
+    schedules.map(async (item: any) => {
+      let attendanceStatus = "Chưa có dữ liệu"
+      try {
+        const resAttend = await axios.get(`http://localhost:8000/api/attendances/getStatus`, {
+          params: {
+            student_id: studentId,
+            schedule_id: item.schedule_id
+          }
+        })
+        attendanceStatus = resAttend.data?.status || "Không xác định"
+      } catch (err) {
+        console.warn(`⚠️ Lỗi khi lấy trạng thái điểm danh cho schedule ${item.schedule_id}`)
+      }
+      statusMap[item.schedule_id] = attendanceStatus
+    })
+  )
+  return statusMap
+}
 
 async function loadStudentSchedule(studentId: string, sundayDate: string) {
   if (!studentId) {
@@ -345,60 +366,66 @@ async function loadStudentSchedule(studentId: string, sundayDate: string) {
       params: { sunday_date: sundayDate },
     })
     console.log("📅 Lịch học:", res.data)
-    if (res.data.success) {
-      const schedules = res.data.data.schedules || []
-      if (!schedules.length) {
-        calendarOptions.value.events = []
-        return
-      }
 
-      console.log("📅 Current week start:", currentWeekStart.value)
-      console.log("📅 Sunday date param:", sundayDate)
-
-      calendarOptions.value.events = schedules.map((item: any, index: number) => {
-        const [day, month, year] = item.specific_date.split("/")
-        const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-
-        const event = {
-          id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`, // unique id
-          title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
-          start: `${isoDate}T${item.time.period_start.start_time}`,
-          end: `${isoDate}T${item.time.period_end.end_time}`,
-          backgroundColor: "#09f",
-          borderColor: "#0088dd",
-          textColor: "#fff",
-          extendedProps: {
-            courseClassId: item.course_class.course_class_id,
-            teacher: item.course_class.teacher.full_name,
-            courseCode: item.course.course_code,
-            credits: item.course.credits,
-            students: item.course_class.students,
-            section: item.course_class.section,
-            roomName: item.room.room_name,
-            className: item.course_class.section,
-          },
-        }
-        console.log("📅 Event created:", event)
-        return event
-      })
-
-      console.log("📅 Total events set:", calendarOptions.value.events.length)
-
-      // Force calendar to re-render
-      if (calendarRef.value) {
-        const api = (calendarRef.value as any).getApi()
-        api.refetchEvents()
-      }
-
-    } else {
-      console.warn("❌ API trả về không thành công:", res.data)
+    if (!res.data.success) {
       calendarOptions.value.events = []
+      return
     }
+
+    const schedules = res.data.data.schedules || []
+    if (!schedules.length) {
+      calendarOptions.value.events = []
+      return
+    }
+
+    // Gọi API lấy trạng thái điểm danh
+    const attendanceMap = await fetchAttendanceStatuses(studentId, schedules)
+    console.log("✅ Map trạng thái điểm danh:", attendanceMap)
+
+    // Gán trạng thái vào event
+    calendarOptions.value.events = schedules.map((item: any, index: number) => {
+      const [day, month, year] = item.specific_date.split("/")
+      const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+
+      const event = {
+        id: `${item.course_class.course_class_id}_${item.schedule_id}_${index}`,
+        title: `${item.course.course_name} (${item.course_class.section}) - ${item.room.room_name}`,
+        start: `${isoDate}T${item.time.period_start.start_time}`,
+        end: `${isoDate}T${item.time.period_end.end_time}`,
+        backgroundColor: "#09f",
+        borderColor: "#0088dd",
+        textColor: "#fff",
+        extendedProps: {
+          courseClassId: item.course_class.course_class_id,
+          teacher: item.course_class.teacher.full_name,
+          courseCode: item.course.course_code,
+          credits: item.course.credits,
+          students: item.course_class.students,
+          section: item.course_class.section,
+          roomName: item.room.room_name,
+          className: item.course_class.section,
+          scheduleId: item.schedule_id,
+          attendanceStatus: attendanceMap[item.schedule_id] || "Không xác định" // ← thêm dòng này
+        },
+      }
+
+      console.log("📅 Event created:", event)
+      return event
+    })
+
+    console.log("📅 Total events set:", calendarOptions.value.events.length)
+
+    if (calendarRef.value) {
+      const api = (calendarRef.value as any).getApi()
+      api.refetchEvents()
+    }
+
   } catch (err: any) {
     console.error("❌ Lỗi khi tải lịch học:", err)
     calendarOptions.value.events = []
   }
 }
+
 
 function initDatePicker(studentId: string) {
   flatpickr("#calendarPicker", {
