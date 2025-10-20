@@ -138,7 +138,7 @@ function closePopup() {
   selectedEvent.value = null
 }
 
-function handleEventClick(info) {
+function handleEventClick(info : any) {
   console.log("Event clicked:", info);
 
   selectedEvent.value = {
@@ -241,7 +241,7 @@ const calendarOptions = ref({
     }
   },
   events: [],
-  eventClick: (info) => {
+  eventClick: (info : any) => {
     console.log('Event clicked:', info)
     if (!info || !info.event) {
       console.warn('Không có event trong info:', info)
