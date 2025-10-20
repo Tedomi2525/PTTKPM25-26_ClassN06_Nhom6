@@ -2,10 +2,11 @@
   <div v-if="show" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
     @click.self="close">
     <div class="bg-white w-[850px] max-h-[85vh] rounded-xl shadow-xl relative overflow-y-auto p-6">
-      <!-- Debug: Hiển thị dữ liệu schedule -->
-      <pre class="mb-2 bg-gray-100 p-2 text-xs text-red-600">{{ JSON.stringify(schedule, null, 2) }}</pre>
-      <!-- Close -->
-      <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl" @click="close">✕</button>
+<!-- Close -->
+      <button
+        class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
+        @click="close"
+      >✕</button>
 
       <!-- Header -->
       <h2 class="text-2xl font-bold mb-3 text-gray-800">
@@ -13,8 +14,8 @@
       </h2>
 
       <div class="text-sm text-gray-500 mb-3">
-        <p><strong>Lớp:</strong> {{ schedule.className || '-' }}</p>
-        <p><strong>Mã lịch học:</strong> {{ schedule.scheduleId || '-' }}</p>
+        <p><strong>Môn học:</strong> {{ schedule.title || '-' }}</p>
+        <p><strong>Phòng học:</strong> {{ schedule.extendedProps?.room || '-' }}</p>
       </div>
 
       <!-- Title -->
@@ -72,7 +73,13 @@ const props = defineProps({
       classId: number | string
       className: string
       subjectName: string
-      scheduleId: number | string
+        
+      title: string
+      extendedProps?: {
+        room?: string
+        scheduleId?: number | string
+
+      }
     },
     required: true,
   },
@@ -97,7 +104,7 @@ async function loadStudents() {
       `http://localhost:8000/api/attendances/status-by-schedule?schedule_id=${scheduleId}`
     )
     const data = await res.json()
-    students.value = data.attendance_list.map(item => ({
+    students.value = data.attendance_list.map((item : any) => ({
       studentCode: item.student_code,
       fullName: item.full_name,
       present: item.status === 'present'
