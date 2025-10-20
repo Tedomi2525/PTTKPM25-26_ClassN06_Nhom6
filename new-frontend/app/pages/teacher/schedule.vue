@@ -3,14 +3,8 @@
     <!-- Container full width -->
     <div class="h-full w-full px-4 py-3 lg:px-6 lg:py-4 flex flex-col">
       <!-- Loading state -->
-      <LoadingSpinner 
-        v-if="isLoading" 
-        size="large"
-        color="blue"
-        message="Đang tải lịch giảng dạy..."
-        sub-message="Vui lòng đợi trong giây lát"
-        full-height
-      />
+      <LoadingSpinner v-if="isLoading" size="large" color="blue" message="Đang tải lịch giảng dạy..."
+        sub-message="Vui lòng đợi trong giây lát" full-height />
 
       <!-- Content khi đã load xong -->
       <div v-else class="animate-fade-in flex-1 flex flex-col overflow-hidden">
@@ -18,11 +12,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
           <!-- Cột trống bên trái -->
           <div class="hidden lg:block lg:col-span-1"></div>
-          
+
           <!-- Sidebar: Lịch chọn ngày + Thống kê (2 cột) -->
           <div class="lg:col-span-2 flex flex-col gap-3 overflow-y-auto">
             <!-- Card: Lịch chọn ngày -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
               <div class="bg-[#09f] px-4 py-2.5">
                 <h3 class="text-base font-semibold text-white">
                   Chọn ngày
@@ -31,29 +26,23 @@
               <div class="p-3">
                 <div id="calendarPicker" class="w-full"></div>
               </div>
-              
+
               <!-- Nút điều hướng tuần -->
               <div class="px-3 pb-3">
                 <div class="grid grid-cols-3 gap-2">
-                  <button 
-                    @click="goToPreviousWeek"
+                  <button @click="goToPreviousWeek"
                     class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
-                    title="Tuần trước"
-                  >
+                    title="Tuần trước">
                     <span class="text-lg">←</span>
                     <span class="hidden xl:inline text-sm">Trước</span>
                   </button>
-                  <button 
-                    @click="goToCurrentWeek"
-                    class="px-3 py-2.5 bg-[#09f] hover:bg-[#0088dd] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm"
-                  >
+                  <button @click="goToCurrentWeek"
+                    class="px-3 py-2.5 bg-[#09f] hover:bg-[#0088dd] text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm">
                     Hôm nay
                   </button>
-                  <button 
-                    @click="goToNextWeek"
+                  <button @click="goToNextWeek"
                     class="px-3 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 font-medium"
-                    title="Tuần sau"
-                  >
+                    title="Tuần sau">
                     <span class="hidden xl:inline text-sm">Sau</span>
                     <span class="text-lg">→</span>
                   </button>
@@ -62,7 +51,8 @@
             </div>
 
             <!-- Card: Thống kê tuần -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0">
               <div class="bg-[#09f] px-4 py-2.5">
                 <h4 class="text-base font-semibold text-white">
                   Thống kê tuần
@@ -70,15 +60,18 @@
               </div>
               <div class="p-3">
                 <div class="space-y-2">
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Tổng số buổi dạy</span>
                     <span class="text-xl font-bold text-[#09f]">{{ totalClasses }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Số môn học</span>
                     <span class="text-xl font-bold text-[#09f]">{{ uniqueCourses }}</span>
                   </div>
-                  <div class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
+                  <div
+                    class="flex justify-between items-center p-2 bg-[#09f]/10 rounded-lg hover:bg-[#09f]/15 transition-colors">
                     <span class="text-xs font-medium text-gray-700">Tổng số tiết</span>
                     <span class="text-xl font-bold text-[#09f]">{{ totalPeriods }}</span>
                   </div>
@@ -89,7 +82,8 @@
 
           <!-- Main content: Lịch học chính (8 cột) -->
           <div class="lg:col-span-8 flex flex-col overflow-hidden">
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+            <div
+              class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
               <div class="bg-[#09f] px-4 py-2.5 flex-shrink-0">
                 <h3 class="text-base font-semibold text-white">
                   Lịch dạy trong tuần
@@ -100,12 +94,16 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Cột trống bên phải -->
           <div class="hidden lg:block lg:col-span-1"></div>
         </div>
       </div>
     </div>
+
+    <!-- Popup for attendance -->
+    <TeacherPopup :show="showPopup" :schedule="selectedEvent" @close="showPopup = false" />
+
   </div>
 </template>
 <script setup lang="ts">
@@ -119,6 +117,7 @@ import viLocale from "@fullcalendar/core/locales/vi"
 import flatpickr from "flatpickr"
 import "flatpickr/dist/flatpickr.css"
 import { Vietnamese as vn } from "flatpickr/dist/l10n/vn.js"
+import TeacherPopup from '@/pages/teacher/teacher_popup.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { useAuth } from "@/composables/useAuth"
 
@@ -130,17 +129,40 @@ definePageMeta({
 const { schoolId, initAuth, isChecking } = useAuth()
 const isLoading = ref(true)
 const currentWeekStart = ref(new Date())
+const showPopup = ref(false)
+const selectedEvent = ref<any>(null)
+
+// Close popup handler
+function closePopup() {
+  showPopup.value = false
+  selectedEvent.value = null
+}
+
+function handleEventClick(info) {
+  console.log("Event clicked:", info);
+
+  selectedEvent.value = {
+    classId: info.event.extendedProps.classId,     
+    className: info.event.extendedProps.className, 
+    subjectName: info.event.extendedProps.subjectName,
+    scheduleId: info.event.id                     
+  };
+
+  console.log("Popup state:", showPopup.value, "Selected event:", selectedEvent.value);
+  showPopup.value = true;
+}
+
 
 // Computed properties cho thống kê
 const currentWeekDisplay = computed(() => {
   const start = new Date(currentWeekStart.value)
   const end = new Date(start)
   end.setDate(end.getDate() + 6)
-  
+
   const formatDate = (d: Date) => {
     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
   }
-  
+
   return `Tuần ${formatDate(start)} - ${formatDate(end)}`
 })
 
@@ -204,10 +226,12 @@ const calendarOptions = ref({
   eventContent: (arg: any) => {
     const { event } = arg
     const { room, courseCode, credits, section, studentCount } = event.extendedProps
-    
+    // Debug log for event rendering
+    console.log('Rendering event:', event)
     return {
       html: `
-        <div class="fc-event-main-frame p-2 hover:scale-105 transition-transform duration-200">
+        <div class="fc-event-main-frame p-2 hover:scale-105 transition-transform duration-200"
+          tabindex="0" role="button" title="Xem chi tiết" style="pointer-events: auto; cursor: pointer;">
           <div class="font-bold text-sm mb-1">${event.title} </div>
           <div class="text-xs opacity-90">
             <div>${room}</div>
@@ -217,6 +241,16 @@ const calendarOptions = ref({
     }
   },
   events: [],
+  eventClick: (info) => {
+    console.log('Event clicked:', info)
+    if (!info || !info.event) {
+      console.warn('Không có event trong info:', info)
+      return
+    }
+    selectedEvent.value = info.event
+    showPopup.value = true
+    console.log('Popup state:', showPopup.value, 'Selected event:', selectedEvent.value)
+  },
 })
 
 function formatDateToYYYYMMDD(date: Date) {
@@ -267,7 +301,7 @@ function goToNextWeek() {
 async function loadScheduleForCurrentWeek() {
   const teacherId = schoolId.value || localStorage.getItem("schoolId")
   if (!teacherId) return
-  
+
   const sundayDate = formatDateToYYYYMMDD(currentWeekStart.value)
   await loadTeacherSchedule(teacherId, sundayDate)
 }
@@ -280,7 +314,7 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
 
   try {
     const res = await axios.get(`http://localhost:8000/api/teachers/weekly-schedule`, {
-      params: { 
+      params: {
         teacher_id: teacherId,
         sunday_date: sundayDate
       },
@@ -296,7 +330,7 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
       calendarOptions.value.events = schedules.map((item: any) => {
         const [day, month, year] = item.specific_date.split("/")
         const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-        
+
         // Tạo màu sắc khác nhau cho từng môn học
         const courseColors = [
           { bg: "#3b82f6", border: "#2563eb" }, // Blue
@@ -308,10 +342,10 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
           { bg: "#ec4899", border: "#db2777" }, // Pink
           { bg: "#84cc16", border: "#65a30d" }, // Lime
         ]
-        
+
         const colorIndex = item.course.course_id % courseColors.length
         const color = courseColors[colorIndex] || courseColors[0]
-        
+
         return {
           title: `${item.course.course_name} (${item.course_class.section})`,
           start: `${isoDate}T${item.time.period_start.start_time}`,
@@ -327,7 +361,8 @@ async function loadTeacherSchedule(teacherId: string, sundayDate: string) {
             semester: item.semester?.semester_name || "N/A",
             studentCount: `${item.course_class.min_students}-${item.course_class.max_students}`,
             scheduleId: item.schedule_id,
-            dayName: item.day_name
+            dayName: item.day_name,
+            courseClassId: item.course_class.id // Add course class ID
           },
         }
       })
@@ -369,20 +404,20 @@ async function initSchedule() {
     isLoading.value = false
     return
   }
-  
+
   console.log("📅 Đang tải lịch giảng dạy cho teacher:", teacherId)
-  
+
   const today = new Date()
   const sundayOfCurrentWeek = getSundayOfWeek(new Date(today))
   currentWeekStart.value = sundayOfCurrentWeek
   const sundayDate = formatDateToYYYYMMDD(sundayOfCurrentWeek)
-  
+
   // Load lịch giảng dạy
   await loadTeacherSchedule(teacherId, sundayDate)
-  
+
   // Khởi tạo date picker
   initDatePicker(teacherId)
-  
+
   isLoading.value = false
 }
 
@@ -400,11 +435,15 @@ onMounted(async () => {
     console.log("🔄 Đang khởi tạo auth...")
     await initAuth()
   }
-  
+
   // Nếu đã có schoolId, load ngay
   if (schoolId.value) {
     await initSchedule()
   }
+})
+
+watch(showPopup, (val) => {
+  console.log('showPopup state changed:', val)
 })
 </script>
 
@@ -415,6 +454,7 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -613,7 +653,7 @@ onMounted(async () => {
   .fc-event {
     font-size: 0.75rem !important;
   }
-  
+
   .fc .fc-col-header-cell {
     font-size: 0.75rem !important;
     padding: 6px 2px !important;
