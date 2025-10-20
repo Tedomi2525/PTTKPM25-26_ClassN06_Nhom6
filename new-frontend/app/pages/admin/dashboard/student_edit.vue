@@ -108,8 +108,12 @@
                 <DropDown
                   id="faculty"
                   placeholder="Khoa quản lý"
-                  :options="facultyOptions"
-                  @update:modelValue="handleFacultySelect"
+                  v-model="form.faculty"
+                  :options="[
+                    { label: 'Khoa Hệ thống thông tin', value: 'Khoa Hệ thống thông tin' },
+                    { label: 'Khoa Khoa học máy tính', value: 'Khoa Khoa học máy tính' },
+                    { label: 'Khoa Trí tuệ nhân tạo', value: 'Khoa Trí tuệ nhân tạo' }
+                  ]"
                 />
               </div>
 
@@ -185,7 +189,7 @@ const form = ref({
   courseYears: "",
   educationType: "",
   faculty: "",
-  program_id: "",
+  programId: "",
   major: "",
   status: "Đang học",
   position: "",
@@ -195,23 +199,11 @@ const form = ref({
 const isSubmitting = ref(false);
 const errorMessage = ref(null);
 const validationErrors = ref(null);
+const selectedFaculty = ref(null);
 
-// ✅ Faculty giống student_add
-const facultyOptions = [
-  { label: 'Khoa Hệ thống thông tin', value: JSON.stringify({ faculty: 'Khoa Hệ thống thông tin', program_id: '1' }) },
-  { label: 'Khoa Khoa học máy tính', value: JSON.stringify({ faculty: 'Khoa Khoa học máy tính', program_id: '2' }) },
-  { label: 'Khoa Trí tuệ nhân tạo', value: JSON.stringify({ faculty: 'Khoa Trí tuệ nhân tạo', program_id: '3' }) }
-]
 
-const handleFacultySelect = (option) => {
-  if (option) {
-    form.value.faculty = option.value.value;
-    form.value.program_id = option.value.program_id;
-  } else {
-    form.value.faculty = "";
-    form.value.program_id = "";
-  }
-};
+
+
 
 // 🟦 Lấy dữ liệu sinh viên
 onMounted(async () => {
@@ -228,14 +220,21 @@ onMounted(async () => {
 
     if (data.dob) data.dob = data.dob.split("T")[0];
     Object.assign(form.value, data);
-
-    // ✅ Gán selectedFaculty khi load form
-    const found = facultyOptions.value.find(f => f.value === data.faculty);
-    if (found) selectedFaculty.value = { label: found.label, value: found };
   } catch (err) {
     errorMessage.value = err.message;
   }
 });
+
+watch(
+  () => form.value.faculty,
+  (newFaculty) => {
+    if (newFaculty === "Khoa Hệ thống thông tin") form.value.programId = 1;
+    else if (newFaculty === "Khoa Khoa học máy tính") form.value.programId = 2;
+    else if (newFaculty === "Khoa Trí tuệ nhân tạo") form.value.programId = 3;
+    else form.value.program_id = "";
+    console.log("📘 Program ID:", form.value.program_id)
+  }
+);
 
 // 🟧 Upload ảnh
 const handleFileUpload = (fileObject) => {
@@ -262,7 +261,7 @@ const resetForm = () => {
     courseYears: "",
     educationType: "",
     faculty: "",
-    program_id: "",
+    programId: "",
     major: "",
     status: "Đang học",
     position: "",
@@ -303,5 +302,6 @@ const handleSubmit = async () => {
   } finally {
     isSubmitting.value = false;
   }
+  console.log("📦 Dữ liệu gửi đi:", JSON.stringify(form.value, null, 2))
 };
 </script>
