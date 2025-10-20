@@ -388,3 +388,50 @@ def get_attendance_status_by_schedule_and_student(schedule_id: int, student_id: 
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
+
+def mark_attendance(schedule_id: int, student_id: int, confirmed_by: int, db: Session):
+    """
+    Đánh dấu điểm danh 'present' cho một sinh viên trong một lịch học cụ thể
+
+    Args:
+        schedule_id: ID lịch học
+        student_id: ID sinh viên
+        confirmed_by: ID người xác nhận
+        db: Database session
+
+    Returns:
+        dict: Thông tin trạng thái điểm danh sau khi đánh dấu
+    """
+    try:
+        attendance = db.query(Attendance).filter(
+            Attendance.schedule_id == schedule_id,
+            Attendance.student_id == student_id
+        ).first()
+
+        if attendance:
+            attendance.status = "present"
+            attendance.confirmed_at = datetime.now()
+            attendance.confirmed_by = confirmed_by
+        else:
+            attendance = Attendance(
+                student_id=student_id,
+                schedule_id=schedule_id,
+                date=datetime.now().date(),
+                status="present",
+                confirmed_at=datetime.now(),
+                confirmed_by=confirmed_by
+            )
+            db.add(attendance)
+
+        db.commit()
+
+        return {
+            "student_id": student_id,
+            "schedule_id": schedule_id,
+            "status": attendance.status,
+            "confirmed_at": attendance.confirmed_at.isoformat() if attendance.confirmed_at else None,
+            "confirmed_by": attendance.confirmed_by
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi đánh dấu điểm danh: {str(e)}")

@@ -102,3 +102,27 @@ def get_attendance_status_by_schedule(
     except Exception as e:
         print(f"Error in get attendance status by schedule endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")
+    
+@router.post("/attendances/mark", summary="Ghi nhận điểm danh cho sinh viên")
+def mark_attendance(
+    schedule_id: int,
+    student_id: int,
+    status: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Ghi nhận điểm danh cho sinh viên
+
+    - **schedule_id**: ID lịch học
+    - **student_id**: ID sinh viên
+    - **status**: Trạng thái điểm danh ('present' hoặc 'absent')
+    - Trả về thông tin điểm danh đã ghi nhận
+    """
+    try:
+        result = attendance_service.mark_attendance(schedule_id, student_id, status, db)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in mark attendance endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")

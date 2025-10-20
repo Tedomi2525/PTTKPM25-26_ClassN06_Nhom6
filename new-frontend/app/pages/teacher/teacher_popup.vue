@@ -119,11 +119,11 @@ async function saveAttendance() {
   try {
     const body = students.value.map(st => ({
       student_id: st.studentId,
-      schedule_id: props.schedule.scheduleId,
+      schedule_id: props.schedule.extendedProps?.scheduleId,
       status: st.present ? 'present' : 'absent'
     }))
 
-    const res = await fetch('http://localhost:8000/api/attendances/submit', {
+    const res = await fetch('http://localhost:8000/api/attendances/mark', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
