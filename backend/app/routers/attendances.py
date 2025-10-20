@@ -108,21 +108,17 @@ def mark_attendance(
     schedule_id: int,
     student_id: int,
     status: str,
+    confirmed_by: int = 1,  # ví dụ: ID giảng viên, tạm mặc định
     db: Session = Depends(get_db)
 ):
     """
-    Ghi nhận điểm danh cho sinh viên
-
-    - **schedule_id**: ID lịch học
-    - **student_id**: ID sinh viên
-    - **status**: Trạng thái điểm danh ('present' hoặc 'absent')
-    - Trả về thông tin điểm danh đã ghi nhận
+    Ghi nhận điểm danh cho sinh viên.
+    - Nếu status='present' → thêm/cập nhật.
+    - Nếu status='absent' → xóa bản ghi.
     """
     try:
-        result = attendance_service.mark_attendance(schedule_id, student_id, status, db)
-        return result
+        return attendance_service.mark_attendance(schedule_id, student_id, status, confirmed_by, db)
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in mark attendance endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi server: {str(e)}")

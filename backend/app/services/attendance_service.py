@@ -389,18 +389,11 @@ def get_attendance_status_by_schedule_and_student(schedule_id: int, student_id: 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi lấy trạng thái điểm danh: {str(e)}")
 
-def mark_attendance(schedule_id: int, student_id: int, confirmed_by: int, db: Session):
+def mark_attendance(schedule_id: int, student_id: int, status: str, confirmed_by: int, db: Session):
     """
-    Đánh dấu điểm danh 'present' cho một sinh viên trong một lịch học cụ thể
-
-    Args:
-        schedule_id: ID lịch học
-        student_id: ID sinh viên
-        confirmed_by: ID người xác nhận
-        db: Database session
-
-    Returns:
-        dict: Thông tin trạng thái điểm danh sau khi đánh dấu
+    Đánh dấu điểm danh cho sinh viên:
+    - Nếu status = 'present' → thêm hoặc cập nhật bản ghi
+    - Nếu status = 'absent' → xóa bản ghi nếu tồn tại
     """
     try:
         attendance = db.query(Attendance).filter(
@@ -408,6 +401,19 @@ def mark_attendance(schedule_id: int, student_id: int, confirmed_by: int, db: Se
             Attendance.student_id == student_id
         ).first()
 
+        # ✅ Nếu là vắng mặt → xóa bản ghi nếu có
+        if status == "absent":
+            if attendance:
+                db.delete(attendance)
+                db.commit()
+            return {
+                "student_id": student_id,
+                "schedule_id": schedule_id,
+                "status": "absent",
+                "message": "Đã ghi nhận vắng mặt (xóa bản ghi)"
+            }
+
+        # ✅ Nếu là có mặt → thêm hoặc cập nhật
         if attendance:
             attendance.status = "present"
             attendance.confirmed_at = datetime.now()
@@ -428,8 +434,8 @@ def mark_attendance(schedule_id: int, student_id: int, confirmed_by: int, db: Se
         return {
             "student_id": student_id,
             "schedule_id": schedule_id,
-            "status": attendance.status,
-            "confirmed_at": attendance.confirmed_at.isoformat() if attendance.confirmed_at else None,
+            "status": "present",
+            "confirmed_at": attendance.confirmed_at.isoformat(),
             "confirmed_by": attendance.confirmed_by
         }
 
