@@ -73,10 +73,12 @@ const props = defineProps({
       classId: number | string
       className: string
       subjectName: string
-      scheduleId: number | string
+        
       title: string
       extendedProps?: {
         room?: string
+        scheduleId?: number | string
+
       }
     },
     required: true,
@@ -93,7 +95,7 @@ function close() {
 
 /* ✅ Load danh sách sinh viên có kèm trạng thái điểm danh */
 async function loadStudents() {
-  const scheduleId = props.schedule?.scheduleId
+  const scheduleId = props.schedule?.extendedProps?.scheduleId
   if (!scheduleId) return
 
   loading.value = true
