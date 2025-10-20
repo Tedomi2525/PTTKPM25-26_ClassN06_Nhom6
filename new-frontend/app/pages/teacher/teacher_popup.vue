@@ -5,9 +5,7 @@
     @click.self="close"
   >
     <div class="bg-white w-[850px] max-h-[85vh] rounded-xl shadow-xl relative overflow-y-auto p-6">
-      <!-- Debug: Hiển thị dữ liệu schedule -->
-      <pre class="mb-2 bg-gray-100 p-2 text-xs text-red-600">{{ JSON.stringify(schedule, null, 2) }}</pre>
-      <!-- Close -->
+<!-- Close -->
       <button
         class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
         @click="close"
@@ -19,8 +17,8 @@
       </h2>
 
       <div class="text-sm text-gray-500 mb-3">
-        <p><strong>Lớp:</strong> {{ schedule.className || '-' }}</p>
-        <p><strong>Mã lịch học:</strong> {{ schedule.scheduleId || '-' }}</p>
+        <p><strong>Môn học:</strong> {{ schedule.title || '-' }}</p>
+        <p><strong>Phòng học:</strong> {{ schedule.extendedProps?.room || '-' }}</p>
       </div>
 
       <!-- Title -->
@@ -82,6 +80,10 @@ const props = defineProps({
       className: string
       subjectName: string
       scheduleId: number | string
+      title: string
+      extendedProps?: {
+        room?: string
+      }
     },
     required: true,
   },
