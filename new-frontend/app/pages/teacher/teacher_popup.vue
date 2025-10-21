@@ -2,11 +2,8 @@
   <div v-if="show" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
     @click.self="close">
     <div class="bg-white w-[850px] max-h-[85vh] rounded-xl shadow-xl relative overflow-y-auto p-6">
-<!-- Close -->
-      <button
-        class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
-        @click="close"
-      >✕</button>
+      <!-- Close -->
+      <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl" @click="close">✕</button>
 
       <!-- Header -->
       <h2 class="text-2xl font-bold mb-3 text-gray-800">
@@ -24,6 +21,17 @@
         <span v-if="!loading" class="text-sm bg-blue-100 px-3 py-1 rounded-full text-gray-600">
           Tổng: {{ students.length }} sinh viên
         </span>
+      </div>
+
+      <!-- Nút điểm danh tất cả -->
+      <div class="flex justify-end mt-4 gap-3 pb-2">
+        <button @click="saveAttendance" class="text-sm px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+          Điểm danh
+        </button>
+
+        <button @click="saveAttendanceWithFace" class="text-sm px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+          Quét mặt
+        </button>
       </div>
 
       <!-- Loading -->
@@ -73,7 +81,7 @@ const props = defineProps({
       classId: number | string
       className: string
       subjectName: string
-        
+
       title: string
       extendedProps?: {
         room?: string
@@ -104,11 +112,13 @@ async function loadStudents() {
       `http://localhost:8000/api/attendances/status-by-schedule?schedule_id=${scheduleId}`
     )
     const data = await res.json()
-    students.value = data.attendance_list.map((item : any) => ({
+    students.value = data.attendance_list.map((item: any) => ({
+      studentId: item.student_id,
       studentCode: item.student_code,
       fullName: item.full_name,
       present: item.status === 'present'
     }))
+    console.log('Loaded students with attendance status:', students.value)
   } finally {
     loading.value = false
   }
@@ -116,24 +126,34 @@ async function loadStudents() {
 
 /* ✅ Gửi điểm danh về backend */
 async function saveAttendance() {
-  try {
-    const body = students.value.map(st => ({
-      student_id: st.studentId,
-      schedule_id: props.schedule.extendedProps?.scheduleId,
-      status: st.present ? 'present' : 'absent'
-    }))
-
-    const res = await fetch('http://localhost:8000/api/attendances/mark', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-
-    if (res.ok) alert('✅ Điểm danh thành công!')
-    else alert('❌ Lỗi khi lưu điểm danh')
-  } catch (err) {
-    console.error(err)
+  const scheduleId = props.schedule?.extendedProps?.scheduleId
+  if (!scheduleId) {
+    alert("❌ Không tìm thấy schedule_id!")
+    return
   }
+
+  try {
+    for (const st of students.value) {
+      const status = st.present ? 'present' : 'absent'
+      console.log(`Marking student ${st.studentId} or ${st.student_id} as ${status}`)
+
+      await fetch(
+        `http://localhost:8000/api/attendances/mark?schedule_id=${scheduleId}&student_id=${st.studentId}&status=${status}`,
+        {
+          method: 'POST',
+        }
+      )
+    }
+
+    alert("✅ Lưu điểm danh thành công!")
+  } catch (error) {
+    console.error(error)
+    alert("❌ Lỗi khi lưu điểm danh!")
+  }
+}
+
+async function saveAttendanceWithFace() {
+  
 }
 
 watch(() => props.show, (val) => {
