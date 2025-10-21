@@ -211,6 +211,7 @@ def search_face_by_camera(schedule_id: int, db: Session, timeout: int = CAMERA_T
                 if not embedding_match:
                     continue
                 
+                print(f"[CAMERA] Tìm thấy embedding match với FAISS index {faiss_idx}")
                 student = db.query(Student).filter(Student.student_id == embedding_match.student_id).first()
                 if not student:
                     continue

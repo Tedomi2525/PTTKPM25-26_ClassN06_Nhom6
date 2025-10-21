@@ -153,7 +153,31 @@ async function saveAttendance() {
 }
 
 async function saveAttendanceWithFace() {
-  
+  const scheduleId = props.schedule?.extendedProps?.scheduleId
+  if (!scheduleId) {
+    alert("❌ Không tìm thấy schedule_id!")
+    return
+  }
+
+  try {
+    const res = await fetch(
+      `http://localhost:8000/api/attendances/face-recognition-camera?schedule_id=${scheduleId}`,
+      {
+        method: 'POST',
+      }
+    )
+    const data = await res.json()
+      console.log('Face recognition attendance response:', data.matched)
+    if (data.matched) {
+      alert("✅ Điểm danh bằng nhận diện khuôn mặt thành công!")
+      loadStudents()  // Tải lại danh sách sinh viên để cập nhật trạng thái
+    } else {
+      alert("❌ Điểm danh bằng nhận diện khuôn mặt thất bại!")
+    }
+  } catch (error) {
+    console.error(error)
+    alert("❌ Lỗi khi điểm danh bằng nhận diện khuôn mặt!")
+  }
 }
 
 watch(() => props.show, (val) => {
