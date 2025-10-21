@@ -26,23 +26,6 @@ def create_teacher(payload: TeacherCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.put("/teachers/{teacher_id}", response_model=TeacherSchema)
-def update_teacher(teacher_id: int, payload: TeacherUpdate, db: Session = Depends
-(get_db)):
-    teacher = teacher_service.update_teacher(db, teacher_id, payload)
-    if not teacher:
-        raise HTTPException(status_code=404, detail="Teacher not found")
-    return teacher
-
-@router.delete("/teachers/{teacher_id}", response_model=dict)
-def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
-    success = teacher_service.delete_teacher(db, teacher_id)
-    if success is None:
-        raise HTTPException(status_code=404, detail="Teacher not found")
-    if not success:
-        raise HTTPException(status_code=400, detail="Cannot delete teacher due to existing references")
-    return {"detail": "Teacher deleted successfully"}
-
 @router.get("/teachers/weekly-schedule")
 def get_teacher_weekly_schedule(
     teacher_id: int,
@@ -69,3 +52,33 @@ def get_teacher_weekly_schedule(
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get teacher weekly schedule: {str(e)}")
+
+@router.get("/teachers/{teacher_id}", response_model=TeacherSchema)
+def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = teacher_service.get_teacher_by_id(db, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return teacher
+
+@router.put("/teachers/{teacher_id}", response_model=TeacherSchema)
+def update_teacher(teacher_id: int, payload: TeacherUpdate, db: Session = Depends
+(get_db)):
+    teacher = teacher_service.update_teacher(db, teacher_id, payload)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return teacher
+
+@router.delete("/teachers/{teacher_id}", response_model=dict)
+def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    success = teacher_service.delete_teacher(db, teacher_id)
+    if success is None:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot delete teacher due to existing references")
+    return {"detail": "Teacher deleted successfully"}
+@router.get("/teachers/{teacher_id}/school")
+def get_teacher_school(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = db.query(TeacherSchema).filter(TeacherSchema.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return {"school_id": teacher.teacher_id}

@@ -1,11 +1,11 @@
 <template>
-  <div class="w-full mx-auto px-4 sm:px-6">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200 max-w-full">
+  <div class="w-full mx-auto px-4 sm:px-6 ">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200 max-w-full ">
       
-      <div class="flex flex-wrap justify-between items-center bg-gray-50 border-b border-gray-200 px-6 py-4 gap-2">
+      <!-- Header (fixed, không scroll) -->
+      <div class="flex flex-wrap justify-between items-center bg-gray-50 border-b border-gray-200 px-6 py-4 gap-2 ">
         <h2 class="text-xl font-semibold text-gray-800">{{ title }}</h2>
-        <div class="flex gap-2 flex-wrap">
-          
+        <div class="flex gap-2 flex-wrap ">
           <CButton 
             v-if="showAddButton"
             :to="addButtonTo"
@@ -13,8 +13,18 @@
           >
             {{ addLabel }}
           </CButton>
+
+          <CButton
+            v-if="showRegisterButton"
+            :to="registerTo"
+            variant="register"
+            @click="handleRegister"
+          >
+            {{ registerLabel }}
+          </CButton>
           
           <CButton 
+            v-if="showEditButton && isAdmin"
             variant="edit" 
             :disabled="!selectedRow" 
             @edit="handleEdit" 
@@ -23,74 +33,75 @@
           </CButton>
 
           <CButton 
-            v-if="!hideDeleteButton"
+            v-if="!registerMode && !hideDeleteButton"
             variant="delete" 
             :disabled="!selectedRow" 
             @delete="handleDelete" 
           >
             {{ deleteLabel }}
           </CButton>
-
         </div>
       </div>
 
-      <div class="hidden lg:block overflow-x-auto border-t border-b border-gray-200 max-w-full">
-        <table class="w-full border-separate border-spacing-0">
-          <thead class="bg-gray-200">
-            <tr>
-              <th
-                v-for="(col, index) in columns"
-                :key="index"
-                @click="sortBy(col.field)"
-                class="px-3 py-3 text-xs sm:text-sm font-semibold text-gray-700 text-left cursor-pointer select-none border-b border-gray-200 hover:bg-gray-300 transition-colors"
-                :class="getColumnWidth(col.field)"
-                :style="getColumnStyle(col.field)"
-              >
-                <div class="flex items-center gap-1">
-                  <span class="truncate">{{ col.label }}</span>
-                  <span class="text-gray-400 text-sm flex-shrink-0">
-                    <template v-if="sortField === col.field">
-                      <span v-if="sortOrder === 'asc'">↑</span>
-                      <span v-else>↓</span>
-                    </template>
-                    <template v-else>⇅</template>
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
+      <!-- Table Wrapper (chỉ phần này scroll) -->
+      <div class="hidden lg:block border-t border-b border-gray-200 max-w-full *:h-full">
+        <div class="overflow-x-auto overflow-y-auto" :style="{ 'max-height': maxHeight }">
+          <table class="w-full border-separate border-spacing-0 table-fixed">
+            <thead class="bg-gray-200">
+              <tr>
+                <th
+                  v-for="(col, index) in columns"
+                  :key="index"
+                  @click="sortBy(col.field)"
+                  class="px-3 py-3 text-xs sm:text-sm font-semibold text-gray-700 text-left cursor-pointer select-none border-b border-gray-200 hover:bg-gray-300 transition-colors sticky top-0 z-10"
+                  :style="getColumnStyle(col.field)"
+                >
+                  <div class="flex items-center gap-1">
+                    <span class="truncate">{{ col.label }}</span>
+                    <span class="text-gray-400 text-sm flex-shrink-0">
+                      <template v-if="sortField === col.field">
+                        <span v-if="sortOrder === 'asc'">↑</span>
+                        <span v-else>↓</span>
+                      </template>
+                      <template v-else>⇅</template>
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
 
-          <tbody>
-            <tr
-              v-for="(row, idx) in sortedData"
-              :key="row[idKey]"
-              @click="selectRow(row)"
-              class="text-sm text-gray-700 border-b border-gray-100 transition-all duration-200"
-              :class="[ 
-                selectedRow && selectedRow[idKey] === row[idKey]
-                  ? 'bg-blue-100 border-l-4 border-blue-500 hover:bg-blue-100'
-                  : idx % 2 === 0
-                  ? 'bg-white hover:bg-blue-50 cursor-pointer'
-                  : 'bg-gray-50 hover:bg-blue-50 cursor-pointer'
-              ]"
-            >
-              <td
-                v-for="(col, index) in columns"
-                :key="index"
-                class="px-3 py-2 text-left text-xs sm:text-sm"
-                :class="getColumnWidth(col.field)"
-                :style="getColumnStyle(col.field)"
+            <tbody>
+              <tr
+                v-for="(row, idx) in sortedData"
+                :key="row[idKey]"
+                @click="selectRow(row)"
+                class="text-sm text-gray-700 border-b border-gray-100 transition-all duration-200"
+                :class="[ 
+                  selectedRow && selectedRow[idKey] === row[idKey]
+                    ? 'bg-blue-100 border-l-4 border-blue-500 hover:bg-blue-100'
+                    : idx % 2 === 0
+                    ? 'bg-white hover:bg-blue-50 cursor-pointer'
+                    : 'bg-gray-50 hover:bg-blue-50 cursor-pointer'
+                ]"
               >
-                <div class="truncate" :title="row[col.field]">
-                  {{ row[col.field] }}
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td
+                  v-for="(col, index) in columns"
+                  :key="index"
+                  class="px-3 py-2 text-left text-xs sm:text-sm truncate"
+                  :style="getColumnStyle(col.field)"
+                >
+                  <div class="truncate" :title="row[col.field]">
+                    {{ row[col.field] }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="lg:hidden space-y-4 p-6">
+      <!-- Card View (Mobile) -->
+      <div class="lg:hidden space-y-4 p-6 overflow-y-auto" :style="{ 'max-height': maxHeight }">
         <div
           v-for="(row, idx) in sortedData"
           :key="row[idKey]"
@@ -130,8 +141,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-// Giả định bạn đã import hoặc định nghĩa CButton ở đâu đó, ví dụ:
-// import CButton from './CButton.vue' 
+import CButton from './CButton.vue'
 
 const props = defineProps({
   title: { type: String, default: 'Danh sách' },
@@ -143,83 +153,25 @@ const props = defineProps({
   hideDeleteButton: { type: Boolean, default: false },
   addLabel: { type: String, default: 'Thêm' },
   showAddButton: { type: Boolean, default: false },
-  addButtonTo: { type: String, default: '' }
+  addButtonTo: { type: String, default: '' },
+  showRegisterButton: { type: Boolean, default: false },
+  registerLabel: { type: String, default: 'Đăng ký' },
+  registerTo: { type: String, default: '' },
+  registerMode: { type: Boolean, default: false },
+  showEditButton: { type: Boolean, default: true },
+  isAdmin: { type: Boolean, default: false },
+  maxHeight: { type: String, default: '85%' }
 })
 
 const selectedRow = ref(null)
 const sortField = ref(null)
 const sortOrder = ref('asc')
 const expandedRows = ref({})
+const emit = defineEmits(['edit', 'delete', 'register'])
 
-const emit = defineEmits(['edit', 'delete'])
-
-const handleEdit = () => {
-  if (selectedRow.value) {
-    emit('edit', selectedRow.value)
-  }
-}
-
-const handleDelete = () => {
-  if (selectedRow.value) {
-    emit('delete', selectedRow.value)
-  }
-}
-
-// Hàm xác định chiều rộng cột với min-width
-const getColumnWidth = (field) => {
-  const widths = {
-    teacherCode: 'min-w-[100px]',
-    studentCode: 'min-w-[100px]',
-    lastName: 'min-w-[120px]',
-    firstName: 'min-w-[100px]',
-    dob: 'min-w-[110px]',
-    gender: 'min-w-[60px]',
-    email: 'min-w-[120px]',
-    phone: 'min-w-[80px]',
-    faculty: 'min-w-[110px]',
-    department: 'min-w-[130px]',
-    specialization: 'min-w-[130px]',
-    degree: 'min-w-[100px]',
-    academicRank: 'min-w-[120px]',
-    className: 'min-w-[100px]',
-    status: 'min-w-[100px]'
-  }
-  return widths[field] || 'min-w-[120px]'
-}
-
-// Hàm xác định style cho cột với max-width
-const getColumnStyle = (field) => {
-  const maxWidths = {
-    teacherCode: '120px',
-    studentCode: '120px',
-    lastName: '150px',
-    firstName: '120px',
-    dob: '130px',
-    gender: '80px',
-    email: '120px',
-    phone: '120px',
-    faculty: '130px',
-    department: '140px',
-    specialization: '140px',
-    degree: '120px',
-    academicRank: '120px',
-    className: '120px',
-    status: '120px'
-  }
-  return { maxWidth: maxWidths[field] || '150px' }
-}
-
-// Priority columns for mobile (most important info)
-const priorityColumns = computed(() => {
-  const priority = ['teacherCode', 'studentCode', 'lastName', 'firstName', 'email']
-  return props.columns.filter(col => priority.includes(col.field))
-})
-
-// Secondary columns for mobile (expandable details)
-const secondaryColumns = computed(() => {
-  const priority = ['teacherCode', 'studentCode', 'lastName', 'firstName', 'email']
-  return props.columns.filter(col => !priority.includes(col.field))
-})
+const handleRegister = () => emit('register', selectedRow.value)
+const handleEdit = () => selectedRow.value && emit('edit', selectedRow.value)
+const handleDelete = () => selectedRow.value && emit('delete', selectedRow.value)
 
 const selectRow = (row) => {
   selectedRow.value =
@@ -229,9 +181,9 @@ const selectRow = (row) => {
 }
 
 const sortBy = (field) => {
-  if (sortField.value === field) {
+  if (sortField.value === field)
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
+  else {
     sortField.value = field
     sortOrder.value = 'asc'
   }
@@ -241,15 +193,45 @@ const toggleExpand = (id) => {
   expandedRows.value[id] = !expandedRows.value[id]
 }
 
+const getColumnStyle = (field) => {
+  const widths = {
+    teacherCode: '8%',
+    studentCode: '8%',
+    lastName: '12%',
+    firstName: '10%',
+    dob: '10%',
+    gender: '6%',
+    email: '14%',
+    phone: '10%',
+    faculty: '10%',
+    department: '10%',
+    specialization: '12%',
+    degree: '8%',
+    academicRank: '10%',
+    className: '8%',
+    status: '8%'
+  }
+  return { width: widths[field] || '10%' }
+}
+
+const priorityColumns = computed(() => {
+  const priority = ['teacherCode', 'studentCode', 'lastName', 'firstName', 'email']
+  return props.columns.filter(col => priority.includes(col.field))
+})
+
+const secondaryColumns = computed(() => {
+  const priority = ['teacherCode', 'studentCode', 'lastName', 'firstName', 'email']
+  return props.columns.filter(col => !priority.includes(col.field))
+})
+
 const sortedData = computed(() => {
   if (!sortField.value) return props.data
   return [...props.data].sort((a, b) => {
     const aVal = a[sortField.value]
     const bVal = b[sortField.value]
     if (aVal == null || bVal == null) return 0
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
+    if (typeof aVal === 'number' && typeof bVal === 'number')
       return sortOrder.value === 'asc' ? aVal - bVal : bVal - aVal
-    }
     return sortOrder.value === 'asc'
       ? String(aVal).localeCompare(String(bVal))
       : String(bVal).localeCompare(String(aVal))
@@ -258,32 +240,29 @@ const sortedData = computed(() => {
 </script>
 
 <style scoped>
-/* Custom scrollbar for better UX */
 .overflow-x-auto {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e0 #f7fafc;
 }
-
 .overflow-x-auto::-webkit-scrollbar {
   height: 8px;
+  width: 8px;
 }
-
 .overflow-x-auto::-webkit-scrollbar-track {
   background: #f7fafc;
   border-radius: 4px;
 }
-
 .overflow-x-auto::-webkit-scrollbar-thumb {
   background: #cbd5e0;
   border-radius: 4px;
 }
-
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
-
-/* Ensure table doesn't overflow container */
+thead th {
+  background-color: #e5e7eb;
+}
 table {
-  table-layout: auto;
+  table-layout: fixed;
 }
 </style>

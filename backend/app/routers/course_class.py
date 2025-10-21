@@ -39,3 +39,12 @@ def delete_course_class(course_class_id: int, db: Session = Depends(get_db)):
     if not db_course_class:
         raise HTTPException(status_code=404, detail="CourseClass not found")
     return {"detail": "CourseClass deleted successfully"}
+
+@router.get("/by_program/{program_id}", response_model=List[CourseClassResponse])
+def get_course_classes_by_program_id(program_id: int, student_id: int = None, db: Session = Depends(get_db)):
+    return course_class_service.get_course_classes_by_program_id(db, program_id, student_id)
+
+@router.get("/course_classes/{course_class_id}/students")
+def get_students_in_course_class(course_class_id: int, db: Session = Depends(get_db)):
+    students = course_class_service.get_students_in_course_class(db, course_class_id)
+    return students

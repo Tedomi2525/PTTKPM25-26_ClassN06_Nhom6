@@ -1,14 +1,8 @@
 <template>
-  <div>
-    <div class="pl-6 flex justify-between items-center mb-4">
-      <CButton 
-        @click="$router.push('/Admin/dashboard/courses')" 
-        class="bg-blue-500 text-white px-3 py-2 rounded"
-      >
-        Quay lại danh sách chính
-      </CButton>
-    </div>
-
+  <div class="mx-auto mt-4">
+    <div class="px-6 pb-2">
+    <CButton type="back" variant="secondary" @click="$router.goto()">Trở lại</CButton>
+  </div>
     <DataTable
       title="Danh Sách Học Phần Đã Ẩn"
       :data="deletedCourses"

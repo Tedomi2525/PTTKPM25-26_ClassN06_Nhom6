@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
 from typing import Optional
 
+from app import models
 from app.models.teacher import Teacher as TeacherModel
 from app.models.user import User as UserModel
 from app.models.schedule import Schedule
@@ -16,6 +17,10 @@ from app.schemas.teacher import TeacherCreate, TeacherUpdate
 from app.schemas.user import UserCreate
 
 from app.core.security import get_password_hash
+
+def get_teacher_by_id(db, teacher_id: int):
+    teacher = db.query(models.Teacher).filter(models.Teacher.teacher_id == teacher_id).first()
+    return teacher
 
 def generate_teacher_code(db: Session) -> str:
     year = datetime.now().year % 100  # 2 số cuối của năm
@@ -230,13 +235,13 @@ def get_teacher_weekly_schedule(db: Session, teacher_id: int, sunday_date: str):
         
         # Map day_of_week to Vietnamese
         day_names = {
-            1: "Chủ nhật",
-            2: "Thứ 2", 
-            3: "Thứ 3",
-            4: "Thứ 4",
-            5: "Thứ 5",
-            6: "Thứ 6",
-            7: "Thứ 7"
+            1: "Thứ 2",
+            2: "Thứ 3",
+            3: "Thứ 4",
+            4: "Thứ 5",
+            5: "Thứ 6",
+            6: "Thứ 7",
+            7: "Chủ nhật"
         }
         
         schedule_info = {

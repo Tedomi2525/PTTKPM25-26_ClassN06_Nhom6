@@ -5,5 +5,15 @@ email-validator
 passlib[bcrypt]
 python-jose[cryptography]
 pydantic-settings
+python-dotenv
 alembic
 psycopg2-binary
+numpy
+opencv-python
+ultralytics
+tqdm
+pillow
+torch
+torchvision
+faiss-cpu
+python-multipart

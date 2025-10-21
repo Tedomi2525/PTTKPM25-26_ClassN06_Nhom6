@@ -25,6 +25,7 @@ class Schedule(Base):
     start_period = relationship("Period", foreign_keys=[period_start])
     end_period = relationship("Period", foreign_keys=[period_end])
     semester = relationship("Semester", back_populates="schedules")
+    attendances = relationship("Attendance", back_populates="schedule", cascade="all, delete-orphan")
 
     # Constraints
     __table_args__ = (

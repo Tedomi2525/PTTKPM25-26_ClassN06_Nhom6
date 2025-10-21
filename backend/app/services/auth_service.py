@@ -34,8 +34,34 @@ def login_service(db: Session, request: LoginRequest):
 def update_user_password(db: Session, user_id: int, payload: UserPasswordUpdate):
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
-        return None
-    user.password = get_password_hash(payload.password)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(payload.current_password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password confirmation
+    if payload.new_password != payload.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirm password do not match"
+        )
+    
+    # Check if new password is different from current password
+    if verify_password(payload.new_password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Update password
+    user.password = get_password_hash(payload.new_password)
     db.commit()
     db.refresh(user)
     return user 
@@ -59,19 +85,26 @@ def get_current_user_service(db: Session, token: str):
         raise credentials_exception
 
     student = db.query(Student).filter(Student.user_id == user.user_id).first()
+    teacher = db.query(Teacher).filter(Teacher.user_id == user.user_id).first()
+
     if student:
         full_name = f"{student.first_name} {student.last_name}".strip()
+        school_id = student.student_id
+        avatar = student.avatar
+        program_id = student.program_id
+    elif teacher:
+        full_name = f"{teacher.first_name} {teacher.last_name}".strip()
+        school_id = teacher.teacher_id
     else:
-        teacher = db.query(Teacher).filter(Teacher.user_id == user.user_id).first()
-        if teacher:
-            full_name = f"{teacher.first_name} {teacher.last_name}".strip()
-        else:
-            full_name = user.username
-
+        full_name = user.username
+        school_id = None
     return {
         "user_id": user.user_id,
         "username": user.username,
         "full_name": full_name,
         "role": user.role,
-        "disabled": False
+        "school_id": school_id,
+        "avatar": avatar if student else None,
+        "disabled": False,
+        "program_id": program_id if student else None
     }

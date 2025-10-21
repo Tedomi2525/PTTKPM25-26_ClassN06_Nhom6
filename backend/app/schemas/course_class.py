@@ -28,6 +28,8 @@ class CourseClassBase(BaseModel):
     course_id: int = Field(..., alias="courseId", description="ID of the course")
     teacher_id: int = Field(..., alias="teacherId", description="ID of the teacher")
     section: Optional[str] = Field(None, description="Section name")
+    current_students: Optional[int] = Field(None, alias="currentStudents", ge=0, description="Current number of students")
+    
     max_students: Optional[int] = Field(None, alias="maxStudents", gt=0, description="Maximum number of students")
     min_students: Optional[int] = Field(None, alias="minStudents", ge=0, description="Minimum number of students")
     
@@ -43,6 +45,7 @@ class CourseClassUpdate(BaseModel):
     section: Optional[str] = Field(None, description="Section name")
     max_students: Optional[int] = Field(None, alias="maxStudents", gt=0, description="Maximum number of students")
     min_students: Optional[int] = Field(None, alias="minStudents", ge=0, description="Minimum number of students")
+    current_students: Optional[int] = Field(None, alias="currentStudents", ge=0, description="Current number of students")
     
     class Config:
         populate_by_name = True

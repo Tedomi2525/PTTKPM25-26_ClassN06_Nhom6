@@ -1,10 +1,10 @@
 <template>
   <NuxtLayout name="default">
     <template #default>
-      <div class="flex min-h-[calc(100vh-64px)]">
+      <div class="flex min-h-[calc(100vh-64px)] ">
         
         <aside
-          class="h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white shadow-lg flex flex-col z-10 transition-all duration-300 ease-in-out"
+          class="h-[calc(100vh-64px)] bg-gradient-to-b from-white to-white shadow-lg flex flex-col z-10 transition-all duration-300 ease-in-out fixed top-16 left-0 right-0"
           :class="{
             'w-64': !isAsideCollapsed,
             'w-20': isAsideCollapsed,
@@ -49,12 +49,13 @@
                 <span class="flex-shrink-0">
                   <img v-if="sub.label === 'Sinh viên'" src="/images/student-50.png" alt="Sinh viên" class="w-6 h-6 object-contain" />
                   <img v-else-if="sub.label === 'Giảng viên'" src="/images/icons8-lecturer-50.png" alt="Giảng viên" class="w-6 h-6 object-contain" />
-                  <svg v-else-if="sub.label === 'Giảng viên'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1 0-3 .4-3 1.5v3h6v-3c0-1.1-2-1.5-3-1.5zM3 10h1m8-5v1m4 0h1M3 21v-4h18v4H3z"/>
-                  </svg>
-                  <svg v-else-if="sub.label === 'Khoá học' || sub.label === 'Chương trình học'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <svg v-else-if="sub.label === 'Học phần' || sub.label === 'Chương trình học'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.794 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.794 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.206 18 16.5 18s-3.332.477-4.5 1.253"/>
                   </svg>
+                  <img v-else-if="sub.label === 'Thời khóa biểu'" src="/images/icons8-schedule-64.png" alt="Thời khóa biểu" class="w-6 h-6 object-contain" />
+                  <img v-else-if="sub.label === 'Điểm danh'" src="/images/icons8-attendance-96.png" alt="Điểm danh" class="w-6 h-6 object-contain" />
+                  <img v-else-if="sub.label === 'Bảng điều khiển'" src="/images/icons8-dashboard-50.png" alt="Bảng điều khiển" class="w-6 h-6 object-contain" />
+                  <!-- <img v-else-if="sub.label === 'Học phần'" src="/images/icons8-course-64.png" alt="Học phần" class="w-6 h-6 object-contain" /> -->
                   <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                   </svg>
@@ -74,15 +75,16 @@
           </div>
         </aside>
 
-        <main 
-          class="flex-1 bg-gray-50 min-h-[calc(100vh-64px)] transition-all duration-300 ease-in-out"
-          :class="{ 'ml-0': isAsideCollapsed, '': !isAsideCollapsed }"
-          style="margin-left: 0 !important;"
-        >
-          <div class="w-full">
-            <slot/>
-          </div>
-        </main>
+      <main 
+        class="flex-1 bg-gray-50 min-h-[calc(100vh-64px)] transition-all duration-300 ease-in-out"
+        :style="{
+          marginLeft: isAsideCollapsed ? '5rem' : '16rem'  // w-20 = 5rem, w-64 = 16rem
+        }"
+      >
+        <div class="relative">
+          <slot/>
+        </div>
+      </main>
       </div>
     </template>
   </NuxtLayout>
@@ -97,10 +99,13 @@ const route = useRoute()
 const isAsideCollapsed = ref(false) // Trạng thái ẩn/hiện của aside
 
 const dashboardSubMenu = [
-  { label: "Sinh viên", href: "/Admin/dashboard/student_list", match: "/Admin/dashboard/student" },
-  { label: "Giảng viên", href: "/Admin/dashboard/teacher_list", match: "/Admin/dashboard/teacher" },
-  { label: "Khoá học", href: "/Admin/dashboard/courses", match: "/Admin/dashboard/course" },
-  { label: "Chương trình học", href: "/program/programs", match: "/program/programs" },
+  { label: "Bảng điều khiển", href: "/admin/dashboard/admin", match: "/admin/dashboard/admin" },
+  { label: "Sinh viên", href: "/admin/dashboard/student_list", match: "/admin/dashboard/student" },
+  { label: "Giảng viên", href: "/admin/dashboard/teacher_list", match: "/admin/dashboard/teacher" },
+  { label: "Thời khóa biểu", href: "/admin/dashboard/schedule", match: "/admin/dashboard/schedule" },
+  { label: "Điểm danh", href: "/admin/dashboard/attendance", match: "/admin/dashboard/attendance" },
+  { label: "Học phần", href: "/admin/dashboard/courses", match: "/admin/dashboard/course" },
+  { label: "Chương trình học", href: "/admin/dashboard/program/programs", match: "/admin/dashboard/program" },
 ]
 
 function toggleAside() {

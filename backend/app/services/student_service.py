@@ -5,6 +5,12 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
 from typing import Optional
 
+import faiss
+import os
+import numpy as np
+from fastapi import HTTPException
+
+from app import models
 from app.models.student import Student as StudentModel
 from app.models.user import User as UserModel
 from app.models.enrollment import Enrollment
@@ -18,11 +24,17 @@ from app.schemas.student import StudentCreate, StudentUpdate
 from app.schemas.user import UserCreate
 
 from app.core.security import get_password_hash
+from app.services.face_service.embedding.face_embedding import get_face_embedding
+from app.models.student_faces import StudentFace
 
+FAISS_INDEX_PATH = "face.index"
+IMAGE_DIR = "app/static/images/"  # Thư mục lưu ảnh
 # ==============================================================================
 # UTILITY FUNCTIONS
-# (Logic generate_student_code giữ nguyên)
 # ==============================================================================
+def get_student_by_id(db, student_id: int):
+    student = db.query(models.Student).filter(models.Student.student_id == student_id).first()
+    return student
 
 def generate_student_code(db: Session) -> str:
     year = datetime.now().year % 100 
@@ -54,7 +66,17 @@ def generate_student_code(db: Session) -> str:
             pass
     new_number = max_number + 1
     return f"{prefix}{new_number:06d}"
+# ----------- FAISS Index -----------
+def load_or_create_faiss_index(d: int) -> faiss.Index:
+    """Load FAISS index nếu có, nếu chưa thì tạo mới"""
+    if os.path.exists(FAISS_INDEX_PATH):
+        return faiss.read_index(FAISS_INDEX_PATH)
+    return faiss.IndexFlatL2(d)
 
+
+def save_faiss_index(index: faiss.Index):
+    """Lưu FAISS index ra file"""
+    faiss.write_index(index, FAISS_INDEX_PATH)
 # ==============================================================================
 # CRUD OPERATIONS
 # ==============================================================================
@@ -113,12 +135,53 @@ def create_student(db: Session, student_payload: StudentCreate):
         # Xử lý field class_name
         if "class_name" in student_data and student_data["class_name"] is None:
             student_data.pop("class_name")
+        print(f"Creating student with data: {student_data}")
+        # ---------- 2. Lấy embedding từ ảnh ----------
+        try:
+            # Chuyển đổi URL path thành đường dẫn file thực
+            avatar_path = student_payload.avatar
+            if avatar_path.startswith("/"):
+                avatar_path = avatar_path.lstrip("/")  # Loại bỏ "/" ở đầu
+            
+            print(f"Opening file at: {avatar_path}")
+            with open(avatar_path, "rb") as img_file:
+                content = img_file.read()
+            emb = get_face_embedding(content)
+            if emb is None or len(emb) == 0:
+                raise ValueError("Face not detected")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Face embedding error: {str(e)}")
+
+        # Chuẩn hóa vector
+        emb = np.array(emb, dtype=np.float32).flatten()
+        emb /= np.linalg.norm(emb)
+
+        # ---------- 3. Thêm vào FAISS ----------
+        index = load_or_create_faiss_index(len(emb))
+        index.add(np.expand_dims(emb, axis=0))
+        faiss_index = index.ntotal - 1  # vị trí mới thêm vào
+        save_faiss_index(index)
 
         new_student = StudentModel(**student_data)
         db.add(new_student)
         db.commit()
         db.refresh(new_student)
 
+            # ---------- 5. Lưu embedding vào bảng student_faces ----------
+        try:
+            new_face = StudentFace(
+                student_id=new_student.student_id,
+                embedding_vector=emb.tobytes(),  # lưu numpy array thành nhị phân
+                is_primary=True,  # ảnh đầu tiên làm ảnh chính
+                faiss_index=faiss_index
+            )
+            db.add(new_face)
+            db.commit()
+            db.refresh(new_face)
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error saving embedding to DB: {str(e)}")
+        
         return new_student
     
     except IntegrityError as e:
@@ -255,7 +318,7 @@ def get_student_weekly_schedule(db: Session, student_id: int, sunday_date: str):
     for schedule in schedules:
         period_end = db.query(Period).filter(Period.period_id == schedule.period_end).first()
         day_names = {
-            1: "Chủ nhật", 2: "Thứ 2", 3: "Thứ 3", 4: "Thứ 4", 5: "Thứ 5", 6: "Thứ 6", 7: "Thứ 7"
+            1: "Thứ 2", 2: "Thứ 3", 3: "Thứ 4", 4: "Thứ 5", 5: "Thứ 6", 6: "Thứ 7", 7: "Chủ nhật"
         }
         
         def get_period_time(period_id, attr):

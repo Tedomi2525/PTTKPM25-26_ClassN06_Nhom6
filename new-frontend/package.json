@@ -16,6 +16,7 @@
     "@fullcalendar/vue3": "^6.1.19",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.12.2",
     "flatpickr": "^4.6.13",
     "nuxt": "^4.1.2",
     "tailwindcss": "^4.1.13",

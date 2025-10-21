@@ -16,7 +16,7 @@ class Student(Base):
     gender = Column(String(10))
     email = Column(String(100), unique=True)
     phone = Column(String(20))
-
+    program_id = Column(Integer, ForeignKey("programs.program_id"))
     class_name = Column("class", String(50))
     training_program = Column(String(50))
     course_years = Column(String(20))
@@ -35,9 +35,8 @@ class Student(Base):
     user = relationship("User", back_populates="student")
     enrollments = relationship("Enrollment", back_populates="student")
     student_faces = relationship("StudentFace", back_populates="student", cascade="all, delete-orphan")
+    attendances = relationship("Attendance", back_populates="student", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("gender IN ('Nam', 'Nữ', 'Khác')", name="check_gender"),
-        CheckConstraint("education_type IN ('Đại học chính quy', 'Liên thông', 'Cao đẳng')", name="check_education_type"),
-        CheckConstraint("status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')", name="check_status"),
     )

@@ -13,7 +13,7 @@ class CourseClass(Base):
     section = Column(String(20))
     max_students = Column(Integer, CheckConstraint('max_students > 0'))
     min_students = Column(Integer, CheckConstraint('min_students >= 0'))
-
+    current_students = Column(Integer, CheckConstraint('current_students >= 0'), default=0)
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
 

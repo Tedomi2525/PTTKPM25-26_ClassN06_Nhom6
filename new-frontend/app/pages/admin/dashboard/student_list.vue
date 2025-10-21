@@ -1,6 +1,13 @@
 <template>
-  <div class="p-4 space-y-6">
+    <div class="mx-auto mt-8">
+    <LoadingSpinner 
+      v-if="isLoading"
+      message="Đang tải danh sách sinh viên..."
+      sub-message="Vui lòng đợi trong giây lát"
+    />
+    
     <DataTable
+      v-else
       title="Danh Sách Sinh Viên"
       :data="students"
       :columns="columns"
@@ -8,6 +15,7 @@
       :showAddButton="true"
       addButtonTo="/Admin/dashboard/student_add"
       addLabel="Thêm sinh viên"
+      isAdmin="True"
       @edit="editStudent"
       @delete="deleteStudent"
     />
@@ -19,9 +27,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from '@/components/DataTable.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter() // Thêm useRouter để sử dụng navigateTo
 const students = ref([])
+const isLoading = ref(true)
 
 const columns = [
   { label: "Mã SV", field: "studentCode" },
@@ -36,18 +46,21 @@ const columns = [
 ]
 
 async function fetchStudents() {
+  isLoading.value = true
   try {
     const res = await fetch('http://localhost:8000/api/students')
     if (!res.ok) throw new Error('Không tải được danh sách')
     students.value = await res.json()
   } catch (err) {
     alert('Lỗi: ' + err.message)
+  } finally {
+    isLoading.value = false
   }
 }
 
 function editStudent(student) {
-  // Sử dụng router.push thay cho navigateTo nếu bạn đã import useRouter
-  router.push(`/Admin/dashboard/student_edit/${student.studentId}`)
+  localStorage.setItem('editStudentId', student.studentId)
+  router.push('/Admin/dashboard/student_edit')
 }
 
 async function deleteStudent(student) {

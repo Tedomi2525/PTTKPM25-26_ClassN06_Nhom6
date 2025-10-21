@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+from .course_class import CourseClassResponse
 
 class EnrollmentBase(BaseModel):
     student_id: int = Field(..., alias="studentId", description="ID of the student")
@@ -23,6 +24,7 @@ class Enrollment(EnrollmentBase):
     enrollment_id: int = Field(..., alias="enrollmentId", description="ID of the enrollment")
     created_at: datetime = Field(..., alias="createdAt", description="Creation timestamp")
     updated_at: datetime = Field(..., alias="updatedAt", description="Last update timestamp")
+    course_class: Optional[CourseClassResponse] = Field(None, alias="courseClass")
     
     class Config:
         from_attributes = True

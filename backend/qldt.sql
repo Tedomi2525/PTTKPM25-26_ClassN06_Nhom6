@@ -15,7 +15,21 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS programs;
 DROP TABLE IF EXISTS periods;
 DROP TABLE IF EXISTS rooms;
+-- 14. PROGRAMS
+CREATE TABLE programs (
+    program_id SERIAL PRIMARY KEY,
+    program_name VARCHAR(150) NOT NULL,  
+    department VARCHAR(100),            
+    start_year INT NOT NULL,             
+    duration INT,                        
+    current_semester VARCHAR(10),                  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+INSERT INTO programs (program_name, department, start_year, duration)
+VALUES
+('Công nghệ thông tin 2025-2029', 'Khoa Công nghệ Thông tin', 2025, 4);
 -- 1. USERS
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -51,20 +65,11 @@ CREATE TABLE teachers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO teachers (
-    teacher_code, first_name, last_name, dob, gender, email, phone, 
-    department, faculty, specialization, degree, academic_rank
-) VALUES
-  ('GV2301', 'An', 'Nguyen Van', '1980-05-10', 'Nam', 'an.nguyen@univ.edu', '0912345678',
-   'Công nghệ thông tin', 'Khoa học máy tính', 'Trí tuệ nhân tạo', 'Tiến sĩ', 'Giảng viên'),
-
-  ('GV2302', 'Binh', 'Tran Thi', '1975-09-21', 'Nữ', 'binh.tran@univ.edu', '0987654321',
-   'Kinh tế', 'Tài chính - Ngân hàng', 'Kế toán', 'Thạc sĩ', 'Phó Giáo sư'),
-
-  ('GV2303', 'Cuong', 'Le Van', '1982-12-01', 'Nam', 'cuong.le@univ.edu', '0905123456',
-   'Toán ứng dụng', 'Xác suất - Thống kê', 'Toán tính toán', 'Tiến sĩ', 'Giáo sư');
-
+INSERT INTO teachers (teacher_code, first_name, last_name, dob, gender, email, phone, department, faculty, specialization, degree, academic_rank)
+VALUES
+('GV2301', 'Nguyễn Văn', 'A', '1980-01-01', 'Nam', 'nguyen.a@univ.edu', '0912345678', 'Công nghệ thông tin', 'Khoa học máy tính', 'Trí tuệ nhân tạo', 'Tiến sĩ', 'Giảng viên'),
+('GV2302', 'Trần Thị', 'B', '1985-02-02', 'Nữ', 'tran.b@univ.edu', '0912345679', 'Kinh tế', 'Khoa kinh tế', 'Kinh tế học', 'Thạc sĩ', 'Giảng viên'),
+('GV2303', 'Lê Văn', 'C', '1990-03-03', 'Nam', 'le.c@univ.edu', '0912345680', 'Toán ứng dụng', 'Khoa toán', 'Toán học', 'Cử nhân', 'Giảng viên');
 -- 3. STUDENTS
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,                     -- Mã tự tăng
@@ -72,41 +77,25 @@ CREATE TABLE students (
     first_name VARCHAR(50) NOT NULL,                   -- Tên
     last_name VARCHAR(100) NOT NULL,                   -- Họ và đệm
     dob DATE,                                          -- Ngày sinh
-    gender VARCHAR(10) CHECK (gender IN ('Nam', 'Nữ', 'Khác')),
+    gender VARCHAR(10),                                -- Giới tính (Nam, Nữ, Khác)
     email VARCHAR(100) UNIQUE,                         -- Email
     phone VARCHAR(20),                                 -- Số điện thoại
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     class VARCHAR(50),                                 -- Lớp (VD: K17-CNTT_4)
     training_program VARCHAR(50),                      -- Khóa đào tạo (VD: DH_K17.40)
     course_years VARCHAR(20),                          -- Niên khóa (VD: 2023-2027)
-    education_type VARCHAR(50) CHECK (education_type IN ('Đại học chính quy', 'Liên thông', 'Cao đẳng')),
+    program_id INT REFERENCES programs(program_id) ON DELETE SET NULL,
+    education_type VARCHAR(50),                        -- Loại hình đào tạo (chính quy, liên thông, v.v.)
     faculty VARCHAR(100),                              -- Khoa quản lý
     major VARCHAR(100),                                -- Ngành học
-    status VARCHAR(50) CHECK (status IN ('Đang học', 'Bảo lưu', 'Đã tốt nghiệp')),
+    status VARCHAR(50),                                -- Trạng thái (Đang học, Bảo lưu, Đã tốt nghiệp)
     position VARCHAR(50),                              -- Chức vụ (VD: Sinh viên, Lớp trưởng)
-    avatar VARCHAR(255),                               -- Link ảnh đại diện (lưu path hoặc URL)
-    faces BYTEA,                              -- Vector nhúng khuôn mặt
+    avatar VARCHAR(255),                               -- Link ảnh đại diện (path hoặc URL)
+    faces BYTEA,                                       -- Vector nhúng khuôn mặt
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO students (
-    student_code, first_name, last_name, dob, gender, email, phone,
-    class, training_program, course_years, education_type,
-    faculty, major, status, position, avatar
-) VALUES
-('SV23010315', 'Quân', 'Hoàng Minh', '2005-03-15', 'Nam', 'quan.hm@phenikaa-uni.edu.vn', '0912345678',
- 'K17-CNTT_4', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa Công nghệ Thông tin', 'Công nghệ thông tin', 'Đang học', 'Sinh viên', '/images/students/quan.jpg'),
- 
-('SV23010316', 'Lan', 'Nguyen Thi', '2005-07-22', 'Nữ', 'lan.nguyen@phenikaa-uni.edu.vn', '0923456789',
- 'K17-CNTT_2', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa CNTT', 'Hệ thống thông tin', 'Đang học', 'Lớp phó', '/images/students/lan.jpg'),
-
-('SV23010317', 'Huy', 'Tran Van', '2005-01-11', 'Nam', 'huy.tran@phenikaa-uni.edu.vn', '0934567890',
- 'K17-CNTT_1', 'DH_K17.40', '2023-2027', 'Đại học chính quy',
- 'Khoa CNTT', 'Khoa học máy tính', 'Đang học', 'Sinh viên', '/images/students/huy.jpg');
 
 -- 4. COURSES
 CREATE TABLE courses (
@@ -114,6 +103,7 @@ CREATE TABLE courses (
     course_code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(150) NOT NULL,
     credits INT NOT NULL CHECK (credits > 0),
+    is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -219,6 +209,7 @@ CREATE TABLE course_classes (
     section VARCHAR(20),
     max_students INT CHECK (max_students > 0),
     min_students INT CHECK (min_students >= 0),
+    current_students INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -314,10 +305,6 @@ INSERT INTO course_classes (course_id, teacher_id, section, max_students, min_st
 (88,1,'N01',60,15),(88,2,'N02',60,15),
 (89,2,'N01',60,15),(89,3,'N02',60,15);
 
-ALTER TABLE course_classes
-ADD COLUMN current_students INT DEFAULT 0 NOT NULL
-CHECK (current_students >= 0 AND current_students <= max_students);
-
 -- 6. ENROLLMENTS
 CREATE TABLE enrollments (
     enrollment_id SERIAL PRIMARY KEY,
@@ -327,6 +314,7 @@ CREATE TABLE enrollments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(student_id, course_class_id)
 );
+
 
 -- 7. ROOMS
 CREATE TABLE rooms (
@@ -340,11 +328,11 @@ CREATE TABLE rooms (
 
 INSERT INTO rooms (room_name, capacity, camera_stream_url)
 VALUES
-  ('P101', 60, 'rtsp://camera1'),
-  ('P102', 70, 'rtsp://camera2'),
-  ('Lab1', 70, 'rtsp://camera3'),
-  ('Lab2', 70, 'rtsp://camera4'),
-  ('Hall', 120, 'rtsp://camera5');
+  ('A6-205', 60, 'rtsp://camera1'),
+  ('A6-206', 70, 'rtsp://camera2'),
+  ('A4-407', 70, 'rtsp://camera3'),
+  ('A4-408', 70, 'rtsp://camera4'),
+  ('A4-309', 120, 'rtsp://camera5');
 
 -- 8. PERIODS
 CREATE TABLE periods (
@@ -480,21 +468,7 @@ CREATE TABLE attendances (
 
 CREATE INDEX idx_attendances ON attendances(student_id, date);
 
--- 14. PROGRAMS
-CREATE TABLE programs (
-    program_id SERIAL PRIMARY KEY,
-    program_name VARCHAR(150) NOT NULL,  
-    department VARCHAR(100),            
-    start_year INT NOT NULL,             
-    duration INT,                        
-    current_semester VARCHAR(10),                  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
-INSERT INTO programs (program_name, department, start_year, duration)
-VALUES
-('Công nghệ thông tin 2025-2029', 'Khoa Công nghệ Thông tin', 2025, 4);
 
 -- 15. PROGRAM_COURSES
 CREATE TABLE program_courses (

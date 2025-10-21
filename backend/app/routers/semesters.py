@@ -5,10 +5,7 @@ from app.database import get_db
 import app.models.semester as models
 import app.schemas.semester as schemas
 
-router = APIRouter(
-    prefix="/semesters",
-    tags=["semesters"]
-)
+router = APIRouter()
 
 @router.get("/", response_model=List[schemas.Semester])
 def get_semesters(db: Session = Depends(get_db)):
