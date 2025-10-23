@@ -19,6 +19,7 @@
       addLabel="Thêm giảng viên"
       @edit="editTeacher"
       @delete="deleteTeacher"
+      max-height="80vh"
     />
   </div>
 </template>

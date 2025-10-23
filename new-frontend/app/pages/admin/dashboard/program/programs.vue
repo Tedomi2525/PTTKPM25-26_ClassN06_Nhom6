@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto mt-4">
+  <div class=" mx-auto mt-8">
     <div class="px-6 pb-2">
       <CButton type="goto" to="/Admin/dashboard/programs_deleted" variant="secondary">Bảng chương trình đã ẩn</CButton>
     </div>

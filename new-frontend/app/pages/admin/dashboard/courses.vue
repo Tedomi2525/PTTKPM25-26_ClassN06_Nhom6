@@ -1,7 +1,7 @@
 <template>
 
-  <div class="mx-auto mt-4 h-[90%]">
-    <div class="px-6 pb-2 h-[90%]">
+  <div class="mx-auto mt-4">
+    <div class="px-6 pb-2">
       <CButton type="goto" to="/Admin/dashboard/courses_deleted" variant="secondary">Bảng học phần đã ẩn</CButton>
     </div>
       <DataTable
@@ -13,7 +13,8 @@
         isAdmin="True"
         @edit="editCourse"
         @delete="hideCourse"
-        class="h-[90%]"
+        max-height="80vh"
+
       />
     </div>
 </template>

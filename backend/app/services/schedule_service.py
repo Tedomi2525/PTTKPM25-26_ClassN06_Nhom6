@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 import random
 
+from app.models.teacher import Teacher
+
 def get_schedules(db: Session, program_id: int):
     schedules = db.query(Schedule).join(
         CourseClass, Schedule.course_class_id == CourseClass.course_class_id
@@ -153,7 +155,8 @@ def get_courses_for_current_semester(db: Session, program_id: int):
 def generate_schedule_template(db: Session, program_id: int):
     rooms = db.query(Room).all()
     periods = db.query(Period).all()
-    
+    teachers = db.query(Teacher).all()
+    print(teachers)
     if program_id:
         current_semester_courses = get_courses_for_current_semester(db, program_id)
         
@@ -173,6 +176,8 @@ def generate_schedule_template(db: Session, program_id: int):
         period_info[p.period_id] = (p.day, p.period_number)
 
     teacherSlot = {}
+    for teacher in teachers:
+        teacherSlot[teacher.teacher_id] = set()
     roomSlot = {}
     template_schedule = []
 

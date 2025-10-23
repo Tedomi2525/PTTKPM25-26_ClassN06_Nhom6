@@ -18,6 +18,7 @@
       isAdmin="True"
       @edit="editStudent"
       @delete="deleteStudent"
+      max-height="80vh"
     />
 
   </div>
